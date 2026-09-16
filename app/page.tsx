@@ -16,12 +16,12 @@ export default function Home() {
         design system, layout shell, and component library — ready for the catalog, diary, and
         checkout to be wired in next.
       </p>
-      <div className="mt-8 flex justify-center gap-3">
+      <div className="mt-8 flex flex-wrap justify-center gap-3">
         <Button asChild>
-          <Link href="/kitchen-sink">View Component Library</Link>
+          <Link href="/kitchen-sink">Component Library</Link>
         </Button>
         <Button variant="secondary" asChild>
-          <Link href="/diary">Gifting Diary (coming soon)</Link>
+          <Link href="/diary">Gifting Diary</Link>
         </Button>
       </div>
 
