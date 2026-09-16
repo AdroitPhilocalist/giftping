@@ -38,36 +38,33 @@ static project conventions that don't change session to session._
   text-wrapping bug found while verifying `/kitchen-sink` and the homepage at 375px in the browser
   (screenshots + interaction tests: modal open/close, toast, tabs all confirmed working).
 - Created `.claude/launch.json` so `npm run dev` can be previewed via the browser tool going forward.
-- Installed the GitHub CLI (`gh`, via Homebrew) and started `gh auth login --web` — **still waiting on the
-  developer to complete this** (see Open Questions/Blocked On). Nothing else is blocked by it.
+- **GitHub is fully set up**: `gh auth login --web` had a repeated network-level failure on this
+  connection (`read tcp ...: operation timed out` polling GitHub's device-flow token endpoint, 3 attempts)
+  — worked around by authenticating with a Personal Access Token instead
+  (`gh auth login --with-token`, scopes `repo` + `read:org`). Repo created and pushed:
+  **https://github.com/AdroitPhilocalist/giftping** (private), remote `origin` set, `master` tracking.
+  If device-flow `gh auth login --web` is needed again on this network, expect it may need the
+  `--with-token` fallback again.
 
 ## Next Up
 
-1. **Finish `gh auth login`** (blocked on the developer) — then run
-   `gh repo create giftping --private --source=. --remote=origin --push` to create the repo and push what's
-   already committed locally.
-2. Once a Supabase project + Sentry DSN are provided: fill real values into `.env.local` (copied from
+1. Once a Supabase project + Sentry DSN are provided: fill real values into `.env.local` (copied from
    `.env.example`, gitignored), wire the Supabase client (`lib/db/client.ts`) and Sentry SDK — this is the
    only remaining piece of Stage 0's "done when" criteria.
-3. Move on to **Stage 1 — Database Schema & RLS**: write the Supabase migrations (SRS's tables + the
+2. Move on to **Stage 1 — Database Schema & RLS**: write the Supabase migrations (SRS's tables + the
    confirmed additions — `cart`/`cart_items`, missing indexes, tighter RLS, `orders.status` rollup,
    `users.timezone`, DPDP anonymization fields), generate TS types, write and manually verify RLS per
    role, write the seed script.
 
 ## Open Questions / Blocked On
 
-- **GitHub auth**: `gh auth login --web` is running in a background shell; the developer needs to open
-  `https://github.com/login/device` and enter the one-time code shown when that command was started (the
-  code is single-use and time-limited, so if this is read later, just re-run
-  `gh auth login --hostname github.com --git-protocol https --web` and use the new code it prints).
-- **Repo visibility/name**: assuming a private repo named `giftping` — confirm with the developer before
-  `gh repo create`, or adjust if they'd rather name/scope it differently.
+- Nothing blocking Stage 0 wrap-up except the Supabase + Sentry credentials below.
 
 ## Credentials Status
 
 | Integration | Needed at | Status |
 |---|---|---|
-| GitHub | Stage 0 | 🟡 CLI installed, local commits made, auth/push pending |
+| GitHub | Stage 0 | ✅ done — repo at https://github.com/AdroitPhilocalist/giftping |
 | Supabase (URL/anon/service-role) | Stage 0 | 🔴 not yet provided |
 | Sentry DSN | Stage 0 | 🔴 not yet provided |
 | Google OAuth | Stage 2 | 🔴 not needed yet |
