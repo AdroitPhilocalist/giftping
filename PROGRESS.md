@@ -34,27 +34,32 @@ static project conventions that don't change session to session._
 - Wrote `.env.example` listing every credential this whole build will need, each tagged with the stage
   it's first needed at — nothing is requested before it's actually required.
 - Updated `.gitignore` (`.claude/settings.local.json` excluded, `.env.example` explicitly un-ignored).
+- `git init` done; first commit made (scaffold + design system + docs); a second commit fixed a Button
+  text-wrapping bug found while verifying `/kitchen-sink` and the homepage at 375px in the browser
+  (screenshots + interaction tests: modal open/close, toast, tabs all confirmed working).
+- Created `.claude/launch.json` so `npm run dev` can be previewed via the browser tool going forward.
+- Installed the GitHub CLI (`gh`, via Homebrew) and started `gh auth login --web` — **still waiting on the
+  developer to complete this** (see Open Questions/Blocked On). Nothing else is blocked by it.
 
 ## Next Up
 
-1. **Finish `gh auth login`** (waiting on the developer — see Open Questions/Blocked On) — then
-   `gh repo create giftping --private --source=. --remote=origin` and push the initial commit.
-2. Git `init` + first commit of everything currently in the working tree (scaffold + design system +
-   `PROGRESS.md`/`CLAUDE.md`/`.env.example` + the pre-existing `ui-references/`/`.docx` source docs).
-3. Once a Supabase project + Sentry DSN are provided: fill real values into `.env.local` (copied from
-   `.env.example`, gitignored), wire the Supabase client (`lib/db/client.ts`) and Sentry SDK, confirm the
-   Stage 0 "done when" — `/kitchen-sink` at 375px + desktop, `npm run build` clean, repo pushed.
-4. Move on to **Stage 1 — Database Schema & RLS**: write the Supabase migrations (SRS's tables + the
+1. **Finish `gh auth login`** (blocked on the developer) — then run
+   `gh repo create giftping --private --source=. --remote=origin --push` to create the repo and push what's
+   already committed locally.
+2. Once a Supabase project + Sentry DSN are provided: fill real values into `.env.local` (copied from
+   `.env.example`, gitignored), wire the Supabase client (`lib/db/client.ts`) and Sentry SDK — this is the
+   only remaining piece of Stage 0's "done when" criteria.
+3. Move on to **Stage 1 — Database Schema & RLS**: write the Supabase migrations (SRS's tables + the
    confirmed additions — `cart`/`cart_items`, missing indexes, tighter RLS, `orders.status` rollup,
    `users.timezone`, DPDP anonymization fields), generate TS types, write and manually verify RLS per
    role, write the seed script.
 
 ## Open Questions / Blocked On
 
-- **GitHub auth**: `gh auth login --web` is running; the developer needs to open
-  `https://github.com/login/device` and enter the one-time code shown in that terminal session to finish
-  it (the code is single-use and time-limited, so if this is read later, just re-run
-  `gh auth login --hostname github.com --git-protocol https --web` and use the new code).
+- **GitHub auth**: `gh auth login --web` is running in a background shell; the developer needs to open
+  `https://github.com/login/device` and enter the one-time code shown when that command was started (the
+  code is single-use and time-limited, so if this is read later, just re-run
+  `gh auth login --hostname github.com --git-protocol https --web` and use the new code it prints).
 - **Repo visibility/name**: assuming a private repo named `giftping` — confirm with the developer before
   `gh repo create`, or adjust if they'd rather name/scope it differently.
 
@@ -62,7 +67,7 @@ static project conventions that don't change session to session._
 
 | Integration | Needed at | Status |
 |---|---|---|
-| GitHub | Stage 0 | 🟡 CLI installed, auth in progress |
+| GitHub | Stage 0 | 🟡 CLI installed, local commits made, auth/push pending |
 | Supabase (URL/anon/service-role) | Stage 0 | 🔴 not yet provided |
 | Sentry DSN | Stage 0 | 🔴 not yet provided |
 | Google OAuth | Stage 2 | 🔴 not needed yet |
