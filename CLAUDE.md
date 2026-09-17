@@ -51,7 +51,20 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
   same env var names (`NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`) still used for
   continuity with the SRS's naming. `lib/db/client.ts` (browser), `lib/db/server.ts` (Server
   Components/Actions/Route Handlers, via `@supabase/ssr` + `next/headers` cookies), `lib/db/admin.ts`
-  (service-role, RLS-bypassing, `server-only`-guarded — server-trusted code paths only).
+  (service-role, RLS-bypassing, `server-only`-guarded — server-trusted code paths only). All three are
+  generic over `lib/db/types.ts` (generated — regenerate with `npm run db:types` after any schema change,
+  never hand-edit it).
+- **Supabase CLI + Postgres client**: the CLI (`supabase`, via `brew install supabase/tap/supabase`) is
+  linked to the remote project (`supabase link`) using a personal access token (`supabase login --token`)
+  — the DB password alone isn't enough for `link`/`gen types`, only for `db push --password`. A `psql`
+  client was also installed (`brew install libpq`, then `export PATH="/opt/homebrew/opt/libpq/bin:$PATH"`
+  — it's keg-only, not symlinked by default) for hand-verifying RLS policies directly, which is
+  significantly more reliable than reasoning about policy SQL from reading it: simulate a specific
+  user/role with `set local role authenticated; set local request.jwt.claims = '{"sub":"<uuid>"}';` inside
+  a transaction, run the query, then `rollback;` — never `commit` a manual verification session. Both
+  credentials (Supabase PAT, DB password) were provided once for initial setup and are not stored
+  anywhere in this repo; a future session needing to run migrations again will need to ask the developer
+  for them afresh (or use whatever the developer has cached locally, e.g. `supabase login` state).
 - **Sentry**: wired via the modern `instrumentation.ts` + `instrumentation-client.ts` convention (not the
   older `sentry.client.config.ts` + `_app.tsx` pattern) — see those files plus `sentry.server.config.ts` /
   `sentry.edge.config.ts` / `app/global-error.tsx`. Only enabled when `NODE_ENV === "production"`, so
@@ -98,11 +111,54 @@ a minimal schema. Add tables/fields freely as real needs surface; don't force ne
 just to avoid a migration. The non-negotiable constraint is RLS on every table and no unnecessary PII
 exposure — richness of data and tightness of access control both apply fully, always.
 
-Confirmed gaps already identified against the SRS's baseline (see the plan doc for full detail): a
-`cart`/`cart_items` pair (missing entirely from the SRS), several missing indexes, tighter RLS on
-`vendor_settlements`/`payments`/`addresses`/`cart`, `orders.status` as a computed rollup over per-vendor
-`shipments.status` rather than one flat field, explicit diary-cron timezone handling via a `users.timezone`
-column (default `Asia/Kolkata`), and a documented DPDP anonymization policy for account deletion.
+**Implemented in Stage 1** (27 tables, all RLS-enabled — see `supabase/migrations/` for the authoritative
+definitions, and `docs/progress/2026-09-18-stage-1-database-schema-rls.md` for full reasoning): the SRS's
+full table list, plus `cart`/`cart_items` (missing from the SRS entirely), `product_images` /
+`product_variants` / `product_qna` as dedicated tables instead of a jsonb blob, `coupon_redemptions` (for
+enforceable per-user coupon limits), `loyalty_ledger` ("GP Rewards", referenced in the UI), `audit_logs`,
+`notification_preferences`. `products.vendor_id` is `NOT NULL` — in-house products belong to a real seeded
+"GiftPing Originals" vendor row (`is_in_house = true`, 0% commission) rather than allowing a null vendor.
+`orders.status` is a coarse rollup automatically recomputed from per-vendor `shipments.status` by a
+trigger (`recompute_order_status()`) — never set directly. `public.users.id` references `auth.users(id)`
+directly (Supabase Auth is the identity source of truth) via an auto-provisioning trigger
+(`handle_new_auth_user()`) — there's no separate signup-time insert to write. Coupon validity is checked
+exclusively through a `validate_coupon()` RPC, not raw table SELECT, so codes can't be enumerated by
+customers. **The Personal Gifting Diary tables (`diary_contacts`/`diary_events`/`gift_history`)
+deliberately have NO admin RLS bypass** — this is the one place `is_admin()` is intentionally absent,
+matching the SRS's explicit privacy promise that admins see only an aggregate count, never diary content.
+Full-text search (`products.search_vector`) is trigger-maintained, not a generated column — see the "Two
+real Postgres bugs" note below for why. `users.timezone` (default `Asia/Kolkata`) is in place for the
+Stage 9 diary cron. DPDP-style deletion uses `users.deleted_at`/`anonymized_at` rather than a hard delete.
+
+### Two real Postgres bugs hit and fixed while building this (worth knowing before writing more RLS/triggers)
+
+1. **A `GENERATED ... STORED` column must be strictly IMMUTABLE.** `array_to_string()` (used to fold
+   `tags`/`occasion_tags`/`recipient_tags` into the search vector) is only `STABLE`, so
+   `search_vector` couldn't be a generated column — it's a plain column kept in sync by a
+   `BEFORE INSERT OR UPDATE` trigger (`products_set_search_vector()`) instead, which has no such
+   restriction and behaves identically from the caller's side.
+2. **`SECURITY DEFINER` masks `current_user` for the function's entire body, including nested calls.**
+   The four ownership-enforcement triggers (`prevent_role_self_escalation`,
+   `prevent_vendor_admin_field_tampering`, `enforce_product_status_transitions`,
+   `enforce_review_update_scope`) were originally declared `SECURITY DEFINER`, which made
+   `current_user` read as the function's *owner* (`postgres`) for every caller — silently letting a
+   vendor's own authenticated session self-approve their own product or escalate their own role, since
+   the "is this a trusted service-role context?" check (`is_service_role()`, which reads `current_user`)
+   was always true from inside them. Fixed by making those four functions `SECURITY INVOKER` (they don't
+   need elevated rights themselves — they only inspect `NEW`/`OLD` and delegate to already-privileged
+   helpers like `is_admin()`), leaving `current_user` correctly reflecting the real caller
+   (`authenticated`/`anon`/`service_role`). **Rule of thumb going forward: a trigger function that reads
+   `current_user`/`session_user` to distinguish "trusted server" from "ordinary client" must never itself
+   be `SECURITY DEFINER`,** or that distinction silently stops working — verified by hand-testing as a
+   simulated vendor session (`SET LOCAL ROLE authenticated` + `request.jwt.claims`), not by reasoning
+   about the SQL alone.
+
+Also: a bare `CREATE TABLE` in this schema is **not** independently queryable by `anon`/`authenticated`
+merely because an RLS policy allows it — Postgres denies access at the GRANT level first, before RLS
+policies are even consulted. `supabase/migrations/20260917181523_grant_table_privileges.sql` grants the
+baseline `SELECT/INSERT/UPDATE/DELETE` table privileges (Supabase's Studio does this automatically for
+tables created through its UI; a raw SQL migration via the CLI does not) that every RLS policy in this
+project depends on to have any effect at all.
 
 ## Image handoff workflow
 
