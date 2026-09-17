@@ -6,7 +6,7 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
-**Stage 0 — Repo, Tooling & Design System Foundation** (in progress)
+**Stage 0 — Repo, Tooling & Design System Foundation** ✅ complete. Next session should start Stage 1.
 
 ## Last Session Summary
 
@@ -22,51 +22,61 @@ static project conventions that don't change session to session._
 - Built `components/layout/Navbar.tsx` and `Footer.tsx` shells (nav items link to routes that don't exist
   yet — expected until Stage 3+).
 - Wired `app/layout.tsx` (fonts, Navbar/Footer/Toaster/TooltipProvider) and a placeholder branded
-  `app/page.tsx`.
-- Added `app/kitchen-sink/page.tsx` — a dev-only route exercising every primitive, used to verify the
-  design system renders correctly.
-- `npm run build` passes clean (zero TS errors).
-- Installed foundational deps: Radix primitives, Sonner, clsx/tailwind-merge, lucide-react,
-  `@supabase/supabase-js` + `@supabase/ssr` (not yet wired to a real project — see blockers).
-- Installed the GitHub CLI (`gh`, via Homebrew) and started the device-code web login flow.
-- Wrote `CLAUDE.md` (static reference — read it for the stack deviations from the SRS: Supabase Auth
-  direct, Tailwind v4, Next 16's `proxy.ts` instead of `middleware.ts`, no visual UI library, etc.).
-- Wrote `.env.example` listing every credential this whole build will need, each tagged with the stage
-  it's first needed at — nothing is requested before it's actually required.
-- Updated `.gitignore` (`.claude/settings.local.json` excluded, `.env.example` explicitly un-ignored).
-- `git init` done; first commit made (scaffold + design system + docs); a second commit fixed a Button
-  text-wrapping bug found while verifying `/kitchen-sink` and the homepage at 375px in the browser
-  (screenshots + interaction tests: modal open/close, toast, tabs all confirmed working).
+  `app/page.tsx`. Verified in-browser at both 375px and desktop; fixed one bug found while checking
+  (Button text wrapping at narrow widths — switched fixed height to min-height + padding).
+- Added `app/kitchen-sink/page.tsx` — a dev-only route exercising every primitive; manually verified
+  Modal open/close, Dropdown, Tabs, and Toast all work correctly in-browser.
+- `npm run build` passes clean (zero TS errors) throughout.
+- **GitHub**: repo created and pushed — **https://github.com/AdroitPhilocalist/giftping** (private).
+  `gh auth login --web` hit a repeated network-level failure on this connection (`read tcp ...: operation
+  timed out` polling GitHub's device-flow endpoint, 3 attempts) — worked around with
+  `gh auth login --with-token` using a developer-supplied PAT (scopes `repo` + `read:org`). If device-flow
+  web login is needed again on this network, expect it may need the same `--with-token` fallback.
+  **The developer was advised to revoke/regenerate that PAT** once initial setup settled, since it was
+  shared in a chat transcript rather than entered directly into a prompt.
+- **Supabase**: project connected — `https://qrcienpokiaplhtubtho.supabase.co`. Using Supabase's newer
+  `sb_publishable_...` / `sb_secret_...` key format (drop-in replacement for the legacy anon/service_role
+  JWTs, which Supabase is deprecating) stored under the SRS's original env var names for continuity.
+  Wired `lib/db/client.ts` (browser), `lib/db/server.ts` (server, `@supabase/ssr` + `next/headers`,
+  `server-only`-guarded), `lib/db/admin.ts` (service-role, RLS-bypassing, `server-only`-guarded).
+  Verified connectivity end-to-end with a temporary `/api/health-check` route calling
+  `auth.admin.listUsers()` with the admin client — got `{"ok":true,"userCount":0}` — then deleted the
+  route (Stage 1 will add real tables/queries to verify against instead).
+- **Sentry**: wired via the current `instrumentation.ts` + `instrumentation-client.ts` convention (not the
+  older `sentry.client.config.ts` pattern) — `sentry.server.config.ts`, `sentry.edge.config.ts`,
+  `app/global-error.tsx` all added; `next.config.ts` wrapped with `withSentryConfig` from
+  `@sentry/nextjs/config`. Only active when `NODE_ENV === "production"` (silent in local dev by design).
+  Source-map upload to Sentry needs a `SENTRY_AUTH_TOKEN` — deferred to Stage 13 (go-live), error capture
+  works without it. Not yet verified against the live Sentry dashboard (would need a production deploy or
+  a forced error while temporarily flipping `enabled: true` — not done this session).
+- Wrote `CLAUDE.md` (static reference) and `.env.example` (every credential, tagged by the stage it's
+  first needed at) and `.gitignore` updates (`.claude/settings.local.json` excluded, `.env.example`
+  explicitly un-ignored). `.env.local` holds the real Supabase/Sentry values now — confirmed gitignored,
+  never committed.
 - Created `.claude/launch.json` so `npm run dev` can be previewed via the browser tool going forward.
-- **GitHub is fully set up**: `gh auth login --web` had a repeated network-level failure on this
-  connection (`read tcp ...: operation timed out` polling GitHub's device-flow token endpoint, 3 attempts)
-  — worked around by authenticating with a Personal Access Token instead
-  (`gh auth login --with-token`, scopes `repo` + `read:org`). Repo created and pushed:
-  **https://github.com/AdroitPhilocalist/giftping** (private), remote `origin` set, `master` tracking.
-  If device-flow `gh auth login --web` is needed again on this network, expect it may need the
-  `--with-token` fallback again.
 
 ## Next Up
 
-1. Once a Supabase project + Sentry DSN are provided: fill real values into `.env.local` (copied from
-   `.env.example`, gitignored), wire the Supabase client (`lib/db/client.ts`) and Sentry SDK — this is the
-   only remaining piece of Stage 0's "done when" criteria.
-2. Move on to **Stage 1 — Database Schema & RLS**: write the Supabase migrations (SRS's tables + the
-   confirmed additions — `cart`/`cart_items`, missing indexes, tighter RLS, `orders.status` rollup,
-   `users.timezone`, DPDP anonymization fields), generate TS types, write and manually verify RLS per
-   role, write the seed script.
+Start **Stage 1 — Database Schema & RLS**: write the Supabase migrations under `supabase/migrations/`
+(SRS's full table list + the confirmed additions — `cart`/`cart_items`, missing indexes, tighter RLS on
+`vendor_settlements`/`payments`/`addresses`/`cart`, `orders.status` as a computed rollup over
+`shipments.status`, `users.timezone` for the diary cron, DPDP anonymization fields — see `CLAUDE.md`'s
+"Database schema" section, remembering it's a floor not a ceiling), generate TS types via
+`supabase gen types typescript`, write and manually verify RLS per role (customer/vendor/admin) in the
+Supabase SQL editor, write an idempotent `scripts/seed.ts`. The Supabase CLI isn't installed yet — install
+it first to manage migrations properly rather than pasting SQL by hand into the dashboard every time.
 
 ## Open Questions / Blocked On
 
-- Nothing blocking Stage 0 wrap-up except the Supabase + Sentry credentials below.
+- Nothing currently blocking. Stage 1 needs no new credentials (Supabase project already connected).
 
 ## Credentials Status
 
 | Integration | Needed at | Status |
 |---|---|---|
 | GitHub | Stage 0 | ✅ done — repo at https://github.com/AdroitPhilocalist/giftping |
-| Supabase (URL/anon/service-role) | Stage 0 | 🔴 not yet provided |
-| Sentry DSN | Stage 0 | 🔴 not yet provided |
+| Supabase (URL/anon/service-role) | Stage 0 | ✅ done — connectivity verified |
+| Sentry DSN | Stage 0 | 🟡 wired, not yet verified against live dashboard |
 | Google OAuth | Stage 2 | 🔴 not needed yet |
 | MSG91 | Stage 2 | 🔴 not needed yet |
 | Cloudinary | Stage 3 | 🔴 not needed yet |

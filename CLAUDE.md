@@ -46,6 +46,18 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
   calendar), Upstash Redis + `@upstash/ratelimit` (rate limiting).
 - **"Ask GiftPing AI" chat**: static UI routed to the rule-based diary suggestion engine — not a live LLM
   integration (deliberate scope decision, revisit later if desired).
+- **Supabase API keys**: using the newer publishable/secret key format (`sb_publishable_...` /
+  `sb_secret_...`) rather than the legacy anon/service_role JWTs — Supabase's own drop-in replacement,
+  same env var names (`NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY`) still used for
+  continuity with the SRS's naming. `lib/db/client.ts` (browser), `lib/db/server.ts` (Server
+  Components/Actions/Route Handlers, via `@supabase/ssr` + `next/headers` cookies), `lib/db/admin.ts`
+  (service-role, RLS-bypassing, `server-only`-guarded — server-trusted code paths only).
+- **Sentry**: wired via the modern `instrumentation.ts` + `instrumentation-client.ts` convention (not the
+  older `sentry.client.config.ts` + `_app.tsx` pattern) — see those files plus `sentry.server.config.ts` /
+  `sentry.edge.config.ts` / `app/global-error.tsx`. Only enabled when `NODE_ENV === "production"`, so
+  nothing reports from local dev. `next.config.ts` wraps the config with `withSentryConfig` from
+  `@sentry/nextjs/config` (not the deprecated `@sentry/nextjs` root export); source-map upload to Sentry
+  is skipped until a `SENTRY_AUTH_TOKEN` is set at go-live — error capture works fine without it.
 - **Mall experience**: illustrated + Framer Motion (`motion` package, not yet installed) animated pages
   using AI-generated imagery from `ui-references/` and future client-supplied images — not a real 3D/WebGL
   scene.
