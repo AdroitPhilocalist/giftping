@@ -3,18 +3,20 @@ import { Heart, Menu, Search, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { getServerUser } from "@/lib/auth/session";
+import { getWishlistProductIds } from "@/lib/db/wishlists";
 
 const navLinks = [
   { label: "Explore Mall", href: "/" },
-  { label: "Occasions", href: "/occasions" },
-  { label: "Boutiques", href: "/boutiques" },
+  { label: "Occasions", href: "/categories" },
+  { label: "Boutiques", href: "/vendors" },
   { label: "Diaries", href: "/diary" },
-  { label: "Corporate Gifting", href: "/corporate-gifting" },
+  { label: "Corporate Gifting", href: "/categories/corporate-gifting" },
   { label: "About Us", href: "/about" },
 ];
 
 export async function Navbar() {
   const user = await getServerUser();
+  const wishlistCount = user ? (await getWishlistProductIds(user.id)).size : 0;
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-dark/5 bg-brand-light/95 backdrop-blur">
@@ -45,18 +47,25 @@ export async function Navbar() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <button
+          <Link
+            href="/search"
             aria-label="Search"
             className="hidden rounded-full p-2 text-brand-dark/70 hover:bg-brand-dark/5 sm:block"
           >
             <Search className="h-5 w-5" />
-          </button>
-          <button
+          </Link>
+          <Link
+            href="/wishlist"
             aria-label="Wishlist"
-            className="hidden rounded-full p-2 text-brand-dark/70 hover:bg-brand-dark/5 sm:block"
+            className="relative hidden rounded-full p-2 text-brand-dark/70 hover:bg-brand-dark/5 sm:block"
           >
             <Heart className="h-5 w-5" />
-          </button>
+            {wishlistCount > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-brand-secondary text-[10px] font-semibold text-brand-dark">
+                {wishlistCount}
+              </span>
+            ) : null}
+          </Link>
           <Link
             href="/cart"
             aria-label="Cart"

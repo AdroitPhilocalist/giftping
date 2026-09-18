@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/db/server";
-import { authRateLimit, checkRateLimit, getClientIp } from "@/lib/auth/rate-limit";
+import { authRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
 import {
   signUpSchema,
   signInSchema,
@@ -16,6 +16,8 @@ export interface ActionResult {
   success?: string;
 }
 
+// Not the same as rate-limit.ts's getClientIp(request) — Server Actions don't receive a
+// Request object, only next/headers(), so this needs its own header-reading implementation.
 async function getRequestIp(): Promise<string> {
   const headerList = await headers();
   const forwardedFor = headerList.get("x-forwarded-for");

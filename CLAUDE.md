@@ -124,37 +124,69 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 ## Folder structure
 
 ```
-/app            → routes: (shop) customer routes, (auth), /vendor, /admin, /api, /kitchen-sink (dev only)
+/app            → routes: (shop), (auth), /vendor, /admin, /api, /kitchen-sink (dev only)
+/app/(shop)     → /, /categories, /categories/[slug], /vendors, /vendors/[slug], /products/[slug],
+                  /search, /wishlist, /account, /diary, /cart (Stage 5), /checkout (Stage 6)
 /components/ui  → bespoke Tailwind primitives: Button, Card, Input/Textarea/Label, Select, Badge, Modal,
                   Dropdown, Tabs, Tooltip, Toast, Skeleton, Spinner
-/components/layout → Navbar, Footer, AccountMenu (role-aware, reads session server-side)
+/components/layout → Navbar (reads session + wishlist count server-side), Footer, AccountMenu
 /components/auth → GoogleButton, SubmitButton (useFormStatus-based pending state)
-/components/{shop,diary,vendor,admin} → feature components, created as each stage needs them
-/lib/db         → Supabase clients + generated types + per-table query helpers
+/components/shop → ProductCard, ProductImage (branded placeholder when no photo — see "Product imagery"
+                  below), WishlistButton, ProductGallery, ProductBuyBox (variants + personalization +
+                  stub cart buttons), ReviewList, ProductFilters (plain GET form — query-param filters,
+                  works without JS), CategoryCard, VendorCard, SearchBar, Pagination
+/components/{diary,vendor,admin} → feature components, created as each stage needs them
+/lib/db         → Supabase clients + generated types + per-table query helpers: categories.ts, vendors.ts
+                  (incl. getVendorsForCategory — scopes a category page's vendor filter to vendors that
+                  actually have products there), products.ts (listProducts w/ filter+sort+paginate,
+                  getProductBySlug, getRelatedProducts, getTrendingProducts), reviews.ts, wishlists.ts
 /lib/auth       → session.ts (getServerUser/requireRole — always re-reads role from the DB), actions.ts
                   (Server Actions: sign-up/in/out, Google OAuth, password reset), rate-limit.ts
                   (Upstash — fails open/no-ops if not configured, never blocks on a missing dev credential)
-/lib/commerce   → cart.ts, checkout.ts, commission.ts, coupons.ts
-/lib/integrations → razorpay.ts, shiprocket.ts, msg91.ts, onesignal.ts, resend.ts (no cloudinary.ts or
-                  removebg.ts — both cut per the cost constraint above)
-/lib/storage    → upload.ts (Supabase Storage), resize.ts (sharp — fixed sizes for email templates,
-                  which can't use next/image). Display-time optimization is next/image, not a lib file.
-/lib/search     → index.ts (searchProducts — swappable Postgres FTS → Algolia)
-/lib/diary      → gifting-score.ts, suggestion-matcher.ts, recurrence.ts
+/lib/shop       → wishlist-actions.ts (toggleWishlistAction, a Server Action — not lib/commerce, that's
+                  reserved for cart/checkout/commission/coupons, which are a different domain)
+/lib/commerce   → cart.ts, checkout.ts, commission.ts, coupons.ts — not built yet (Stage 5+)
+/lib/integrations → razorpay.ts, shiprocket.ts, msg91.ts, onesignal.ts, resend.ts (none built yet; no
+                  cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
+/lib/storage    → NOT built yet — Stage 3 only ever consumed thumbnail_url/product_images values, never
+                  wrote them. Built in Stage 4 when vendor image upload actually happens: upload.ts
+                  (Supabase Storage), resize.ts (sharp — fixed sizes for email templates, which can't use
+                  next/image). Display-time optimization is next/image itself, not a lib file.
+/lib/search     → index.ts — searchProducts(), wraps the search_products() Postgres RPC (Stage 1) and
+                  re-joins ranked ids against the vendor/category-joined product-card shape (the RPC
+                  itself returns raw unjoined rows). Swappable for Algolia later without touching callers.
+/lib/diary      → gifting-score.ts, suggestion-matcher.ts, recurrence.ts — not built yet (Stage 9)
 /lib/validation → Zod schemas, one file per domain, shared by client forms and API routes
-/lib/content    → imagery.ts — central image-asset map (see "Image handoff" below)
-/lib/utils      → cn.ts (clsx + tailwind-merge) and other generic helpers
-/emails         → React Email templates
+/lib/content    → imagery.ts — central image-asset map (see "Image handoff" below) — not built yet
+/lib/utils      → cn.ts (clsx + tailwind-merge), format.ts (formatCurrency — en-IN Intl formatter)
+/emails         → React Email templates — not built yet (Stage 9)
 /app/api/cron   → diary-reminders/route.ts, invoked by Vercel's Cron scheduler (vercel.json) — not a
-                  separate /jobs directory or a Railway worker, per the cost constraint above
-/scripts        → seed.ts and one-off scripts
+                  separate /jobs directory or a Railway worker, per the cost constraint above — not built yet
+/scripts        → seed.ts (idempotent — categories, 2 vendors, 6 products w/ variants/images/reviews)
 /supabase/migrations → schema migrations, applied in order
-/public/images
+/public/seed-images → dev-only seed photography cropped from the client's own approved ui-references
+                  (see "Product imagery" below) — not meant to ship to production, Stage 4+ vendor photos
+                  replace these
+/public/images  → static site imagery (logo, hero art) — distinct from Supabase Storage, which holds
+                  user/vendor-generated content (see "Image handoff" below)
 /docs/progress  → dated per-stage log entries
 ```
 
 `/vendor` and `/admin` are real route segments (not `(group)`s) since they need their own persistent
-sidebar layout. `(shop)` and `(auth)` are route groups purely for organization.
+sidebar layout. `(shop)` and `(auth)` are route groups purely for organization. Watch for the collision
+class of bug this caused once already: `pathname.startsWith("/vendor")` in `proxy.ts` also matched the
+public `/vendors/*` shop routes — see "Auth" below.
+
+## Product imagery (Stage 3 state — read before assuming every product has a real photo)
+
+Two of the six seeded products (`luxe-memory-hamper`, `premium-gift-hamper`) use a real photo —
+`public/seed-images/hamper.webp`, cropped with `sharp` from the client's own approved
+`ui-references/7b1ef5fb-...png` (the original "Luxe Memory Hamper" PDP mockup). The rest deliberately have
+`thumbnail_url = null` and render `components/shop/ProductImage.tsx`'s branded gradient+gift-icon
+placeholder — not a fake stock photo. A lower-resolution mobile homepage screenshot was tried as a source
+for 3 more crops and rejected: the source card images were only ~130×108px, and upscaling 6-7x to a usable
+size produced visibly blurry results not worth shipping even as placeholders. Don't reuse those as-is if
+revisited later — find a higher-resolution source or wait for real vendor photos in Stage 4.
 
 ## Database schema
 
@@ -213,6 +245,29 @@ baseline `SELECT/INSERT/UPDATE/DELETE` table privileges (Supabase's Studio does 
 tables created through its UI; a raw SQL migration via the CLI does not) that every RLS policy in this
 project depends on to have any effect at all.
 
+### Two more gaps found while building Stage 3 (catalog) — same "denormalized column, nothing keeps it in
+sync" and "RLS blocks an innocent-looking join" failure classes as above, worth scanning for elsewhere
+
+1. **Denormalized rollup columns need their own trigger, every time — Stage 1 missed one.**
+   `products.average_rating`/`review_count` existed from Stage 1 but nothing recomputed them when a
+   review was added. Fixed with `recompute_product_rating()` (`supabase/migrations/
+   20260918154410_maintain_product_rating_rollup.sql`), a trigger on `reviews` insert/update/delete. This
+   one is correctly `SECURITY DEFINER` — unlike the four Stage 2 triggers, it never inspects
+   `current_user`, so there's no masking bug risk; it genuinely needs the owner's elevated privilege
+   because an ordinary customer leaving a review has no `UPDATE` grant on `products` otherwise. If a
+   future stage adds another denormalized aggregate (e.g. a vendor-level rating rollup), it needs the
+   exact same trigger pattern — it will not maintain itself.
+2. **A privacy-correct RLS policy can silently block a legitimate-looking display need.** Showing "reviewed
+   by Priya S." required joining `reviews` → `users`, but `users_select_own_or_admin` correctly refuses
+   that join for anyone who isn't the reviewer or an admin — a stranger browsing products can't read
+   another customer's `full_name`. The fix was not to loosen that RLS policy (a real privacy regression)
+   but to denormalize a privacy-safe `reviews.reviewer_display_name` ("First L.") onto the review itself
+   at insert time (`supabase/migrations/20260918154731_review_reviewer_display_name.sql`). This one is
+   correctly `SECURITY INVOKER` (no `security definer` at all) — the inserting user always has read access
+   to their own `users` row already, no elevated privilege needed. **Pattern to reuse**: when a public
+   display need wants a field off a privacy-protected table, denormalize a display-safe derived value at
+   write time rather than opening up the source table's RLS.
+
 ## Auth
 
 `lib/auth/session.ts` (`getServerUser`/`requireRole`) and `proxy.ts` are two independent layers —
@@ -236,6 +291,16 @@ Two things worth knowing before touching auth UI again:
   natural fit. For local testing without waiting on real email, create confirmed accounts directly via
   the Supabase admin client (`auth.admin.createUser({ email_confirm: true, ... })`) rather than going
   through the UI signup flow.
+- **`pathname.startsWith(prefix)` route-matching in `proxy.ts` is a real footgun once a second route
+  starts with the same prefix.** `isVendorPath()` used `pathname.startsWith("/vendor")` to gate the
+  vendor-portal routes — which also matches `/vendors/aurelia-gifts`, Stage 3's public shop storefront
+  route, since `"/vendors/..."` starts with the substring `"/vendor"` too. A signed-in customer got
+  silently bounced from a vendor storefront page back to `/`, because proxy thought they were trying to
+  reach the portal. Confirmed only by actually clicking through as a customer — build/lint/types all
+  passed. Fixed to `pathname === "/vendor" || pathname.startsWith("/vendor/")`. **Check this exact
+  pattern before adding any new top-level route segment**: does its name prefix-match an existing
+  protected segment's `startsWith()` check? `/admin` vs. a hypothetical `/administration` page would have
+  the same bug in the other direction.
 
 Test accounts exist in the dev database for exactly this reason — `test-customer@giftping.test`,
 `test-vendor@giftping.test`, `test-admin@giftping.test`, all password `TestPass123!`. Not real user data;

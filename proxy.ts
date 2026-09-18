@@ -12,9 +12,13 @@ function isProtectedCustomerPath(pathname: string) {
   );
 }
 
+// Matches the /vendor/* portal (vendor/admin only) without also matching /vendors/* — the
+// public shop's vendor storefront pages. `startsWith("/vendor")` alone catches both, since
+// "/vendors/aurelia-gifts" starts with the substring "/vendor" too — confirmed by hand-testing
+// (a signed-in customer got silently bounced from a public storefront page).
 function isVendorPath(pathname: string) {
   return (
-    pathname.startsWith("/vendor") &&
+    (pathname === "/vendor" || pathname.startsWith("/vendor/")) &&
     !VENDOR_PUBLIC_PATHS.some((path) => pathname.startsWith(path))
   );
 }
