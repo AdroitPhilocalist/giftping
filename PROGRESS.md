@@ -6,8 +6,8 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
-**Stage 2 — Auth** — email/password fully done and verified; Google OAuth code-complete but untested
-(needs credentials); phone OTP deliberately deferred. See Open Questions below before starting Stage 3.
+**Stage 2 — Auth** ✅ complete. Email/password and Google OAuth both built and verified; phone OTP
+deliberately deferred (feature-flagged off, cost constraint). Next session should start Stage 3.
 
 ## Last Session Summary
 
@@ -65,28 +65,33 @@ static project conventions that don't change session to session._
   vendor reaches `/vendor/dashboard`, blocked from `/admin/dashboard`; admin reaches both; unauthenticated
   hitting `/account` redirects to `/sign-in?redirectTo=/account` and lands back on `/account` after
   signing in; already-authenticated user hitting `/sign-up` bounces to `/`.
-- **Not yet done**: Google OAuth is fully code-complete (`signInWithGoogleAction`, `/auth/callback`) but
-  genuinely untested — needs a Google Cloud OAuth client configured and registered as a provider in
-  Supabase Auth settings. MSG91 phone OTP has no implementation at all yet (deliberately — see cost
-  constraint above; build it only if/when the client actually wants it enabled).
+- **Google OAuth done**: developer provided a Google Cloud OAuth Client ID/Secret. Configured directly on
+  the Supabase project via the Management API (`PATCH /v1/projects/{ref}/config/auth` with
+  `external_google_enabled`/`external_google_client_id`/`external_google_secret`) rather than the
+  dashboard UI — faster and scriptable. **Not stored in `.env.local`** — the app never reads these
+  directly, Supabase Auth handles the OAuth exchange with Google entirely server-side on their end;
+  `.env.example` updated to explain this instead of listing them as app env vars. Verified in-browser: the
+  "Continue with Google" button correctly reached Google's real consent screen
+  ("to continue to qrcienpokiaplhtubtho.supabase.co") with no `redirect_uri_mismatch` error, confirming
+  both the client ID and redirect URI are correctly configured. Stopped short of actually completing a
+  Google sign-in (that would mean entering the developer's real Google credentials, which isn't something
+  to do on their behalf) — the reachability of the correct consent screen is the verification boundary
+  here; full round-trip (landing back on the app, session established) uses the same
+  `/auth/callback` code path already proven by email-confirmation links, so it's not a new code path.
+- MSG91 phone OTP has no implementation at all yet (deliberately — see cost constraint above; build it
+  only if/when the client actually wants it enabled).
 
 ## Next Up
 
-1. **Get Google OAuth working**: developer needs to create a Google Cloud OAuth 2.0 Client ID (Web
-   application type), add `https://qrcienpokiaplhtubtho.supabase.co/auth/v1/callback` as an authorized
-   redirect URI, then provide the Client ID + Secret so they can be added to Supabase Auth's Google
-   provider settings (dashboard → Authentication → Providers → Google) and to `.env.local`. Once done,
-   verify the full OAuth round-trip in-browser the same way email/password was verified this session.
-2. Move on to **Stage 3 — Catalog (read-only)**: functional homepage, category/occasion pages with
-   filters, vendor storefront pages, PDP, Postgres full-text search (already schema-ready —
-   `search_products()` RPC exists from Stage 1), reviews (read), wishlists. Needs a Cloudinary account
-   (free tier — see the cost constraint in CLAUDE.md before ever upgrading it).
+Start **Stage 3 — Catalog (read-only)**: functional homepage, category/occasion pages with filters,
+vendor storefront pages, PDP, Postgres full-text search (already schema-ready — `search_products()` RPC
+exists from Stage 1), reviews (read), wishlists. Needs a Cloudinary account (free tier — see the cost
+constraint in CLAUDE.md before ever upgrading it).
 
 ## Open Questions / Blocked On
 
-- Google OAuth credentials (see Next Up #1) — not blocking Stage 3, since Stage 3 doesn't touch auth.
 - Whether to wire Resend into Supabase's SMTP settings now (to fix the email rate-limit annoyance hit
-  this session) or wait until Stage 9 as originally planned — developer's call, not urgent either way
+  last session) or wait until Stage 9 as originally planned — developer's call, not urgent either way
   since the admin-created test accounts sidestep the issue for now.
 
 ## Credentials Status
@@ -98,7 +103,7 @@ static project conventions that don't change session to session._
 | Supabase Personal Access Token | Stage 1 | ✅ used for CLI link/push, not stored anywhere in-repo |
 | Supabase DB password | Stage 1 | ✅ used for migrations, not stored anywhere in-repo |
 | Sentry DSN | Stage 0 | 🟡 wired, not yet verified against live dashboard |
-| Google OAuth | Stage 2 | 🟡 code-complete, credentials not yet provided |
+| Google OAuth | Stage 2 | ✅ done — configured on Supabase, reaches real Google consent screen |
 | MSG91 (phone OTP) | Stage 2 | ⚪ deliberately deferred — feature-flagged off, cost constraint |
 | Upstash Redis | Stage 2 (reused later) | 🟡 code-complete with graceful no-op fallback; not yet provisioned |
 | Cloudinary | Stage 3 | 🔴 not needed yet — free tier only, see cost constraint |
