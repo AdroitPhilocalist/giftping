@@ -6,72 +6,88 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
-**Stage 1 — Database Schema & RLS** ✅ complete. Next session should start Stage 2 (Auth).
+**Stage 2 — Auth** — email/password fully done and verified; Google OAuth code-complete but untested
+(needs credentials); phone OTP deliberately deferred. See Open Questions below before starting Stage 3.
 
 ## Last Session Summary
 
-- Installed the Supabase CLI (`brew install supabase/tap/supabase`) and `psql` (`brew install libpq`,
-  keg-only — see CLAUDE.md for the PATH export needed to use it).
-- Wrote the full Stage 1 schema as 9 migrations under `supabase/migrations/` (27 tables total): extensions
-  & helpers, core tables (users/addresses/vendors/categories/products/product_images/product_variants/
-  product_qna), commerce tables (cart/cart_items/coupons/orders/order_items/payments/shipments/
-  coupon_redemptions/vendor_settlements), diary tables, support tables (reviews/wishlists/notifications/
-  notification_preferences/banners/loyalty_ledger/audit_logs), search indexing, row-level security, plus
-  4 small follow-up migrations fixing real bugs found while hand-testing (see below and CLAUDE.md's
-  "Two real Postgres bugs" section — worth reading before writing more triggers/RLS).
-- Linked to the remote Supabase project (`supabase link` needed a personal access token from the
-  developer, distinct from the project API keys — `supabase login --token`) and pushed all 11 migrations
-  via `supabase db push --password <db password>` (also developer-provided, distinct again from both the
-  PAT and the API keys — three different credentials for three different things this session).
-- **Hand-verified RLS end to end** by connecting directly via `psql` and simulating specific
-  users/roles inside rolled-back transactions (`set local role authenticated; set local
-  request.jwt.claims = '{"sub":"<uuid>"}'; ...; rollback;`) — this is what actually caught the two real
-  bugs below; reasoning about the policy SQL alone would not have. Confirmed: customer A sees only their
-  own address/cart/diary and cannot insert on B's behalf; customer B (as a vendor) sees their own pending
-  product but not other vendors'; a vendor cannot self-approve a product or edit their own commission
-  rate; a vendor can only add `vendor_response` to a review, not edit its rating/body; admin sees
-  everything **except** diary content (deliberately — matches the SRS's privacy promise); anon sees active
-  categories/products but no addresses/carts/diary; `validate_coupon()` correctly handles expiry,
-  vendor-scoping, minimum order amount, and per-user redemption limits; the `orders.status` rollup trigger
-  correctly reacts to shipment status changes (processing → shipped → delivered).
-- **Two real bugs found and fixed while hand-testing** (full detail in CLAUDE.md, don't re-derive here):
-  (1) a `GENERATED STORED` search-vector column isn't possible because `array_to_string()` isn't
-  `IMMUTABLE` — switched to a trigger-maintained column instead; (2) the four ownership-enforcement
-  triggers were `SECURITY DEFINER`, which silently made `current_user` always read as the function owner
-  (`postgres`) instead of the real caller — this let a vendor's own session self-approve their own
-  product and would have let them escalate their own role, until fixed by making those four triggers
-  `SECURITY INVOKER` instead. Also fixed along the way: missing baseline table GRANTs (RLS policies alone
-  don't grant table access — Postgres checks GRANTs first), and an ambiguous column reference in
-  `validate_coupon()`.
-- Generated `lib/db/types.ts` (`npm run db:types` — added as a script) and wired all three Supabase clients
-  (`lib/db/{client,server,admin}.ts`) to be generic over `Database` for full type safety.
-- Wrote `scripts/seed.ts` (`npm run seed`) — idempotent (all upserts keyed on slug), seeds 6 categories, the
-  in-house "GiftPing Originals" vendor (0% commission, `is_in_house = true`), and 4 sample products.
-  Verified idempotency by running it twice and confirming row counts didn't change.
-- All test data created during RLS verification was deleted afterward — confirmed the database is clean
-  except for the seed data.
-- `npm run build` passes clean throughout (one real TS bug caught by the build itself: a `readonly` tuple
-  from `as const` isn't assignable to supabase-js's mutable upsert array type — fixed with a spread).
-- Noted (not acted on, just flagged to the developer): the `dotenv` package prints a rotating "tip" line
-  on every load, one variant of which advertised an unrelated third-party site — harmless console noise,
-  not something either of us asked for, worth knowing about if it's ever seen again.
+- **Cost constraint introduced mid-session** (client cap: ~₹40–50k/yr APIs, ~₹60–70k/yr incl.
+  hosting/domain) — this changed real architecture, not just budgeting. Documented in detail in
+  `CLAUDE.md`'s new "Cost constraint" section (read it before adding any new paid integration). Summary:
+  Remove.bg cut entirely (vendors upload their own finished photos); Railway cut entirely (Stage 9's diary
+  cron will be a Vercel Cron Job instead — confirmed Pro plan supports up to 100 cron jobs/project, 300s
+  timeout, comfortably enough); Shiprocket on Lite/PAYG not Basic/Advanced; OneSignal free tier expected
+  sufficient (web-only product, no native app, so its new mobile-MAU cap doesn't apply); MSG91 phone OTP
+  built as a feature flag (`PHONE_OTP_ENABLED`, default false) so it can be switched off without a code
+  change; Resend and Cloudinary flagged as the two real cost-growth risks to watch, Cloudinary especially
+  (its next tier is ~₹91,000/yr on its own).
+- **Auth built and hand-verified end to end in the browser**, not just code-reviewed:
+  - `lib/auth/session.ts` (`getServerUser`/`requireRole`, always reads role from DB, never trusts a
+    client claim), `lib/auth/actions.ts` (Server Actions: sign-up, sign-in, sign-out, Google OAuth kickoff,
+    password reset request/update), `lib/auth/rate-limit.ts` (Upstash-backed, fails open — no-ops rather
+    than blocking — if Upstash isn't configured, which it isn't yet), `lib/validation/auth.schema.ts` (Zod
+    v4, shared shape for future client-side reuse).
+  - `proxy.ts` (Next 16's `middleware.ts` rename) — optimistic UI-level redirect layer: unauthenticated →
+    `/sign-in?redirectTo=...`, wrong role on `/vendor/*`/`/admin/*` → redirect home, already-authenticated
+    hitting `/sign-in`/`/sign-up` → redirect home.
+  - Pages: `/sign-up`, `/sign-in`, `/reset-password`, `/update-password`, `/auth/callback` (route handler
+    for both OAuth and email-confirmation code exchange), plus minimal protected stubs (`/account`,
+    `/diary`, `/vendor/dashboard`, `/vendor/register` (public), `/admin/dashboard`) that exist specifically
+    to prove the auth/role plumbing end-to-end — full UI for these comes in later stages.
+  - `Navbar` now reads real session state (`getServerUser()`) and shows a role-aware account dropdown
+    (`AccountMenu`) instead of a static "Sign In" button.
+- **Created 3 confirmed test accounts directly via the admin API** (bypassing Supabase's email
+  confirmation requirement, since testing sign-up→confirm→sign-in through real email isn't practical in
+  this environment): `test-customer@giftping.test`, `test-vendor@giftping.test`,
+  `test-admin@giftping.test`, all password `TestPass123!`. **Left in the database intentionally** — useful
+  for continued manual testing in later stages (cart, wishlist, vendor portal, admin panel all need a role
+  to test against). Not real user data, safe to keep in a dev project; delete before go-live.
+- **Two real bugs found and fixed while hand-testing in the browser** (not caught by `npm run build` —
+  only showed up when actually clicking through):
+  1. Sign-out silently did nothing — a `<button type="submit">` inside a Radix `DropdownMenu.Item`
+     never reached the wrapping `<form>`'s native submit (Radix intercepts the click for its own
+     selection/close handling first). Fixed by calling the `signOutAction()` server action directly from
+     the item's `onSelect` instead of wrapping it in a form.
+  2. First sign-up attempt failed with a generic error; temporarily added debug logging (removed after)
+     to find the real cause: Supabase's own default/shared SMTP has a strict built-in email-send rate
+     limit, and repeated test sign-ups during this session's verification hit it (`429
+     over_email_send_rate_limit`). Not a bug in this project's code — flagged as a real production
+     consideration: **the client will need custom SMTP configured in Supabase Auth settings before
+     go-live** (Resend, already planned for Stage 9, is a natural fit — could even be wired in earlier
+     than Stage 9 specifically to raise this limit if it becomes a dev annoyance).
+  3. Also specifically verified `requireRole()` is real server-side enforcement, not just decoration
+     around the proxy redirect: temporarily disabled proxy's admin-path check, confirmed a customer
+     session hitting `/admin/dashboard` still got hard-blocked by `requireRole()` throwing `AuthError`
+     (visible as a Next.js error, not a silently-rendered page) — then restored the proxy check. Added
+     `app/error.tsx` as a branded fallback for this class of error (production already hides raw error
+     detail by default; this just makes it look intentional rather than broken).
+- Full matrix verified in-browser: customer blocked from `/admin/dashboard` and `/vendor/dashboard`;
+  vendor reaches `/vendor/dashboard`, blocked from `/admin/dashboard`; admin reaches both; unauthenticated
+  hitting `/account` redirects to `/sign-in?redirectTo=/account` and lands back on `/account` after
+  signing in; already-authenticated user hitting `/sign-up` bounces to `/`.
+- **Not yet done**: Google OAuth is fully code-complete (`signInWithGoogleAction`, `/auth/callback`) but
+  genuinely untested — needs a Google Cloud OAuth client configured and registered as a provider in
+  Supabase Auth settings. MSG91 phone OTP has no implementation at all yet (deliberately — see cost
+  constraint above; build it only if/when the client actually wants it enabled).
 
 ## Next Up
 
-Start **Stage 2 — Auth**: email/password + Google OAuth + MSG91 phone OTP (as a *verification step* on
-top of email/password, not a standalone login method — Supabase's native phone auth doesn't speak MSG91
-directly, this needs custom glue, see the plan doc), `proxy.ts` (Next 16's renamed `middleware.ts`) for
-route protection, a `getServerUser()`/`requireRole()` helper in `lib/auth/session.ts`, rate limiting on
-auth routes (Upstash Redis + `@upstash/ratelimit` — not yet installed). The `handle_new_auth_user()`
-trigger from Stage 1 already auto-creates the `public.users` row on signup, so Stage 2 doesn't need to
-write that insert itself — just build the sign-up/sign-in UI and session plumbing on top of it. "Done
-when": all three sign-in paths work, and a customer JWT is server-rejected (403) from `/vendor/*` and
-`/admin/*` routes, not just UI-redirected.
+1. **Get Google OAuth working**: developer needs to create a Google Cloud OAuth 2.0 Client ID (Web
+   application type), add `https://qrcienpokiaplhtubtho.supabase.co/auth/v1/callback` as an authorized
+   redirect URI, then provide the Client ID + Secret so they can be added to Supabase Auth's Google
+   provider settings (dashboard → Authentication → Providers → Google) and to `.env.local`. Once done,
+   verify the full OAuth round-trip in-browser the same way email/password was verified this session.
+2. Move on to **Stage 3 — Catalog (read-only)**: functional homepage, category/occasion pages with
+   filters, vendor storefront pages, PDP, Postgres full-text search (already schema-ready —
+   `search_products()` RPC exists from Stage 1), reviews (read), wishlists. Needs a Cloudinary account
+   (free tier — see the cost constraint in CLAUDE.md before ever upgrading it).
 
 ## Open Questions / Blocked On
 
-- Nothing currently blocking. Stage 2 needs Google OAuth credentials and an MSG91 account — ask the
-  developer for these when actually starting the sign-up/OTP UI, not before.
+- Google OAuth credentials (see Next Up #1) — not blocking Stage 3, since Stage 3 doesn't touch auth.
+- Whether to wire Resend into Supabase's SMTP settings now (to fix the email rate-limit annoyance hit
+  this session) or wait until Stage 9 as originally planned — developer's call, not urgent either way
+  since the admin-created test accounts sidestep the issue for now.
 
 ## Credentials Status
 
@@ -82,13 +98,13 @@ when": all three sign-in paths work, and a customer JWT is server-rejected (403)
 | Supabase Personal Access Token | Stage 1 | ✅ used for CLI link/push, not stored anywhere in-repo |
 | Supabase DB password | Stage 1 | ✅ used for migrations, not stored anywhere in-repo |
 | Sentry DSN | Stage 0 | 🟡 wired, not yet verified against live dashboard |
-| Google OAuth | Stage 2 | 🔴 not needed yet |
-| MSG91 | Stage 2 | 🔴 not needed yet |
-| Upstash Redis | Stage 2 (reused later) | 🔴 not needed yet |
-| Cloudinary | Stage 3 | 🔴 not needed yet |
-| Remove.bg | Stage 4 | 🔴 not needed yet |
+| Google OAuth | Stage 2 | 🟡 code-complete, credentials not yet provided |
+| MSG91 (phone OTP) | Stage 2 | ⚪ deliberately deferred — feature-flagged off, cost constraint |
+| Upstash Redis | Stage 2 (reused later) | 🟡 code-complete with graceful no-op fallback; not yet provisioned |
+| Cloudinary | Stage 3 | 🔴 not needed yet — free tier only, see cost constraint |
 | Razorpay (test) | Stage 7 | 🔴 not needed yet |
-| Shiprocket (sandbox) | Stage 8 | 🔴 not needed yet |
-| Resend | Stage 9 | 🔴 not needed yet |
-| OneSignal | Stage 9 | 🔴 not needed yet |
-| Railway | Stage 9 | 🔴 not needed yet |
+| Shiprocket (sandbox, Lite/PAYG plan) | Stage 8 | 🔴 not needed yet |
+| Resend | Stage 9 (or earlier, see Open Questions) | 🔴 not needed yet |
+| OneSignal (free tier) | Stage 9 | 🔴 not needed yet |
+| ~~Remove.bg~~ | — | ❌ cut from scope, cost constraint |
+| ~~Railway~~ | — | ❌ cut from scope — Vercel Cron Job instead |

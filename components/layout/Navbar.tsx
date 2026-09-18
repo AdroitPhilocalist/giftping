@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Heart, Menu, Search, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { AccountMenu } from "@/components/layout/AccountMenu";
+import { getServerUser } from "@/lib/auth/session";
 
 const navLinks = [
   { label: "Explore Mall", href: "/" },
@@ -11,7 +13,9 @@ const navLinks = [
   { label: "About Us", href: "/about" },
 ];
 
-export function Navbar() {
+export async function Navbar() {
+  const user = await getServerUser();
+
   return (
     <header className="sticky top-0 z-40 border-b border-brand-dark/5 bg-brand-light/95 backdrop-blur">
       <div className="bg-brand-primary px-4 py-2 text-center text-xs text-brand-light">
@@ -60,9 +64,15 @@ export function Navbar() {
           >
             <ShoppingBag className="h-5 w-5" />
           </Link>
-          <Button size="sm" className="hidden sm:inline-flex" asChild>
-            <Link href="/diary">My Diary</Link>
-          </Button>
+
+          {user ? (
+            <AccountMenu user={user} />
+          ) : (
+            <Button size="sm" className="hidden sm:inline-flex" asChild>
+              <Link href="/sign-in">Sign In</Link>
+            </Button>
+          )}
+
           <button
             aria-label="Menu"
             className="rounded-full p-2 text-brand-dark/70 hover:bg-brand-dark/5 lg:hidden"

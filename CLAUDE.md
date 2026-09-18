@@ -18,6 +18,40 @@ push notifications enriched with curated gift suggestions.
 Source documents (kept in the repo root for reference, not code): `GIFTPING_SRS_Development_Bible.docx`,
 `Feature_Specification_Gifting_Platform.docx`, and the approved visual references in `ui-references/`.
 
+## Cost constraint — hard budget ceiling, drives real architecture choices
+
+The client has capped ongoing third-party costs at **~₹40,000–50,000/year for APIs, ~₹60,000–70,000/year
+including Vercel hosting + domain**. This isn't a soft guideline — it eliminated two services from the
+original plan entirely and constrains which tier of everything else is acceptable:
+
+- **Remove.bg is cut entirely.** No automated background-removal/replacement pipeline. Vendors upload
+  their own finished product photos as-is; Cloudinary handles optimization/delivery only, not AI editing.
+  (Client can be offered this as a paid add-on later — ~₹17,000/yr — but it is not in scope now.)
+- **Railway is cut entirely.** The Stage 9 diary-reminder cron runs as a **Vercel Cron Job** instead
+  (confirmed: Pro plan supports up to 100 cron jobs/project, configurable timeout up to 300s — comfortably
+  enough for a daily batch reminder job at any realistic near-term scale). This is a free-tier-of-something-
+  already-being-paid-for substitution, not a corner cut — functionally equivalent for this use case.
+- **Shiprocket**: use the **Lite/pay-as-you-go plan** (no fixed monthly fee), not Basic/Advanced, unless/
+  until shipment volume genuinely justifies the jump (Basic ≈ ₹1,000/mo, meant for 60–100 shipments/mo).
+- **OneSignal**: free tier is expected to be sufficient **specifically because this is a web-only product
+  with no native mobile app** (per the SRS's own "no mobile app" scope) — OneSignal's newer 1,000-MAU cap
+  applies to mobile push, not the web push this project actually uses (free web push: 10k subscribers,
+  unlimited sends). If a native app is ever added later, revisit this.
+- **Resend and Cloudinary are the two real cost-growth risks to watch.** Resend's free tier is 3,000
+  emails/month — order confirmations + diary reminders will plausibly exceed that as the user base grows,
+  at which point it's ~₹20,600/yr for the next tier (acceptable, budgeted for). Cloudinary is the one that
+  actually threatens the budget: its free tier (25 credits/mo) may not last, and its *next* tier jumps
+  straight to ~₹91,000/yr (Plus, $89/mo) — **on its own, more than the entire API budget.** Keep product
+  images reasonably sized/optimized and monitor Cloudinary usage; if the free tier is genuinely outgrown,
+  that's a decision point to flag to the developer/client explicitly (re-negotiate budget, or evaluate a
+  cheaper alternative like ImageKit) rather than silently upgrading.
+- **MSG91 phone OTP is built as a feature flag**, not a hard dependency — see Stage 2 notes below. It's
+  already a secondary verification step (not the primary login method), so it can be switched off without
+  a code change if SMS costs run ahead of budget.
+- Razorpay's ~2.4% transaction fee and Shiprocket's per-shipment courier cost are **not** part of this
+  budget — they scale with GMV/order volume rather than being a fixed subscription, and the courier cost
+  is normally recovered from the customer via the delivery charge.
+
 ## Design tokens
 
 Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
@@ -38,7 +72,9 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
   extension (the SRS's example predates v4). No `tailwindcss-animate` plugin installed — don't use
   `animate-in`/`fade-in` utility classes until/unless it's added.
 - **Auth**: Supabase Auth directly (no NextAuth.js layer). MSG91 phone OTP is a verification step on top
-  of email/password, not a standalone login method (Supabase's native phone auth doesn't speak MSG91).
+  of email/password, not a standalone login method (Supabase's native phone auth doesn't speak MSG91) —
+  and per the cost constraint above, gated behind a feature flag (`PHONE_OTP_ENABLED` env var) so it can
+  be switched off without a code change if SMS costs run ahead of budget.
 - **No visual UI library** (no shadcn/MUI/Chakra) — everything in `components/ui/` is bespoke Tailwind.
   Headless/unstyled behavior primitives are fine and already wired: Radix UI (dialog, dropdown-menu, tabs,
   tooltip, slot), Sonner (toasts). Not yet installed, add when the relevant stage needs them: React Hook
@@ -81,19 +117,24 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /app            → routes: (shop) customer routes, (auth), /vendor, /admin, /api, /kitchen-sink (dev only)
 /components/ui  → bespoke Tailwind primitives: Button, Card, Input/Textarea/Label, Select, Badge, Modal,
                   Dropdown, Tabs, Tooltip, Toast, Skeleton, Spinner
-/components/layout → Navbar, Footer
+/components/layout → Navbar, Footer, AccountMenu (role-aware, reads session server-side)
+/components/auth → GoogleButton, SubmitButton (useFormStatus-based pending state)
 /components/{shop,diary,vendor,admin} → feature components, created as each stage needs them
 /lib/db         → Supabase clients + generated types + per-table query helpers
-/lib/auth       → session.ts (getServerUser/requireRole), rate-limit.ts
+/lib/auth       → session.ts (getServerUser/requireRole — always re-reads role from the DB), actions.ts
+                  (Server Actions: sign-up/in/out, Google OAuth, password reset), rate-limit.ts
+                  (Upstash — fails open/no-ops if not configured, never blocks on a missing dev credential)
 /lib/commerce   → cart.ts, checkout.ts, commission.ts, coupons.ts
-/lib/integrations → razorpay.ts, shiprocket.ts, cloudinary.ts, removebg.ts, msg91.ts, onesignal.ts, resend.ts
+/lib/integrations → razorpay.ts, shiprocket.ts, cloudinary.ts, msg91.ts, onesignal.ts, resend.ts (no
+                  removebg.ts — cut per the cost constraint above)
 /lib/search     → index.ts (searchProducts — swappable Postgres FTS → Algolia)
 /lib/diary      → gifting-score.ts, suggestion-matcher.ts, recurrence.ts
 /lib/validation → Zod schemas, one file per domain, shared by client forms and API routes
 /lib/content    → imagery.ts — central image-asset map (see "Image handoff" below)
 /lib/utils      → cn.ts (clsx + tailwind-merge) and other generic helpers
 /emails         → React Email templates
-/jobs           → diary-reminders.ts, the Railway cron worker entrypoint
+/app/api/cron   → diary-reminders/route.ts, invoked by Vercel's Cron scheduler (vercel.json) — not a
+                  separate /jobs directory or a Railway worker, per the cost constraint above
 /scripts        → seed.ts and one-off scripts
 /supabase/migrations → schema migrations, applied in order
 /public/images
@@ -159,6 +200,35 @@ policies are even consulted. `supabase/migrations/20260917181523_grant_table_pri
 baseline `SELECT/INSERT/UPDATE/DELETE` table privileges (Supabase's Studio does this automatically for
 tables created through its UI; a raw SQL migration via the CLI does not) that every RLS policy in this
 project depends on to have any effect at all.
+
+## Auth
+
+`lib/auth/session.ts` (`getServerUser`/`requireRole`) and `proxy.ts` are two independent layers —
+`proxy.ts` is an *optimistic* UI-level redirect (fast, better UX, matches Next's own docs on this
+pattern), `requireRole()` is the actual enforcement, re-reading role from the DB every time. This was
+deliberately verified as two independent layers in Stage 2 (temporarily disabled `proxy.ts`'s admin check
+and confirmed `requireRole()` alone still blocked a customer session) — don't assume one makes the other
+redundant when adding new protected routes; every protected Server Component/Server Action/Route Handler
+still needs its own `requireRole()` call.
+
+Two things worth knowing before touching auth UI again:
+- **A `<button type="submit">` inside a Radix `DropdownMenu.Item` does not reliably submit its wrapping
+  `<form>`** — Radix intercepts the click for its own selection/close handling first. Confirmed by
+  hand-testing (`AccountMenu`'s sign-out silently did nothing until fixed). Use `onSelect` on the
+  `DropdownMenu.Item` to call a Server Action directly instead (Server Actions are plain async functions —
+  calling them directly from a client event handler works exactly like a form action does).
+- **Supabase's default/shared SMTP has a strict built-in rate limit on auth emails** (confirmed by
+  hitting `429 over_email_send_rate_limit` during ordinary manual testing in Stage 2). This is expected to
+  bite again anywhere real signups/password-resets get tested repeatedly, and **must be fixed with custom
+  SMTP before go-live** or real users will hit it too — Resend (already planned for Stage 9) is the
+  natural fit. For local testing without waiting on real email, create confirmed accounts directly via
+  the Supabase admin client (`auth.admin.createUser({ email_confirm: true, ... })`) rather than going
+  through the UI signup flow.
+
+Test accounts exist in the dev database for exactly this reason — `test-customer@giftping.test`,
+`test-vendor@giftping.test`, `test-admin@giftping.test`, all password `TestPass123!`. Not real user data;
+reuse them for manual testing in later stages rather than creating new ones each time, and delete them
+before go-live.
 
 ## Image handoff workflow
 
