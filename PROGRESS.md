@@ -80,18 +80,24 @@ deliberately deferred (feature-flagged off, cost constraint). Next session shoul
   `/auth/callback` code path already proven by email-confirmation links, so it's not a new code path.
 - MSG91 phone OTP has no implementation at all yet (deliberately — see cost constraint above; build it
   only if/when the client actually wants it enabled).
+- **Image pipeline plan changed after this session's work**: developer decided (after reviewing a set of
+  free-alternative options) to drop Cloudinary entirely in favor of Supabase Storage + `sharp` +
+  `next/image` — removes the single biggest budget risk, using only infrastructure already paid for.
+  Resend stays as originally planned (client explicitly chose it over the cheaper Brevo alternative).
+  Full reasoning in `CLAUDE.md`'s updated "Cost constraint" section. **Nothing has been built against
+  Cloudinary** (Stage 3/4 image work hasn't started), so this is a pure plan update, no rework needed.
 
 ## Next Up
 
 Start **Stage 3 — Catalog (read-only)**: functional homepage, category/occasion pages with filters,
 vendor storefront pages, PDP, Postgres full-text search (already schema-ready — `search_products()` RPC
-exists from Stage 1), reviews (read), wishlists. Needs a Cloudinary account (free tier — see the cost
-constraint in CLAUDE.md before ever upgrading it).
+exists from Stage 1), reviews (read), wishlists. Image handling uses Supabase Storage + `sharp` +
+`next/image` (see `CLAUDE.md`) — no Cloudinary account needed at all, ever, for this project.
 
 ## Open Questions / Blocked On
 
 - Whether to wire Resend into Supabase's SMTP settings now (to fix the email rate-limit annoyance hit
-  last session) or wait until Stage 9 as originally planned — developer's call, not urgent either way
+  in Stage 2) or wait until Stage 9 as originally planned — developer's call, not urgent either way
   since the admin-created test accounts sidestep the issue for now.
 
 ## Credentials Status
@@ -106,10 +112,10 @@ constraint in CLAUDE.md before ever upgrading it).
 | Google OAuth | Stage 2 | ✅ done — configured on Supabase, reaches real Google consent screen |
 | MSG91 (phone OTP) | Stage 2 | ⚪ deliberately deferred — feature-flagged off, cost constraint |
 | Upstash Redis | Stage 2 (reused later) | 🟡 code-complete with graceful no-op fallback; not yet provisioned |
-| Cloudinary | Stage 3 | 🔴 not needed yet — free tier only, see cost constraint |
 | Razorpay (test) | Stage 7 | 🔴 not needed yet |
 | Shiprocket (sandbox, Lite/PAYG plan) | Stage 8 | 🔴 not needed yet |
 | Resend | Stage 9 (or earlier, see Open Questions) | 🔴 not needed yet |
 | OneSignal (free tier) | Stage 9 | 🔴 not needed yet |
 | ~~Remove.bg~~ | — | ❌ cut from scope, cost constraint |
 | ~~Railway~~ | — | ❌ cut from scope — Vercel Cron Job instead |
+| ~~Cloudinary~~ | — | ❌ cut from scope — Supabase Storage + sharp + next/image instead |

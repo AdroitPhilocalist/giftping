@@ -21,12 +21,13 @@ Source documents (kept in the repo root for reference, not code): `GIFTPING_SRS_
 ## Cost constraint — hard budget ceiling, drives real architecture choices
 
 The client has capped ongoing third-party costs at **~₹40,000–50,000/year for APIs, ~₹60,000–70,000/year
-including Vercel hosting + domain**. This isn't a soft guideline — it eliminated two services from the
+including Vercel hosting + domain**. This isn't a soft guideline — it eliminated services from the
 original plan entirely and constrains which tier of everything else is acceptable:
 
 - **Remove.bg is cut entirely.** No automated background-removal/replacement pipeline. Vendors upload
-  their own finished product photos as-is; Cloudinary handles optimization/delivery only, not AI editing.
-  (Client can be offered this as a paid add-on later — ~₹17,000/yr — but it is not in scope now.)
+  their own finished product photos as-is; the image pipeline (Supabase Storage + `sharp` + `next/image`,
+  see below) handles optimization/delivery only, not AI editing. (Client can be offered background removal
+  as a paid add-on later, e.g. a self-hosted free library or a per-image API — but it is not in scope now.)
 - **Railway is cut entirely.** The Stage 9 diary-reminder cron runs as a **Vercel Cron Job** instead
   (confirmed: Pro plan supports up to 100 cron jobs/project, configurable timeout up to 300s — comfortably
   enough for a daily batch reminder job at any realistic near-term scale). This is a free-tier-of-something-
@@ -37,20 +38,29 @@ original plan entirely and constrains which tier of everything else is acceptabl
   with no native mobile app** (per the SRS's own "no mobile app" scope) — OneSignal's newer 1,000-MAU cap
   applies to mobile push, not the web push this project actually uses (free web push: 10k subscribers,
   unlimited sends). If a native app is ever added later, revisit this.
-- **Resend and Cloudinary are the two real cost-growth risks to watch.** Resend's free tier is 3,000
-  emails/month — order confirmations + diary reminders will plausibly exceed that as the user base grows,
-  at which point it's ~₹20,600/yr for the next tier (acceptable, budgeted for). Cloudinary is the one that
-  actually threatens the budget: its free tier (25 credits/mo) may not last, and its *next* tier jumps
-  straight to ~₹91,000/yr (Plus, $89/mo) — **on its own, more than the entire API budget.** Keep product
-  images reasonably sized/optimized and monitor Cloudinary usage; if the free tier is genuinely outgrown,
-  that's a decision point to flag to the developer/client explicitly (re-negotiate budget, or evaluate a
-  cheaper alternative like ImageKit) rather than silently upgrading.
+- **Cloudinary is cut entirely — replaced by Supabase Storage + `sharp` + `next/image`.** This was the
+  single biggest budget risk (Cloudinary's free tier is small, and its next tier alone — ~₹91,000/yr — is
+  more than the *entire* API budget). The replacement uses only infrastructure already being paid for:
+  raw files go to **Supabase Storage** (Pro plan includes 100GB, no extra cost), a couple of fixed sizes
+  are generated server-side at upload time with **`sharp`** (free, open-source — needed for React Email
+  templates, which can't use `next/image`), and on-page display optimization (WebP/AVIF, resizing) comes
+  from **`next/image`** via Vercel's own image pipeline (already covered by the Vercel Pro plan). No
+  Cloudinary account, no `NEXT_PUBLIC_CLOUDINARY_*` env vars, ever. `lib/integrations/cloudinary.ts` does
+  not exist — see `lib/storage/` instead (built in Stage 3/4 when image upload is actually implemented).
+- **Resend stays as planned** (client's explicit choice over the cheaper Brevo alternative — 3,000
+  emails/month free tier, ~₹20,600/yr for the next tier if the user base grows past that; this remains
+  the one real cost-growth risk left to watch, budgeted for).
 - **MSG91 phone OTP is built as a feature flag**, not a hard dependency — see Stage 2 notes below. It's
   already a secondary verification step (not the primary login method), so it can be switched off without
-  a code change if SMS costs run ahead of budget.
+  a code change if SMS costs run ahead of budget. If it's ever turned on, use MSG91, not Twilio via
+  Supabase's built-in phone auth — Twilio's India SMS rates (~$0.0075/SMS ≈ ₹0.65) are actually *more*
+  expensive than MSG91's (~₹0.15–0.20/SMS) once converted to the same currency, despite how it looks at a
+  glance; Twilio prices India routes at international-carrier rates, not local ones.
 - Razorpay's ~2.4% transaction fee and Shiprocket's per-shipment courier cost are **not** part of this
   budget — they scale with GMV/order volume rather than being a fixed subscription, and the courier cost
   is normally recovered from the customer via the delivery charge.
+- **Net effect of the above**: realistic year-one API costs land closer to ~₹10,000–20,000/yr, well under
+  the ₹40,000–50,000 ceiling — comfortable headroom, not a tight squeeze.
 
 ## Design tokens
 
@@ -125,8 +135,10 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   (Server Actions: sign-up/in/out, Google OAuth, password reset), rate-limit.ts
                   (Upstash — fails open/no-ops if not configured, never blocks on a missing dev credential)
 /lib/commerce   → cart.ts, checkout.ts, commission.ts, coupons.ts
-/lib/integrations → razorpay.ts, shiprocket.ts, cloudinary.ts, msg91.ts, onesignal.ts, resend.ts (no
-                  removebg.ts — cut per the cost constraint above)
+/lib/integrations → razorpay.ts, shiprocket.ts, msg91.ts, onesignal.ts, resend.ts (no cloudinary.ts or
+                  removebg.ts — both cut per the cost constraint above)
+/lib/storage    → upload.ts (Supabase Storage), resize.ts (sharp — fixed sizes for email templates,
+                  which can't use next/image). Display-time optimization is next/image, not a lib file.
 /lib/search     → index.ts (searchProducts — swappable Postgres FTS → Algolia)
 /lib/diary      → gifting-score.ts, suggestion-matcher.ts, recurrence.ts
 /lib/validation → Zod schemas, one file per domain, shared by client forms and API routes
@@ -235,7 +247,9 @@ before go-live.
 The client generates new reference/hero images via ChatGPT over time and hands them to the developer.
 `lib/content/imagery.ts` (created in the visual-polish stage) is the single place components reference
 image assets from, so swapping in a new image never requires touching component code — just update the
-map and drop the file in `public/images/` (or Cloudinary).
+map and drop the file in `public/images/` (static site imagery — logo, hero art, illustrations) or upload
+it to Supabase Storage (user/vendor-generated content — product photos, avatars). See the "Cost
+constraint" section above and `/lib/storage` for the image pipeline itself.
 
 ## Progress tracking convention
 
