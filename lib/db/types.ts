@@ -296,6 +296,7 @@ export type Database = {
       categories: {
         Row: {
           banner_url: string | null
+          commission_rate: number | null
           created_at: string
           description: string | null
           icon_url: string | null
@@ -313,6 +314,7 @@ export type Database = {
         }
         Insert: {
           banner_url?: string | null
+          commission_rate?: number | null
           created_at?: string
           description?: string | null
           icon_url?: string | null
@@ -330,6 +332,7 @@ export type Database = {
         }
         Update: {
           banner_url?: string | null
+          commission_rate?: number | null
           created_at?: string
           description?: string | null
           icon_url?: string | null
@@ -1007,33 +1010,80 @@ export type Database = {
           },
         ]
       }
+      platform_settings: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_settings_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_images: {
         Row: {
           alt_text: string | null
           created_at: string
+          height: number | null
           id: string
           is_primary: boolean
+          medium_url: string | null
           product_id: string
           sort_order: number
+          storage_path: string | null
+          thumb_url: string | null
           url: string
+          width: number | null
         }
         Insert: {
           alt_text?: string | null
           created_at?: string
+          height?: number | null
           id?: string
           is_primary?: boolean
+          medium_url?: string | null
           product_id: string
           sort_order?: number
+          storage_path?: string | null
+          thumb_url?: string | null
           url: string
+          width?: number | null
         }
         Update: {
           alt_text?: string | null
           created_at?: string
+          height?: number | null
           id?: string
           is_primary?: boolean
+          medium_url?: string | null
           product_id?: string
           sort_order?: number
+          storage_path?: string | null
+          thumb_url?: string | null
           url?: string
+          width?: number | null
         }
         Relationships: [
           {
@@ -1516,6 +1566,68 @@ export type Database = {
           },
         ]
       }
+      vendor_private: {
+        Row: {
+          bank_account_last4: string | null
+          bank_account_name: string | null
+          bank_account_number_encrypted: string | null
+          bank_ifsc: string | null
+          commission_rate: number | null
+          created_at: string
+          gstin: string | null
+          legal_name: string | null
+          pan: string | null
+          razorpay_contact_id: string | null
+          razorpay_fund_account_id: string | null
+          rejection_reason: string | null
+          updated_at: string
+          vendor_id: string
+          warehouse_address: Json | null
+        }
+        Insert: {
+          bank_account_last4?: string | null
+          bank_account_name?: string | null
+          bank_account_number_encrypted?: string | null
+          bank_ifsc?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          gstin?: string | null
+          legal_name?: string | null
+          pan?: string | null
+          razorpay_contact_id?: string | null
+          razorpay_fund_account_id?: string | null
+          rejection_reason?: string | null
+          updated_at?: string
+          vendor_id: string
+          warehouse_address?: Json | null
+        }
+        Update: {
+          bank_account_last4?: string | null
+          bank_account_name?: string | null
+          bank_account_number_encrypted?: string | null
+          bank_ifsc?: string | null
+          commission_rate?: number | null
+          created_at?: string
+          gstin?: string | null
+          legal_name?: string | null
+          pan?: string | null
+          razorpay_contact_id?: string | null
+          razorpay_fund_account_id?: string | null
+          rejection_reason?: string | null
+          updated_at?: string
+          vendor_id?: string
+          warehouse_address?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_private_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: true
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_settlements: {
         Row: {
           amount: number
@@ -1567,25 +1679,16 @@ export type Database = {
         Row: {
           approved_at: string | null
           average_rating: number
-          bank_account_name: string | null
-          bank_account_number_encrypted: string | null
-          bank_ifsc: string | null
           banner_url: string | null
           business_name: string
           business_type: string | null
-          commission_rate: number
           created_at: string
           description: string | null
-          gstin: string | null
           id: string
           is_featured: boolean
           logo_url: string | null
           meta_description: string | null
           meta_title: string | null
-          pan: string | null
-          razorpay_contact_id: string | null
-          razorpay_fund_account_id: string | null
-          rejection_reason: string | null
           review_count: number
           short_description: string | null
           slug: string
@@ -1597,31 +1700,21 @@ export type Database = {
           total_sales: number
           updated_at: string
           user_id: string | null
-          warehouse_address: Json | null
           year_established: number | null
         }
         Insert: {
           approved_at?: string | null
           average_rating?: number
-          bank_account_name?: string | null
-          bank_account_number_encrypted?: string | null
-          bank_ifsc?: string | null
           banner_url?: string | null
           business_name: string
           business_type?: string | null
-          commission_rate?: number
           created_at?: string
           description?: string | null
-          gstin?: string | null
           id?: string
           is_featured?: boolean
           logo_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
-          pan?: string | null
-          razorpay_contact_id?: string | null
-          razorpay_fund_account_id?: string | null
-          rejection_reason?: string | null
           review_count?: number
           short_description?: string | null
           slug: string
@@ -1633,31 +1726,21 @@ export type Database = {
           total_sales?: number
           updated_at?: string
           user_id?: string | null
-          warehouse_address?: Json | null
           year_established?: number | null
         }
         Update: {
           approved_at?: string | null
           average_rating?: number
-          bank_account_name?: string | null
-          bank_account_number_encrypted?: string | null
-          bank_ifsc?: string | null
           banner_url?: string | null
           business_name?: string
           business_type?: string | null
-          commission_rate?: number
           created_at?: string
           description?: string | null
-          gstin?: string | null
           id?: string
           is_featured?: boolean
           logo_url?: string | null
           meta_description?: string | null
           meta_title?: string | null
-          pan?: string | null
-          razorpay_contact_id?: string | null
-          razorpay_fund_account_id?: string | null
-          rejection_reason?: string | null
           review_count?: number
           short_description?: string | null
           slug?: string
@@ -1669,7 +1752,6 @@ export type Database = {
           total_sales?: number
           updated_at?: string
           user_id?: string | null
-          warehouse_address?: Json | null
           year_established?: number | null
         }
         Relationships: [

@@ -6,85 +6,39 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
-**Stage 3 — Catalog (read-only)** ✅ complete. Next session should start Stage 4 (Vendor Portal).
+**Stage 4 — Vendor Portal (core)** ✅ complete. Next session should start Stage 5 (Cart).
 
 ## Last Session Summary
 
-- **Homepage moved into the `(shop)` route group** (`app/page.tsx` → `app/(shop)/page.tsx`) for
-  consistency with `CLAUDE.md`'s documented structure, and rewritten functionally: live categories,
-  trending products, featured vendors, a working search bar.
-- **Query helper layer built**: `lib/db/{categories,vendors,products,reviews,wishlists}.ts` — all
-  server-only, all respect RLS (no service-role bypass for anything customer-facing). `lib/db/products.ts`
-  has the main `listProducts()` filter/sort/paginate function and `getProductBySlug()` with
-  vendor/category/images/variants joined. `lib/db/vendors.ts` has `getVendorsForCategory()` so a category
-  page's vendor filter only ever shows vendors that actually have products there.
-- **Full-text search wired**: `lib/search/index.ts` wraps the Stage 1 `search_products()` RPC, re-joining
-  ranked results against the same product-card shape everything else uses (the RPC itself returns raw
-  unjoined rows) and restoring rank order after the join (`.in()` doesn't preserve it).
-- **Wishlist fully functional**, not just displayed: `lib/shop/wishlist-actions.ts`
-  (`toggleWishlistAction`, a Server Action) + `components/shop/WishlistButton.tsx` (optimistic UI,
-  redirects to sign-in if logged out) + `/wishlist` page. Verified end-to-end in-browser: toggle on PDP,
-  nav badge count updates, persists across pages, shows correctly on `/wishlist`.
-- **Pages built**: `/` (rewritten), `/categories`, `/categories/[slug]` (filters: vendor/occasion/
-  recipient/in-stock/sort, pagination), `/vendors`, `/vendors/[slug]` (storefront), `/products/[slug]`
-  (gallery, variant selector with live price adjustment, personalization form, reviews, related products),
-  `/search`, `/wishlist`. Cart/checkout don't exist yet (Stage 5), so "Add to Cart"/"Buy Now" show a
-  stub toast rather than pretending to work.
-- **Reused the client's own approved reference imagery as real seed product photography** instead of
-  gray placeholder boxes: cropped a clean hamper photo out of `ui-references/7b1ef5fb-...png` (the
-  original "Luxe Memory Hamper" PDP mockup) with `sharp`, saved to `public/seed-images/hamper.webp`, used
-  for 2 of 6 seed products. The other 4 deliberately have no photo — `components/shop/ProductImage.tsx`
-  renders a clean branded gradient+icon placeholder instead of a fake stock photo, which is the honest
-  state until Stage 4 lets vendors upload real ones. (Tried cropping 3 more products out of a lower-res
-  mobile screenshot; the source resolution was too low to upscale cleanly, so left those as placeholders
-  rather than ship blurry fake product photos.)
-- **Seed script expanded**: `scripts/seed.ts` now seeds a second vendor (Aurelia Gifts, partner/10%
-  commission, vs. GiftPing Originals in-house/0%) with its own products — needed to actually exercise
-  vendor attribution and the vendor filter, which a single-vendor catalog can't test. Also seeds product
-  variants (wrapping styles with a price adjustment on one), and 2 reviews (linked to the Stage 2
-  `test-customer` account, skipped gracefully if that account doesn't exist). Re-verified idempotent.
-- **Two real schema gaps found and fixed while building this** (both via new migrations, both
-  re-verified after, both documented in full in `CLAUDE.md` — don't re-derive here):
-  1. `products.average_rating`/`review_count` were denormalized columns from Stage 1 with nothing
-     keeping them in sync — added `recompute_product_rating()`, a trigger on `reviews` insert/update/
-     delete, correctly `SECURITY DEFINER` this time (unlike the four Stage 2 triggers) since it doesn't
-     inspect `current_user` — it just needs the elevated write access an ordinary reviewing customer
-     doesn't have on `products`.
-  2. Reviews had no way to show a reviewer name — joining to `public.users` for it would be blocked by
-     that table's own RLS for anyone browsing who isn't the reviewer or an admin. Added
-     `reviews.reviewer_display_name` (privacy-safe "First L." format), set by a `BEFORE INSERT` trigger
-     (not `SECURITY DEFINER` — the inserting user always has read access to their own `users` row
-     already), plus a one-time backfill for the 2 existing seed reviews.
-- **One real routing bug found and fixed while hand-testing in the browser** (not caught by build/lint):
-  `proxy.ts`'s vendor-portal check used `pathname.startsWith("/vendor")`, which also matches
-  `/vendors/aurelia-gifts` (the public shop storefront route) — a signed-in customer got silently bounced
-  from a vendor storefront page back to `/`, because proxy thought they were trying to reach the
-  vendor-portal-only `/vendor/*`. Fixed to `pathname === "/vendor" || pathname.startsWith("/vendor/")`.
-  Re-verified all three cases after the fix: `/vendor/dashboard` still correctly blocked for a customer,
-  `/vendor/register` still correctly public, `/vendors/aurelia-gifts` now correctly reachable.
-- `sharp` installed as a real (not dev) dependency — it'll run in production for the Stage 4+ image
-  resize pipeline, not just this session's one-off seed-image cropping.
-- `npm run build` and `npm run lint` both clean (fixed 2 real lint errors — raw `<a>` tags instead of
-  `next/link` on the category/vendor breadcrumbs — and 2 unused-variable warnings along the way).
+Full detail + reasoning: `docs/progress/2026-09-19-stage-4-vendor-portal.md`.
+
+- **Security hardening first**: probing showed anon could read vendor PAN/GSTIN/bank/commission and any customer
+  could self-insert an approved featured vendor / active product with fake ratings. Fixed via a `vendor_private`
+  table, pending-only INSERT policies and widened guard triggers (4 new migrations, hand-verified with psql).
+- **Vendor onboarding + admin approval gate**: `/vendor/register`, `/admin/vendors`, `/admin/products`
+  (approve/reject with reason → audit log + notification; approving a vendor promotes their role).
+- **Vendor portal** (`app/vendor/(portal)/`): dashboard, product CRUD + variants, image manager, status
+  badges/reviewer notes, Hide/Resubmit, orders stub. Editing a live product sends it back to review.
+- **Image pipeline**: upload route handler → sharp validation/re-encode → WebP 3 sizes → Supabase Storage bucket
+  `product-images` (no client write policies) → `next/image`.
+- **Commission resolution** (tested pure function) and **AES-256-GCM bank-detail encryption** (tested).
+- Verified end-to-end in a real browser: apply → approve → create product → upload → reject → resubmit →
+  approve → visible on PDP/vendor page/category/search. `lint`, `tsc`, 13 unit tests clean (`npm test`).
 
 ## Next Up
 
-Start **Stage 4 — Vendor Portal (core)**: vendor sign-up/onboarding (business info, bank details —
-encrypted via pgcrypto per the Stage 1 schema comment), an admin-approval gate (a bare route is enough for
-now, full UI is Stage 11), product CRUD + variants (reuse the `product_variants` patterns already proven
-in Stage 3's seed/display code), and the image upload pipeline: Supabase Storage bucket + `sharp`-resized
-fixed sizes (this is where `lib/storage/{upload,resize}.ts` actually gets built — Stage 3 only consumed
-`thumbnail_url`/`product_images` values, it never needed to write them). No Remove.bg, per the cost
-constraint. "Done when": a vendor can sign up, get admin-approved, add a product with a photo, and see it
-appear correctly attributed in Stage 3's catalog pages (which are already fully built and will just work
-once real vendor-submitted rows exist with `status = 'active'`).
+**Stage 5 — Cart**: persistent multi-vendor cart grouped by vendor (`cart`/`cart_items` tables already exist from
+Stage 1), guest cart via cookie merged into the account cart on login without duplicating/losing items, wire the
+PDP "Add to Cart" stub (`components/shop/ProductBuyBox.tsx`) and a `/cart` page. Server never trusts
+`unit_price_snapshot`. Then Stage 6 Checkout, 7 Razorpay, 8 Shiprocket, 9 Diary + Vercel Cron.
 
 ## Open Questions / Blocked On
 
-- Nothing currently blocking. Stage 4 needs a Supabase Storage bucket created (no new third-party
-  account — same Supabase project) and no other new credentials.
-- Whether to wire Resend into Supabase's SMTP settings now (to fix the Stage 2 email rate-limit
-  annoyance) or wait until Stage 9 as planned — still open, still not urgent.
+- Nothing blocking. `VENDOR_BANK_ENCRYPTION_KEY` lives in gitignored `.env.local` — a second laptop must be given
+  the same key (or use a fresh dev DB); it must also be set in Vercel for production.
+- Whether to wire Resend as Supabase's SMTP now (Stage 2 auth-email rate limit) or at Stage 9 — still open.
+- Not built in Stage 4 (deliberate): bulk CSV upload, vendor logo/banner upload, real vendor order management,
+  admin notification emails, vendor-level rating rollup, Razorpay linked-account creation.
 
 ## Credentials Status
 
@@ -98,7 +52,8 @@ once real vendor-submitted rows exist with `status = 'active'`).
 | Google OAuth | Stage 2 | ✅ done — configured on Supabase, reaches real Google consent screen |
 | MSG91 (phone OTP) | Stage 2 | ⚪ deliberately deferred — feature-flagged off, cost constraint |
 | Upstash Redis | Stage 2 (reused later) | 🟡 code-complete with graceful no-op fallback; not yet provisioned |
-| Supabase Storage bucket | Stage 4 | 🔴 not created yet — same project, no new account needed |
+| Supabase Storage bucket (`product-images`) | Stage 4 | ✅ created via migration, verified |
+| Vendor bank encryption key | Stage 4 | ✅ in `.env.local`; 🔴 must be set in Vercel before go-live |
 | Razorpay (test) | Stage 7 | 🔴 not needed yet |
 | Shiprocket (sandbox, Lite/PAYG plan) | Stage 8 | 🔴 not needed yet |
 | Resend | Stage 9 (or earlier, see Open Questions) | 🔴 not needed yet |

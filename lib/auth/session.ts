@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/db/server";
 import type { Database } from "@/lib/db/types";
 
@@ -16,7 +17,8 @@ export interface SessionUser {
  * data. Returns null if unauthenticated. Always reads the role from the database — never
  * trust a role claim from the client (see CLAUDE.md security requirements).
  */
-export async function getServerUser(): Promise<SessionUser | null> {
+// cache(): the Navbar, layouts and pages all ask for the current user during one render — memoize per request.
+export const getServerUser = cache(async function getServerUser(): Promise<SessionUser | null> {
   const supabase = await createClient();
   const {
     data: { user: authUser },
@@ -38,7 +40,7 @@ export async function getServerUser(): Promise<SessionUser | null> {
     fullName: profile.full_name,
     role: profile.role,
   };
-}
+});
 
 /**
  * Throws if there's no authenticated user, or if their role isn't one of `allowed`. Use at

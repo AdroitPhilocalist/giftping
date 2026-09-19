@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { getRequestIp } from "@/lib/auth/request-ip";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/db/server";
 import { authRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
@@ -14,15 +15,6 @@ import {
 export interface ActionResult {
   error?: string;
   success?: string;
-}
-
-// Not the same as rate-limit.ts's getClientIp(request) — Server Actions don't receive a
-// Request object, only next/headers(), so this needs its own header-reading implementation.
-async function getRequestIp(): Promise<string> {
-  const headerList = await headers();
-  const forwardedFor = headerList.get("x-forwarded-for");
-  if (forwardedFor) return forwardedFor.split(",")[0].trim();
-  return headerList.get("x-real-ip") ?? "unknown";
 }
 
 async function enforceAuthRateLimit(): Promise<string | null> {

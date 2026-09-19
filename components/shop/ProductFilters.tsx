@@ -1,13 +1,12 @@
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
+import { OCCASION_TAGS, RECIPIENT_TAGS, labelForTag } from "@/lib/catalog/tags";
 
 export interface VendorOption {
   slug: string;
   business_name: string;
 }
 
-const OCCASION_OPTIONS = ["birthday", "anniversary", "wedding", "housewarming", "thank-you"];
-const RECIPIENT_OPTIONS = ["for-her", "for-him", "for-parents", "for-kids", "for-colleagues"];
 
 /**
  * A plain GET form — filters are query params, so results are server-rendered and the whole
@@ -53,9 +52,9 @@ export function ProductFilters({
         </label>
         <Select id="occasion" name="occasion" defaultValue={current.occasion ?? ""}>
           <option value="">Any Occasion</option>
-          {OCCASION_OPTIONS.map((tag) => (
-            <option key={tag} value={tag} className="capitalize">
-              {tag.replace("-", " ")}
+          {OCCASION_TAGS.map((tag) => (
+            <option key={tag} value={tag}>
+              {labelForTag(tag)}
             </option>
           ))}
         </Select>
@@ -67,9 +66,9 @@ export function ProductFilters({
         </label>
         <Select id="recipient" name="recipient" defaultValue={current.recipient ?? ""}>
           <option value="">Anyone</option>
-          {RECIPIENT_OPTIONS.map((tag) => (
+          {RECIPIENT_TAGS.map((tag) => (
             <option key={tag} value={tag}>
-              {tag.replace("for-", "For ").replace(/^\w/, (c) => c.toUpperCase())}
+              {labelForTag(tag)}
             </option>
           ))}
         </Select>

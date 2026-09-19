@@ -28,6 +28,7 @@ function createLimiter(requests: number, window: `${number} ${"s" | "m" | "h"}`)
 export const authRateLimit = createLimiter(5, "1 m");
 export const paymentRateLimit = createLimiter(10, "1 m");
 export const searchRateLimit = createLimiter(60, "1 m");
+export const uploadRateLimit = createLimiter(20, "1 m");
 
 export interface RateLimitResult {
   success: boolean;

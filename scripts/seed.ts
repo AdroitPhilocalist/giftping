@@ -48,7 +48,7 @@ const VENDORS = [
     business_name: "GiftPing Originals",
     description: "GiftPing's own in-house gifting collection.",
     short_description: "Curated by the GiftPing team.",
-    commission_rate: 0,
+    commissionOverride: 0, // in-house: explicit 0% (an override of 0 is real, not "unset")
     is_in_house: true,
   },
   {
@@ -56,7 +56,7 @@ const VENDORS = [
     business_name: "Aurelia Gifts",
     description: "Aurelia brings you a curated collection of luxurious gifts crafted with love, elegance and attention to every little detail.",
     short_description: "Timeless Elegance. Thoughtful Gifting.",
-    commission_rate: 10,
+    commissionOverride: null, // partner: no override -> category/platform default applies
     is_in_house: false,
   },
 ] as const;
@@ -190,7 +190,6 @@ async function main() {
           description: vendor.description,
           short_description: vendor.short_description,
           status: "approved",
-          commission_rate: vendor.commission_rate,
           is_featured: !vendor.is_in_house,
           approved_at: new Date().toISOString(),
         },
@@ -200,6 +199,11 @@ async function main() {
       .single();
     if (error) throw error;
     vendorBySlug.set(vendor.slug, data!.id);
+
+    const { error: privateError } = await supabase
+      .from("vendor_private")
+      .upsert({ vendor_id: data!.id, commission_rate: vendor.commissionOverride }, { onConflict: "vendor_id" });
+    if (privateError) throw privateError;
   }
 
   console.log("Seeding products, variants, and images...");

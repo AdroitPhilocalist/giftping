@@ -135,7 +135,10 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   below), WishlistButton, ProductGallery, ProductBuyBox (variants + personalization +
                   stub cart buttons), ReviewList, ProductFilters (plain GET form — query-param filters,
                   works without JS), CategoryCard, VendorCard, SearchBar, Pagination
-/components/{diary,vendor,admin} → feature components, created as each stage needs them
+/components/vendor → VendorApplicationForm, ProductForm (RHF + Zod, variants via useFieldArray with
+                  keyName "fieldKey"), ImageManager, ProductRowActions, PortalNav
+/components/admin → DecisionButtons (Approve / Reject-with-reason modal)
+/components/diary → created in Stage 9
 /lib/db         → Supabase clients + generated types + per-table query helpers: categories.ts, vendors.ts
                   (incl. getVendorsForCategory — scopes a category page's vendor filter to vendors that
                   actually have products there), products.ts (listProducts w/ filter+sort+paginate,
@@ -145,13 +148,25 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   (Upstash — fails open/no-ops if not configured, never blocks on a missing dev credential)
 /lib/shop       → wishlist-actions.ts (toggleWishlistAction, a Server Action — not lib/commerce, that's
                   reserved for cart/checkout/commission/coupons, which are a different domain)
-/lib/commerce   → cart.ts, checkout.ts, commission.ts, coupons.ts — not built yet (Stage 5+)
+/lib/commerce   → commission.ts (built, tested: resolveCommissionRate = vendor override → category →
+                  platform_settings default → 10, `!= null` so 0 is a real override; computeCommission).
+                  cart.ts, checkout.ts, coupons.ts — not built yet (Stage 5+)
+/lib/security   → encryption.ts (AES-256-GCM encryptSecret/decryptSecret, key VENDOR_BANK_ENCRYPTION_KEY —
+                  losing it makes stored bank numbers unrecoverable; same value needed in Vercel)
+/lib/vendor     → actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
+                  actions), product-helpers.ts (syncProductThumbnail, sendBackToReviewIfLive)
+/lib/admin      → actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
+                  admin client — those tables have no client write policies)
+/lib/catalog    → tags.ts (OCCASION_TAGS, RECIPIENT_TAGS, labelForTag — shared by vendor form + shop filters)
 /lib/integrations → razorpay.ts, shiprocket.ts, msg91.ts, onesignal.ts, resend.ts (none built yet; no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
-/lib/storage    → NOT built yet — Stage 3 only ever consumed thumbnail_url/product_images values, never
-                  wrote them. Built in Stage 4 when vendor image upload actually happens: upload.ts
-                  (Supabase Storage), resize.ts (sharp — fixed sizes for email templates, which can't use
-                  next/image). Display-time optimization is next/image itself, not a lib file.
+/lib/storage    → resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
+                  to WebP full 1600 / medium 800 / thumb 400, strips metadata; ImageValidationError),
+                  upload.ts (service-role writes to the public `product-images` bucket). The bucket has NO
+                  client write policies — the only write path is POST /api/vendor/upload-image (a route
+                  handler, because Server Actions cap at 1MB and Vercel bodies at 4.5MB; the client
+                  downsizes files >1.5MB first). Display optimisation is next/image (remotePatterns in
+                  next.config.ts), not a lib file.
 /lib/search     → index.ts — searchProducts(), wraps the search_products() Postgres RPC (Stage 1) and
                   re-joins ranked ids against the vendor/category-joined product-card shape (the RPC
                   itself returns raw unjoined rows). Swappable for Algolia later without touching callers.
@@ -172,7 +187,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /docs/progress  → dated per-stage log entries
 ```
 
-`/vendor` and `/admin` are real route segments (not `(group)`s) since they need their own persistent
+`/vendor` (portal pages live in the `(portal)` group so `/vendor/register` stays public and outside the approved-vendor layout) and `/admin` are real route segments (not `(group)`s) since they need their own persistent
 sidebar layout. `(shop)` and `(auth)` are route groups purely for organization. Watch for the collision
 class of bug this caused once already: `pathname.startsWith("/vendor")` in `proxy.ts` also matched the
 public `/vendors/*` shop routes — see "Auth" below.
@@ -267,6 +282,29 @@ sync" and "RLS blocks an innocent-looking join" failure classes as above, worth 
    to their own `users` row already, no elevated privilege needed. **Pattern to reuse**: when a public
    display need wants a field off a privacy-protected table, denormalize a display-safe derived value at
    write time rather than opening up the source table's RLS.
+
+### Stage 4 (vendor portal) — four more failure classes found by probing before building on the schema
+
+1. **RLS is row-level, not column-level.** `vendors` held PAN/GSTIN/bank/commission next to public storefront
+   fields, so `anon` could read them. Sensitive fields now live in `vendor_private` (owner/admin RLS only);
+   bank account numbers are additionally AES-256-GCM encrypted in the app layer (only last4 stored in clear).
+   Rule: never put a private column on a table that has a public SELECT policy.
+2. **A permissive INSERT policy is a privilege-escalation hole.** Any customer could insert an
+   already-approved, featured, 0%-commission vendor or an `active` product with fake ratings.
+   `vendors_insert_own_pending` / `products_insert_own_pending` force status pending and zeroed derived fields;
+   the update-guard triggers (INVOKER, per the rule above) block status/vendor_id/counter/approved_at edits.
+   Check INSERT policies as carefully as UPDATE ones for every new table a non-admin can write to.
+3. **`INSERT … RETURNING` must also pass the SELECT policy.** A SELECT policy that re-looks the row up by id
+   (`owns_product(id)`) can't see a row mid-insert, so the vendor's own insert failed. Compare the row's own
+   column instead (`is_vendor_owner(vendor_id)`).
+4. **Column names differ across tables**: `vendors.total_sales` but `products.total_sold` — check
+   `lib/db/types.ts` before writing triggers/policies that touch counters.
+
+Commission: `vendor_private.commission_rate` (nullable override) → `categories.commission_rate` (nullable) →
+`platform_settings.default_commission_rate`. Applied at order time (Stage 5–7), not at listing time.
+Testing: `npm test` (Vitest; needs `@types/node@^22`). Migration push: `supabase db push --password …` with
+stdin closed (`< /dev/null`) — a hung nested-heredoc one-liner once left a migration file empty; write SQL
+files with the editor tool.
 
 ## Auth
 
