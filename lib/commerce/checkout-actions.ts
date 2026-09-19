@@ -1,11 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { checkoutRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
+import { z } from "zod";
+import { checkoutRateLimit, checkRateLimit, deliveryRateLimit } from "@/lib/auth/rate-limit";
 import { getRequestIp } from "@/lib/auth/request-ip";
 import { getServerUser } from "@/lib/auth/session";
 import { loadCheckoutSnapshot, persistOrder, quoteFor } from "@/lib/commerce/checkout";
 import { lookupCoupon } from "@/lib/commerce/coupons";
+import { checkDelivery, unserviceableMessage, type VendorDelivery } from "@/lib/commerce/delivery";
 import { computeQuote } from "@/lib/commerce/totals";
 import { createClient } from "@/lib/db/server";
 import { couponCodeSchema, placeOrderSchema, type PlaceOrderInput } from "@/lib/validation/checkout.schema";
@@ -80,6 +82,10 @@ export async function placeOrderAction(raw: PlaceOrderInput): Promise<CheckoutAc
   if (snapshot.issues.length > 0) return { error: `${snapshot.issues[0]} Please review your cart.` };
   if (snapshot.couponLookupError) return { error: `${snapshot.couponLookupError} Remove the coupon to continue.` };
 
+  // Server-side, authoritative: a definite "no courier serves this pincode" blocks the order (unknown = allowed).
+  const blocked = unserviceableMessage(await checkDelivery(snapshot.lines, address.pincode), address.pincode);
+  if (blocked) return { error: blocked };
+
   const quote = quoteFor(snapshot, input.giftWrap);
   if (quote.couponError) return { error: `${quote.couponError} Remove the coupon to continue.` };
 
@@ -96,4 +102,22 @@ export async function placeOrderAction(raw: PlaceOrderInput): Promise<CheckoutAc
 
   revalidatePath("/", "layout");
   return { orderId: outcome.orderId };
+}
+
+export type DeliveryCheckResult = { ok: true; vendors: VendorDelivery[] } | { ok: false; error: string };
+
+/** Per-vendor serviceability + ETA for one of the shopper's saved addresses (shown on the checkout page). */
+export async function checkDeliveryAction(addressId: string): Promise<DeliveryCheckResult> {
+  const user = await getServerUser();
+  if (!user) return { ok: false, error: "Please sign in." };
+  if (!(await checkRateLimit(deliveryRateLimit, await getRequestIp())).success) return { ok: false, error: TOO_MANY };
+  if (!z.string().uuid().safeParse(addressId).success) return { ok: false, error: "Invalid address." };
+
+  const client = await createClient();
+  const { data: address } = await client.from("addresses").select("pincode").eq("id", addressId).eq("user_id", user.id).maybeSingle();
+  if (!address) return { ok: false, error: "Address not found." };
+
+  const snapshot = await loadCheckoutSnapshot(user.id);
+  if (!snapshot) return { ok: true, vendors: [] };
+  return { ok: true, vendors: await checkDelivery(snapshot.lines, address.pincode) };
 }

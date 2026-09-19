@@ -28,6 +28,7 @@ export interface CheckoutLine extends QuoteLineInput {
   variantLabels: string[];
   personalization: Personalization;
   hsnCode: string | null;
+  weightGrams: number | null;
   /** Non-null when this line can't be bought right now (delisted, out of stock, option removed…). */
   issue: string | null;
 }
@@ -74,7 +75,7 @@ export async function loadCheckoutSnapshot(userId: string): Promise<CheckoutSnap
     catalogue
       .from("products")
       .select(
-        `id, name, slug, base_price, sale_price, stock_quantity, status, thumbnail_url, gst_rate, hsn_code,
+        `id, name, slug, base_price, sale_price, stock_quantity, status, thumbnail_url, gst_rate, hsn_code, weight_grams,
          category_id, vendor_id, vendor:vendors ( id, business_name, status )`,
       )
       .in("id", productIds),
@@ -150,6 +151,7 @@ export async function loadCheckoutSnapshot(userId: string): Promise<CheckoutSnap
           })
         : 0,
       hsnCode: product?.hsn_code ?? null,
+      weightGrams: product?.weight_grams ?? null,
       variantIds: row.variant_ids,
       variantLabels: chosen.filter((v) => v).map((v) => `${v!.name}: ${v!.value}`),
       personalization: asPersonalization(row.personalization),

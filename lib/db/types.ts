@@ -654,6 +654,27 @@ export type Database = {
           },
         ]
       }
+      integration_tokens: {
+        Row: {
+          expires_at: string
+          provider: string
+          token: string
+          updated_at: string
+        }
+        Insert: {
+          expires_at: string
+          provider: string
+          token: string
+          updated_at?: string
+        }
+        Update: {
+          expires_at?: string
+          provider?: string
+          token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       loyalty_ledger: {
         Row: {
           balance_after: number
@@ -1488,6 +1509,71 @@ export type Database = {
           },
         ]
       }
+      serviceability_cache: {
+        Row: {
+          checked_at: string
+          courier_count: number
+          delivery_pincode: string
+          etd_days: number | null
+          pickup_pincode: string
+          serviceable: boolean
+        }
+        Insert: {
+          checked_at?: string
+          courier_count?: number
+          delivery_pincode: string
+          etd_days?: number | null
+          pickup_pincode: string
+          serviceable: boolean
+        }
+        Update: {
+          checked_at?: string
+          courier_count?: number
+          delivery_pincode?: string
+          etd_days?: number | null
+          pickup_pincode?: string
+          serviceable?: boolean
+        }
+        Relationships: []
+      }
+      shipment_events: {
+        Row: {
+          activity: string | null
+          created_at: string
+          id: string
+          location: string | null
+          occurred_at: string
+          raw_status: string
+          shipment_id: string
+        }
+        Insert: {
+          activity?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          occurred_at: string
+          raw_status: string
+          shipment_id: string
+        }
+        Update: {
+          activity?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          occurred_at?: string
+          raw_status?: string
+          shipment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shipment_events_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shipments: {
         Row: {
           awb_number: string | null
@@ -1497,10 +1583,16 @@ export type Database = {
           estimated_delivery: string | null
           id: string
           is_return: boolean
+          last_event_at: string | null
           order_id: string
+          package_breadth_cm: number | null
+          package_height_cm: number | null
+          package_length_cm: number | null
+          package_weight_grams: number | null
           return_awb_number: string | null
           shipped_at: string | null
           shiprocket_order_id: string | null
+          shiprocket_shipment_id: string | null
           status: string
           tracking_url: string | null
           updated_at: string
@@ -1514,10 +1606,16 @@ export type Database = {
           estimated_delivery?: string | null
           id?: string
           is_return?: boolean
+          last_event_at?: string | null
           order_id: string
+          package_breadth_cm?: number | null
+          package_height_cm?: number | null
+          package_length_cm?: number | null
+          package_weight_grams?: number | null
           return_awb_number?: string | null
           shipped_at?: string | null
           shiprocket_order_id?: string | null
+          shiprocket_shipment_id?: string | null
           status?: string
           tracking_url?: string | null
           updated_at?: string
@@ -1531,10 +1629,16 @@ export type Database = {
           estimated_delivery?: string | null
           id?: string
           is_return?: boolean
+          last_event_at?: string | null
           order_id?: string
+          package_breadth_cm?: number | null
+          package_height_cm?: number | null
+          package_length_cm?: number | null
+          package_weight_grams?: number | null
           return_awb_number?: string | null
           shipped_at?: string | null
           shiprocket_order_id?: string | null
+          shiprocket_shipment_id?: string | null
           status?: string
           tracking_url?: string | null
           updated_at?: string
@@ -1648,6 +1752,7 @@ export type Database = {
           razorpay_contact_id: string | null
           razorpay_fund_account_id: string | null
           rejection_reason: string | null
+          shiprocket_pickup_location: string | null
           updated_at: string
           vendor_id: string
           warehouse_address: Json | null
@@ -1665,6 +1770,7 @@ export type Database = {
           razorpay_contact_id?: string | null
           razorpay_fund_account_id?: string | null
           rejection_reason?: string | null
+          shiprocket_pickup_location?: string | null
           updated_at?: string
           vendor_id: string
           warehouse_address?: Json | null
@@ -1682,6 +1788,7 @@ export type Database = {
           razorpay_contact_id?: string | null
           razorpay_fund_account_id?: string | null
           rejection_reason?: string | null
+          shiprocket_pickup_location?: string | null
           updated_at?: string
           vendor_id?: string
           warehouse_address?: Json | null
@@ -1912,6 +2019,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_shipment_update: {
+        Args: {
+          p_awb: string
+          p_etd: string
+          p_events: Json
+          p_new_status: string
+          p_raw_status: string
+        }
+        Returns: Json
+      }
       confirm_order_payment: {
         Args: {
           p_amount_paise: number

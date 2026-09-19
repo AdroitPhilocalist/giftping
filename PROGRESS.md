@@ -6,41 +6,45 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
-**Stage 7 — Payments (Razorpay)** ✅ built, ⚠️ **verified against a local mock gateway only** — needs the developer's Razorpay TEST keys for a real
-end-to-end run (steps in `docs/progress/2026-09-19-stage-7-payments.md` → "First real test"). Stage 8 (Delivery) can start in parallel.
+**Stage 8 — Delivery (Shiprocket)** ✅ built, ⚠️ **verified against a local mock only** (like Stage 7's payments). Two "First real test" runs are now
+pending on the developer's accounts: Razorpay (Stage 7 log) and Shiprocket (Stage 8 log). Next code stage: **Stage 9 — Personal Gifting Diary + Vercel Cron**.
 
 ## Last Session Summary
 
-Full detail: `docs/progress/2026-09-19-stage-7-payments.md`.
+Full detail: `docs/progress/2026-09-19-stage-8-delivery.md`.
 
-- **Pay Now** on the order page; server creates the Razorpay order for the DB-stored total. **Signed, idempotent webhook**
-  (`/api/webhooks/razorpay`) is the source of truth; the browser callback is a verified fast path (re-fetches the payment from Razorpay). Both call
-  one atomic SQL step, `confirm_order_payment()`: amount check → stock decrement (all-or-nothing) → order `confirmed` → cart lines removed.
-- **Auto-refund** if a captured payment can't be fulfilled (sold out / wrong amount / cancelled draft / duplicate); refund failures retry via the webhook.
-- **Vendors now see only paid orders** (fixed a leak of buyers' addresses on unpaid drafts). Abandoned `payment_initiated` orders are superseded like drafts.
-- Tested with signed requests to the real route: replay, duplicate, 8 concurrent deliveries, wrong amount, oversold multi-item rollback, late payment on
-  a cancelled order, refund-failure retry, authorized→capture, forged/mismatched callbacks, ACLs. `lint`, `tsc`, 57 tests, build clean.
-- **Not built**: Razorpay Route split settlement (needs a Route-enabled account + vendor KYC — decide with the client; the payout data is already stored
-  per line in `order_item_financials` for manual settlement), customer/admin refunds (Stage 11), emails (Stage 10).
+- **Checkout serviceability**: per-vendor pincode check + ETA (cached, fail-open), blocks a definite "no courier" both in the UI and server-side. The delivery
+  *charge* stays flat-per-vendor with a free threshold (Shiprocket gates/ETAs only — a deliberate choice, see the log).
+- **Vendor `/vendor/orders`**: paid orders only → Accept → Book courier (resumable Shiprocket saga: pickup location, order, AWB, pickup request) → tracking link.
+- **Tracking webhook** `/api/webhooks/courier-tracking` → `apply_shipment_update()` (idempotent + monotonic + terminal states), timeline in `shipment_events`,
+  customer notifications, and customer tracking on `/orders/[id]`.
+- **Fixed** the multi-vendor order-status rollup (it read "shipped" when only one vendor had), and made Shiprocket login single-flight after the mock showed
+  parallel lookups each logging in.
+- Verified via real UI + signed/tokened requests against a mock Shiprocket: happy path, failure/resume, unserviceable pincode (server-enforced), out-of-order/duplicate/
+  concurrent webhooks, RLS. `lint`, `tsc`, 69 tests, build clean.
+- **Not built**: live courier rates, COD, returns/reverse pickup, NDR, label PDFs, vendor shipment cancel (Stage 11), vendor settlement job (Stage 11).
 
 ## Next Up
 
-1. **Developer**: add Razorpay TEST keys + set up the webhook (see the Stage 7 log), then run the "First real test" and report any payload differences.
-2. **Stage 8 — Delivery (Shiprocket, Lite/PAYG plan)**: needs a Shiprocket account (ask the developer). JWT token caching, real pincode
-   serviceability at checkout (replace the flat ₹79 placeholder), vendor "confirm / dispatch" on `/vendor/orders` creating one Shiprocket shipment per
-   vendor per order (`shipments` rows; the `recompute_order_status` trigger already rolls up `orders.status`), a tracking webhook, per-shipment
-   tracking on `/orders/[id]`. "Done when": a two-vendor order produces two independent shipments/AWBs and the webhook updates status.
-3. Then Stage 9 Diary + Vercel Cron (also the stale-draft cancel job), Stage 10 notifications/emails, Stage 11 admin suite, Stage 12 polish, Stage 13 go-live.
+1. **Developer (parallel, no code blocked):** Razorpay test keys + webhook, Shiprocket API user + webhook token → run both "First real test" checklists and report any
+   payload/response differences (fix `RazorpayWebhookEvent`, `parseTrackingPayload`, `shiprocket-status.ts`, `shiprocket.ts` field names as needed).
+2. **Stage 9 — Personal Gifting Diary (signature feature)**: contacts + events CRUD, gift history, dashboard (upcoming moments, mini calendar, people list, gifting-score
+   as a documented pure function, rule-based smart suggestions from the catalogue), and the **Vercel Cron** reminder job (`/api/cron/diary-reminders`, `vercel.json`,
+   `CRON_SECRET`) with explicit timezone handling (`users.timezone`, Asia/Kolkata default), Feb-29 recurrence as its own tested unit, and a 20-hour idempotency
+   guard. Diary tables deliberately have NO admin RLS bypass (privacy promise). Also add to the same cron: cancel stale unpaid `created`/`payment_initiated` orders
+   (release coupon uses) and purge guest carts older than 30 days. Needs Resend + OneSignal keys only for actually *sending* — build with a mock/log sender first.
+3. Then Stage 10 notifications/emails, Stage 11 admin suite, Stage 12 visual polish, Stage 13 go-live.
 
 ## Open Questions / Blocked On
 
-- **Razorpay test keys + webhook setup** (developer) — blocks real payment verification, not Stage 8 coding.
-- Razorpay Route: pursue (needs account enablement + vendor KYC, slow even in sandbox) or settle vendors manually at first? Client decision.
-- Stale unpaid orders hold coupon uses until the Stage 9 cron exists.
-- Whether to wire Resend as Supabase's SMTP now (Stage 2 auth-email rate limit) or at Stage 9 — still open.
+- **Razorpay + Shiprocket real-account verification** (developer) — does not block Stage 9.
+- Razorpay Route (auto-split settlement): pursue or settle vendors manually at first? Client decision (see Stage 7 log).
+- Vendor registration should capture a support phone (needed for the courier pickup location) — small fix, folds into Stage 11 vendor settings.
+- Stale unpaid orders hold coupon uses / stale guest carts pile up until the Stage 9 cron exists.
+- Whether to wire Resend as Supabase's SMTP now (Stage 2 auth-email rate limit) or at Stage 9/10 — still open.
 - `VENDOR_BANK_ENCRYPTION_KEY` lives in gitignored `.env.local` — a second laptop needs the same key; also set in Vercel for production.
-- Not built yet (deliberate): bulk CSV upload, vendor logo/banner upload, admin notification emails (Stage 10), vendor-level rating rollup, coupon admin UI
-  (Stage 11), order history list, guest checkout.
+- Not built yet (deliberate): bulk CSV upload, vendor logo/banner upload, admin notification emails (Stage 10), vendor-level rating rollup, coupon admin UI (Stage 11),
+  order history list, guest checkout.
 
 ## Credentials Status
 
@@ -57,7 +61,7 @@ Full detail: `docs/progress/2026-09-19-stage-7-payments.md`.
 | Supabase Storage bucket (`product-images`) | Stage 4 | ✅ created via migration, verified |
 | Vendor bank encryption key | Stage 4 | ✅ in `.env.local`; 🔴 must be set in Vercel before go-live |
 | Razorpay (test) | Stage 7 | 🔴 keys + webhook secret still needed — code is built and mock-verified |
-| Shiprocket (sandbox, Lite/PAYG plan) | Stage 8 | 🔴 not needed yet |
+| Shiprocket (API user + webhook token; Lite/PAYG plan) | Stage 8 | 🔴 still needed — code is built and mock-verified |
 | Resend | Stage 9 (or earlier, see Open Questions) | 🔴 not needed yet |
 | OneSignal (free tier) | Stage 9 | 🔴 not needed yet |
 | ~~Remove.bg~~ | — | ❌ cut from scope, cost constraint |

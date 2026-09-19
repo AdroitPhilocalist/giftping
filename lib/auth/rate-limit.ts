@@ -33,6 +33,10 @@ export const uploadRateLimit = createLimiter(20, "1 m");
 export const cartRateLimit = createLimiter(60, "1 m");
 // Checkout: applying coupons (guessing codes) and placing orders.
 export const checkoutRateLimit = createLimiter(15, "1 m");
+// Pincode serviceability lookups (each can hit the courier API on a cache miss).
+export const deliveryRateLimit = createLimiter(30, "1 m");
+// Vendor dispatch actions (each books a real courier shipment).
+export const dispatchRateLimit = createLimiter(20, "1 m");
 
 export interface RateLimitResult {
   success: boolean;

@@ -158,17 +158,18 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   allocation, vendor- vs platform-funded discounts, per-vendor delivery, gift wrap, commission
                   split), checkout.ts (server: rebuilds every price from the DB; persistOrder → place_order()),
                   checkout-actions.ts (apply/remove coupon, placeOrderAction), coupons.ts (resolve_coupon RPC),
-                  settings.ts (platform_settings reader), payments.ts (startPayment, confirmCaptured, verifyClientPayment,
+                  settings.ts (platform_settings reader), delivery.ts (per-vendor pincode serviceability, cached, fail-open),
+                  shipments.ts (tracking webhook -> apply_shipment_update + notifications), payments.ts (startPayment, confirmCaptured, verifyClientPayment,
                   processWebhookEvent — see the Stage 7 notes), payment-actions.ts
 /lib/security   → encryption.ts (AES-256-GCM encryptSecret/decryptSecret, key VENDOR_BANK_ENCRYPTION_KEY —
                   losing it makes stored bank numbers unrecoverable; same value needed in Vercel)
-/lib/vendor     → actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
+/lib/vendor     → dispatch.ts (accept order + resumable Shiprocket booking saga), fulfilment-actions.ts, actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
                   actions), product-helpers.ts (syncProductThumbnail, sendBackToReviewIfLive)
 /lib/admin      → actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
                   admin client — those tables have no client write policies)
 /lib/catalog    → tags.ts (OCCASION_TAGS, RECIPIENT_TAGS, labelForTag — shared by vendor form + shop filters)
-/lib/integrations → razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks) built; shiprocket.ts, msg91.ts,
-                  onesignal.ts, resend.ts not built yet ( no
+/lib/integrations → razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
+                  shiprocket-status.ts / shiprocket-webhook.ts (pure, tested) built; msg91.ts, onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
 /lib/storage    → resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
                   to WebP full 1600 / medium 800 / thumb 400, strips metadata; ImageValidationError),
@@ -367,6 +368,25 @@ files with the editor tool.
 - Next.js treats folders starting with `_` as private (not routable) — don't name route folders `_something`.
 - **Unverified with real Razorpay** (built + tested against a local mock only): the Checkout modal completing a payment, real webhook payload shapes,
   real capture/refund responses. See "First real test" in `docs/progress/2026-09-19-stage-7-payments.md`. Razorpay Route split settlement is not built.
+
+### Stage 8 (delivery) — shipment truth, rollups, and what was NOT verified against real Shiprocket
+
+- **Courier status changes go through `apply_shipment_update()` only** (SQL, service_role-only): idempotent (timeline events dedupe on shipment+time+status)
+  and MONOTONIC — couriers send events late and out of order, so a status only moves forward (pending < confirmed < picked_up < in_transit <
+  out_for_delivery < delivered); delivered/cancelled are terminal; RTO sticks. Never set `shipments.status` from anywhere else.
+- **A rollup over child rows must include children that don't exist yet.** `recompute_order_status()` counted only vendors that already had a shipment,
+  so a two-vendor order looked "shipped" when one vendor hadn't booked. It now treats a vendor with no live shipment as `pending`. Re-check any similar
+  aggregate when a multi-party flow is added.
+- **External-API sagas must be resumable.** Vendor booking claims a `shipments` row first (partial unique index), saves each Shiprocket id as it arrives, and a
+  retry skips completed steps; a failure before anything is created releases the claim. Don't create a second external order on retry.
+- Serviceability GATES checkout and gives an ETA but does NOT price delivery (flat + free-threshold from Stage 6 stays). It fails open (unknown ⇒ allowed);
+  the server re-checks in `placeOrderAction`. A disabled button is never the control — React also suppresses `onClick` on a disabled button, so test server
+  checks by invoking the handler (`el[reactPropsKey].onClick()`), not by re-enabling the DOM attribute.
+- Shiprocket login tokens are cached in `integration_tokens` with a single-flight login and a "reuse a token someone else already refreshed" 401 path — parallel
+  lookups must not each log in. Shiprocket rejects webhook URLs containing "shiprocket"/"kartrocket"/"sr"/"kr": the route is `/api/webhooks/courier-tracking`.
+- Vitest has no `@` path alias configured: pure modules that tests import must use relative imports.
+- **Unverified with real Shiprocket** (mock only): payload/response field names, pickup-location onboarding, real status strings. See "First real test" in
+  `docs/progress/2026-09-19-stage-8-delivery.md`.
 
 ## Auth
 

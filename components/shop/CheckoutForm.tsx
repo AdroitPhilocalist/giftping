@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Gift, Tag, X } from "lucide-react";
 import { AddressBook } from "@/components/shop/AddressBook";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
-import { applyCouponAction, placeOrderAction, removeCouponAction } from "@/lib/commerce/checkout-actions";
+import { applyCouponAction, checkDeliveryAction, placeOrderAction, removeCouponAction } from "@/lib/commerce/checkout-actions";
+import type { VendorDelivery } from "@/lib/commerce/delivery";
 import type { SavedAddress } from "@/lib/db/addresses";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -55,9 +56,28 @@ export function CheckoutForm({
   const [isPending, startTransition] = useTransition();
   const [isCouponPending, startCouponTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [deliveryResult, setDeliveryResult] = useState<{ addressId: string; vendors: VendorDelivery[] } | null>(null);
+
+  // Serviceability + ETA for the chosen address. The server re-checks when the order is placed; this is for feedback.
+  useEffect(() => {
+    if (!selectedId) return;
+    let cancelled = false;
+    void checkDeliveryAction(selectedId).then((result) => {
+      if (!cancelled) setDeliveryResult({ addressId: selectedId, vendors: result.ok ? result.vendors : [] });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
+  // A result only counts if it belongs to the address currently selected (otherwise we're still checking).
+  const delivery = deliveryResult && deliveryResult.addressId === selectedId ? deliveryResult.vendors : [];
+  const deliveryChecking = Boolean(selectedId) && deliveryResult?.addressId !== selectedId;
+
+  const undeliverable = delivery.filter((d) => d.status === "unserviceable");
 
   const total = quote.totalBeforeWrap + (giftWrap ? giftWrapCharge : 0);
-  const canPlace = !blocked && Boolean(selectedId) && !isPending;
+  const canPlace = !blocked && Boolean(selectedId) && !isPending && undeliverable.length === 0;
 
   function applyCoupon() {
     startCouponTransition(async () => {
@@ -101,6 +121,20 @@ export function CheckoutForm({
           <div className="mt-3">
             <AddressBook addresses={addresses} selectedId={selectedId} onSelect={setSelectedId} />
           </div>
+          {selectedId && (deliveryChecking || delivery.length > 0) ? (
+            <ul className="mt-3 space-y-1 text-sm" aria-live="polite">
+              {deliveryChecking && delivery.length === 0 ? <li className="text-brand-dark/50">Checking delivery…</li> : null}
+              {delivery.map((d) => (
+                <li key={d.vendorId} className={d.status === "unserviceable" ? "font-medium text-red-700" : "text-brand-dark/60"}>
+                  {d.status === "unserviceable"
+                    ? `${d.vendorName} can't deliver to this pincode yet.`
+                    : d.status === "ok" && d.etdDays
+                      ? `${d.vendorName}: delivers in about ${d.etdDays} ${d.etdDays === 1 ? "day" : "days"} after dispatch.`
+                      : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
 
         <section aria-labelledby="gift-heading">

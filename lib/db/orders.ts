@@ -6,7 +6,12 @@ const ORDER_SELECT = `
   items:order_items (
     id, product_id, vendor_id, product_name, product_image, variant_label, personalization, quantity,
     unit_price, total_price, discount_amount,
+    fulfilment_status,
     vendor:vendors ( business_name, slug )
+  ),
+  shipments (
+    id, vendor_id, status, awb_number, courier_name, tracking_url, estimated_delivery, is_return,
+    events:shipment_events ( id, raw_status, activity, location, occurred_at )
   )
 `;
 
