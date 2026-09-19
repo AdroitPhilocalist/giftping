@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { Clock } from "lucide-react";
+import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { PayNowButton } from "@/components/shop/PayNowButton";
+import { isRazorpayConfigured } from "@/lib/integrations/razorpay";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { Badge } from "@/components/ui/Badge";
 import { getServerUser } from "@/lib/auth/session";
@@ -58,15 +60,32 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
           <p className="text-sm text-brand-dark/60">Order</p>
           <h1 className="font-heading text-3xl text-brand-dark">{order.order_number}</h1>
         </div>
-        <Badge variant={order.status === "created" ? "gold" : "primary"}>{STATUS_LABEL[order.status] ?? order.status}</Badge>
+        <Badge variant={order.status === "created" || order.status === "payment_initiated" ? "gold" : "primary"}>{STATUS_LABEL[order.status] ?? order.status}</Badge>
       </div>
 
-      {order.status === "created" ? (
-        <div className="mt-6 flex gap-3 rounded-2xl border border-brand-secondary/40 bg-brand-accent/60 p-4 text-sm text-brand-dark">
-          <Clock className="mt-0.5 h-4 w-4 shrink-0 text-brand-secondary-dark" />
+      {order.status === "created" || order.status === "payment_initiated" ? (
+        <div className="mt-6 space-y-4 rounded-2xl border border-brand-secondary/40 bg-brand-accent/60 p-4 text-sm text-brand-dark">
+          <p className="flex gap-3">
+            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-brand-secondary-dark" />
+            <span>Your order is saved and the total is locked in. Complete the payment to confirm it — nothing has been charged yet.</span>
+          </p>
+          <PayNowButton orderId={order.id} total={Number(order.total_amount)} enabled={isRazorpayConfigured()} />
+        </div>
+      ) : null}
+
+      {["confirmed", "processing", "partially_shipped", "shipped", "partially_delivered", "delivered"].includes(order.status) ? (
+        <div className="mt-6 flex gap-3 rounded-2xl border border-brand-primary/30 bg-brand-primary/5 p-4 text-sm text-brand-dark">
+          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-primary" />
+          <p>Payment received — thank you! Each vendor will now prepare and dispatch their part of your order.</p>
+        </div>
+      ) : null}
+
+      {order.status === "cancelled" || order.status === "refunded" ? (
+        <div className="mt-6 flex gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
+          <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <p>
-            Your order is saved and the total is locked in. Online payment opens in the next release — until then this
-            order stays unpaid and nothing has been charged.
+            This order was cancelled. If any payment was taken it is refunded automatically to the original payment method
+            (usually within 5–7 working days).
           </p>
         </div>
       ) : null}

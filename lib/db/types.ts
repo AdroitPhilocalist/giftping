@@ -1029,6 +1029,9 @@ export type Database = {
           razorpay_order_id: string | null
           razorpay_payment_id: string | null
           razorpay_signature: string | null
+          refund_id: string | null
+          refund_reason: string | null
+          refunded_at: string | null
           status: string
         }
         Insert: {
@@ -1043,6 +1046,9 @@ export type Database = {
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
+          refund_id?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           status?: string
         }
         Update: {
@@ -1057,6 +1063,9 @@ export type Database = {
           razorpay_order_id?: string | null
           razorpay_payment_id?: string | null
           razorpay_signature?: string | null
+          refund_id?: string | null
+          refund_reason?: string | null
+          refunded_at?: string | null
           status?: string
         }
         Relationships: [
@@ -1823,6 +1832,45 @@ export type Database = {
           },
         ]
       }
+      webhook_events: {
+        Row: {
+          error: string | null
+          event_type: string
+          gateway_order_id: string | null
+          id: string
+          payment_id: string | null
+          processed_at: string | null
+          provider: string
+          received_at: string
+          result: string | null
+          status: string
+        }
+        Insert: {
+          error?: string | null
+          event_type: string
+          gateway_order_id?: string | null
+          id: string
+          payment_id?: string | null
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          result?: string | null
+          status?: string
+        }
+        Update: {
+          error?: string | null
+          event_type?: string
+          gateway_order_id?: string | null
+          id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          result?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       wishlists: {
         Row: {
           created_at: string
@@ -1864,6 +1912,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_order_payment: {
+        Args: {
+          p_amount_paise: number
+          p_method: string
+          p_razorpay_order_id: string
+          p_razorpay_payment_id: string
+        }
+        Returns: Json
+      }
       current_user_role: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
@@ -1872,12 +1929,17 @@ export type Database = {
         Args: { p_guest_token: string; p_user_id: string }
         Returns: undefined
       }
+      order_visible_to_vendors: {
+        Args: { target_order_id: string }
+        Returns: boolean
+      }
       own_vendor_id: { Args: never; Returns: string }
       owns_product: { Args: { target_product_id: string }; Returns: boolean }
       place_order: {
         Args: { p_customer_id: string; p_items: Json; p_order: Json }
         Returns: Json
       }
+      release_order_coupon: { Args: { p_order_id: string }; Returns: undefined }
       resolve_coupon: {
         Args: { p_code: string; p_user_id: string }
         Returns: Json

@@ -6,42 +6,41 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
-**Stage 6 — Checkout (pre-payment)** ✅ complete. Next session should start Stage 7 (Payments — Razorpay).
+**Stage 7 — Payments (Razorpay)** ✅ built, ⚠️ **verified against a local mock gateway only** — needs the developer's Razorpay TEST keys for a real
+end-to-end run (steps in `docs/progress/2026-09-19-stage-7-payments.md` → "First real test"). Stage 8 (Delivery) can start in parallel.
 
 ## Last Session Summary
 
-Full detail + reasoning: `docs/progress/2026-09-19-stage-6-checkout.md` (Stages 4–5 have their own entries alongside).
+Full detail: `docs/progress/2026-09-19-stage-7-payments.md`.
 
-- **`/checkout`** (address book → gift options → review → coupon → summary) creating an order in `created` status, and **`/orders/[id]`**
-  showing it as "Awaiting payment". Address book also at `/account/addresses`.
-- **Server-authoritative totals**: every price/GST/commission/coupon/delivery figure is rebuilt from the DB (`lib/commerce/checkout.ts` +
-  pure `totals.ts`); orders are created only by the atomic `place_order()` SQL function, which refuses inconsistent totals. Verified by
-  tampering with the cart's stored prices via the API — the order total was unaffected.
-- **Money rules decided**: GST-inclusive prices, coupon allocation (vendor- vs platform-funded), delivery ₹79 per vendor shipment (free ≥ ₹999),
-  gift wrap ₹49 — all in `platform_settings`.
-- **Security fixes**: platform commission/payout moved off customer-readable `order_items` into `order_item_financials`; new functions
-  revoked from anon/authenticated (they are executable by default).
-- `lint`, `tsc`, 50 unit tests, `npm run build` clean; DB rules verified as real users.
+- **Pay Now** on the order page; server creates the Razorpay order for the DB-stored total. **Signed, idempotent webhook**
+  (`/api/webhooks/razorpay`) is the source of truth; the browser callback is a verified fast path (re-fetches the payment from Razorpay). Both call
+  one atomic SQL step, `confirm_order_payment()`: amount check → stock decrement (all-or-nothing) → order `confirmed` → cart lines removed.
+- **Auto-refund** if a captured payment can't be fulfilled (sold out / wrong amount / cancelled draft / duplicate); refund failures retry via the webhook.
+- **Vendors now see only paid orders** (fixed a leak of buyers' addresses on unpaid drafts). Abandoned `payment_initiated` orders are superseded like drafts.
+- Tested with signed requests to the real route: replay, duplicate, 8 concurrent deliveries, wrong amount, oversold multi-item rollback, late payment on
+  a cancelled order, refund-failure retry, authorized→capture, forged/mismatched callbacks, ACLs. `lint`, `tsc`, 57 tests, build clean.
+- **Not built**: Razorpay Route split settlement (needs a Route-enabled account + vendor KYC — decide with the client; the payout data is already stored
+  per line in `order_item_financials` for manual settlement), customer/admin refunds (Stage 11), emails (Stage 10).
 
 ## Next Up
 
-**Stage 7 — Payments (Razorpay)**: needs **Razorpay TEST keys + webhook secret** (ask the developer). Create a Razorpay order from the
-*server-stored* `orders.total_amount` (×100 paise; never a client amount), Razorpay Checkout on the order page (replace the "payment opens in
-the next release" notice; add a "Pay now" button and `paymentRateLimit`), HMAC signature verification, and — the source of truth — an
-**idempotent webhook** (`/api/webhooks/razorpay`, raw-body signature check) that fulfils the order: `created → payment_verified/confirmed`,
-**decrement stock atomically (fail safely if it sold out → auto-refund)**, clear the cart, write `payments` rows, `vendor_settlements`
-bookkeeping. Encrypted vendor bank details already exist (Stage 4) for Razorpay Route linked accounts (create contact/fund account on
-approval; fall back to manual settlement tracking if KYC stalls). "Done when": a test payment completes, the webhook alone (client callback
-blocked) advances the order, a replayed event doesn't double-process, a bad signature is rejected. Run the `security-review` skill after.
+1. **Developer**: add Razorpay TEST keys + set up the webhook (see the Stage 7 log), then run the "First real test" and report any payload differences.
+2. **Stage 8 — Delivery (Shiprocket, Lite/PAYG plan)**: needs a Shiprocket account (ask the developer). JWT token caching, real pincode
+   serviceability at checkout (replace the flat ₹79 placeholder), vendor "confirm / dispatch" on `/vendor/orders` creating one Shiprocket shipment per
+   vendor per order (`shipments` rows; the `recompute_order_status` trigger already rolls up `orders.status`), a tracking webhook, per-shipment
+   tracking on `/orders/[id]`. "Done when": a two-vendor order produces two independent shipments/AWBs and the webhook updates status.
+3. Then Stage 9 Diary + Vercel Cron (also the stale-draft cancel job), Stage 10 notifications/emails, Stage 11 admin suite, Stage 12 polish, Stage 13 go-live.
 
 ## Open Questions / Blocked On
 
-- **Blocked for Stage 7 on Razorpay test keys.** Nothing else blocking.
-- Stale unpaid `created` orders (shopper never returns) hold a coupon use — needs a cancel job (Stage 9 cron); noted in the Stage 6 log.
+- **Razorpay test keys + webhook setup** (developer) — blocks real payment verification, not Stage 8 coding.
+- Razorpay Route: pursue (needs account enablement + vendor KYC, slow even in sandbox) or settle vendors manually at first? Client decision.
+- Stale unpaid orders hold coupon uses until the Stage 9 cron exists.
 - Whether to wire Resend as Supabase's SMTP now (Stage 2 auth-email rate limit) or at Stage 9 — still open.
-- `VENDOR_BANK_ENCRYPTION_KEY` lives in gitignored `.env.local` — a second laptop needs the same key; also set it in Vercel for production.
-- Not built yet (deliberate): bulk CSV upload, vendor logo/banner upload, real vendor order management (Stage 8), admin notification emails
-  (Stage 10), vendor-level rating rollup, coupon admin UI (Stage 11), order history list, guest checkout.
+- `VENDOR_BANK_ENCRYPTION_KEY` lives in gitignored `.env.local` — a second laptop needs the same key; also set in Vercel for production.
+- Not built yet (deliberate): bulk CSV upload, vendor logo/banner upload, admin notification emails (Stage 10), vendor-level rating rollup, coupon admin UI
+  (Stage 11), order history list, guest checkout.
 
 ## Credentials Status
 
@@ -57,7 +56,7 @@ blocked) advances the order, a replayed event doesn't double-process, a bad sign
 | Upstash Redis | Stage 2 (reused later) | 🟡 code-complete with graceful no-op fallback; not yet provisioned |
 | Supabase Storage bucket (`product-images`) | Stage 4 | ✅ created via migration, verified |
 | Vendor bank encryption key | Stage 4 | ✅ in `.env.local`; 🔴 must be set in Vercel before go-live |
-| Razorpay (test) | Stage 7 | 🔴 not needed yet |
+| Razorpay (test) | Stage 7 | 🔴 keys + webhook secret still needed — code is built and mock-verified |
 | Shiprocket (sandbox, Lite/PAYG plan) | Stage 8 | 🔴 not needed yet |
 | Resend | Stage 9 (or earlier, see Open Questions) | 🔴 not needed yet |
 | OneSignal (free tier) | Stage 9 | 🔴 not needed yet |

@@ -10,7 +10,7 @@ export default async function VendorOrdersPage() {
     <div>
       <h1 className="font-heading text-3xl text-brand-dark">Orders</h1>
       <p className="mt-1 text-sm text-brand-dark/60">
-        Orders containing your products appear here once checkout goes live. Confirming and dispatching
+        Paid orders containing your products appear here. Confirming and dispatching
         orders arrives with the delivery stage.
       </p>
 

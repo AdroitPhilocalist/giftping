@@ -158,7 +158,8 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   allocation, vendor- vs platform-funded discounts, per-vendor delivery, gift wrap, commission
                   split), checkout.ts (server: rebuilds every price from the DB; persistOrder → place_order()),
                   checkout-actions.ts (apply/remove coupon, placeOrderAction), coupons.ts (resolve_coupon RPC),
-                  settings.ts (platform_settings reader). Payments: Stage 7
+                  settings.ts (platform_settings reader), payments.ts (startPayment, confirmCaptured, verifyClientPayment,
+                  processWebhookEvent — see the Stage 7 notes), payment-actions.ts
 /lib/security   → encryption.ts (AES-256-GCM encryptSecret/decryptSecret, key VENDOR_BANK_ENCRYPTION_KEY —
                   losing it makes stored bank numbers unrecoverable; same value needed in Vercel)
 /lib/vendor     → actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
@@ -166,7 +167,8 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /lib/admin      → actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
                   admin client — those tables have no client write policies)
 /lib/catalog    → tags.ts (OCCASION_TAGS, RECIPIENT_TAGS, labelForTag — shared by vendor form + shop filters)
-/lib/integrations → razorpay.ts, shiprocket.ts, msg91.ts, onesignal.ts, resend.ts (none built yet; no
+/lib/integrations → razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks) built; shiprocket.ts, msg91.ts,
+                  onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
 /lib/storage    → resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
                   to WebP full 1600 / medium 800 / thumb 400, strips metadata; ImageValidationError),
@@ -347,6 +349,24 @@ files with the editor tool.
 - An unpaid `created` order is a draft: the shopper's next checkout supersedes it and returns its coupon use. Stale drafts from shoppers who
   never come back need a cron (Stage 9).
 - Route-prefix check for the new `/orders` protected segment: it doesn't prefix-match `/vendor/orders` (which starts with `/vendor`).
+
+### Stage 7 (payments) — where payment truth lives, and what was NOT verified against the real gateway
+
+- **The webhook is the source of truth; the browser callback is only a fast path.** Both call `confirmCaptured()` → SQL `confirm_order_payment()`
+  (service_role-only, atomic, idempotent, row-locks the order). Never fulfil an order from anything else. The amount always comes from the
+  server-stored `orders.total_amount` when creating the Razorpay order, and from Razorpay itself (re-fetched / signed webhook) when confirming.
+- **Webhook rules** (`app/api/webhooks/razorpay/route.ts`): verify the HMAC of the RAW body before parsing; empty secret never validates; claim the
+  event id in `webhook_events` for idempotency; answer 5xx on failure so Razorpay retries (all steps are idempotent); a 200 for unknown orders.
+- `payment.authorized` is also sent for auto-captured payments — look up the payment's real state before calling capture (a second capture errors and
+  would loop the webhook).
+- If a captured payment can't be fulfilled (sold out, wrong amount, cancelled/superseded order, duplicate payment) the money is refunded automatically
+  and audit-logged — the SQL function returns `refund_needed` rather than keeping the money. Stock decrements happen inside a sub-transaction so a
+  partial multi-item failure rolls every decrement back.
+- **Vendors see only paid orders** (`order_visible_to_vendors()`): an RLS policy that was fine for Stage 1's empty tables leaked buyers' addresses for
+  unpaid drafts once orders existed. Re-check vendor/customer visibility whenever a new order state is introduced.
+- Next.js treats folders starting with `_` as private (not routable) — don't name route folders `_something`.
+- **Unverified with real Razorpay** (built + tested against a local mock only): the Checkout modal completing a payment, real webhook payload shapes,
+  real capture/refund responses. See "First real test" in `docs/progress/2026-09-19-stage-7-payments.md`. Razorpay Route split settlement is not built.
 
 ## Auth
 
