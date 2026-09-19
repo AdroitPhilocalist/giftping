@@ -1,10 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ShoppingBag, Zap } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Textarea, Input, Label } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
+import { addToCartAction } from "@/lib/commerce/cart-actions";
+import { effectiveStock, maxPurchasable } from "@/lib/commerce/pricing";
+import { PERSONALIZATION_OCCASIONS as OCCASIONS } from "@/lib/validation/cart.schema";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 
@@ -17,14 +21,15 @@ export interface ProductVariant {
   is_active: boolean;
 }
 
-const OCCASIONS = ["Birthday", "Anniversary", "Thank You", "Other"];
 
 export function ProductBuyBox({
+  productId,
   basePrice,
   salePrice,
   stockQuantity,
   variants,
 }: {
+  productId: string;
   basePrice: number;
   salePrice: number | null;
   stockQuantity: number;
@@ -46,6 +51,10 @@ export function ProductBuyBox({
   );
   const [quantity, setQuantity] = useState(1);
   const [occasion, setOccasion] = useState<string>("");
+  const [recipientName, setRecipientName] = useState("");
+  const [giftMessage, setGiftMessage] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const selectedVariants = variantGroups
     .map(([name, options]) => options.find((o) => o.id === selected[name]))
@@ -53,10 +62,39 @@ export function ProductBuyBox({
 
   const priceAdjustment = selectedVariants.reduce((sum, v) => sum + v.price_adjustment, 0);
   const activePrice = (salePrice ?? basePrice) + priceAdjustment;
-  const inStock = stockQuantity > 0;
+  // A gift can only sell as many units as the scarcest thing it depends on (the product and each chosen option).
+  const availableStock = effectiveStock(
+    stockQuantity,
+    selectedVariants.map((v) => v.stock_quantity),
+  );
+  const inStock = availableStock > 0;
+  const maxQuantity = Math.max(1, maxPurchasable(availableStock));
 
-  function handleStub(action: string) {
-    toast(`${action} is coming in a later stage — the cart isn't built yet.`);
+  function addToCart(afterAdd?: () => void) {
+    startTransition(async () => {
+      const result = await addToCartAction({
+        productId,
+        variantIds: selectedVariants.map((v) => v.id),
+        quantity: Math.min(quantity, maxQuantity),
+        personalization: {
+          recipientName,
+          giftMessage,
+          occasion: occasion ? (occasion as (typeof OCCASIONS)[number]) : undefined,
+        },
+      });
+      if (result.error) {
+        toast.error(result.error);
+        return;
+      }
+      if (afterAdd) {
+        afterAdd();
+        return;
+      }
+      toast.success(result.message ?? "Added to your cart.", {
+        action: { label: "View cart", onClick: () => router.push("/cart") },
+      });
+      router.refresh();
+    });
   }
 
   return (
@@ -70,8 +108,8 @@ export function ProductBuyBox({
 
       {!inStock ? (
         <p className="text-sm font-medium text-red-600">Out of Stock</p>
-      ) : stockQuantity <= 5 ? (
-        <p className="text-sm font-medium text-brand-secondary-dark">Only {stockQuantity} left</p>
+      ) : availableStock <= 5 ? (
+        <p className="text-sm font-medium text-brand-secondary-dark">Only {availableStock} left</p>
       ) : null}
 
       {variantGroups.map(([name, options]) => (
@@ -102,11 +140,23 @@ export function ProductBuyBox({
         <div className="mt-3 space-y-3">
           <div>
             <Label htmlFor="recipientName">Recipient&apos;s Name</Label>
-            <Input id="recipientName" placeholder="Enter name" />
+            <Input
+              id="recipientName"
+              placeholder="Enter name"
+              maxLength={60}
+              value={recipientName}
+              onChange={(e) => setRecipientName(e.target.value)}
+            />
           </div>
           <div>
             <Label htmlFor="giftMessage">Add a Personal Note</Label>
-            <Textarea id="giftMessage" placeholder="Write your message here..." maxLength={150} />
+            <Textarea
+              id="giftMessage"
+              placeholder="Write your message here..."
+              maxLength={150}
+              value={giftMessage}
+              onChange={(e) => setGiftMessage(e.target.value)}
+            />
           </div>
           <div>
             <Label>Occasion</Label>
@@ -115,7 +165,7 @@ export function ProductBuyBox({
                 <button
                   key={o}
                   type="button"
-                  onClick={() => setOccasion(o)}
+                  onClick={() => setOccasion((current) => (current === o ? "" : o))}
                   className={cn(
                     "rounded-full border px-3 py-1.5 text-xs transition-colors",
                     occasion === o
@@ -141,17 +191,17 @@ export function ProductBuyBox({
           >
             −
           </button>
-          <span className="w-6 text-center text-sm">{quantity}</span>
+          <span className="w-6 text-center text-sm">{Math.min(quantity, maxQuantity)}</span>
           <button
             type="button"
-            onClick={() => setQuantity((q) => Math.min(stockQuantity || 1, q + 1))}
+            onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
             className="px-3 py-2 text-brand-dark/70"
             aria-label="Increase quantity"
           >
             +
           </button>
         </div>
-        <Button className="flex-1" disabled={!inStock} onClick={() => handleStub("Add to Cart")}>
+        <Button className="flex-1" disabled={!inStock || isPending} onClick={() => addToCart()}>
           <ShoppingBag className="h-4 w-4" />
           Add to Cart
         </Button>
@@ -159,8 +209,9 @@ export function ProductBuyBox({
       <Button
         variant="secondary"
         className="w-full"
-        disabled={!inStock}
-        onClick={() => handleStub("Buy Now")}
+        disabled={!inStock || isPending}
+        // Checkout arrives in Stage 6; until then "Buy Now" adds the item and opens the cart.
+        onClick={() => addToCart(() => router.push("/cart"))}
       >
         <Zap className="h-4 w-4" />
         Buy Now

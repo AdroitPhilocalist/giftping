@@ -133,7 +133,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /components/auth → GoogleButton, SubmitButton (useFormStatus-based pending state)
 /components/shop → ProductCard, ProductImage (branded placeholder when no photo — see "Product imagery"
                   below), WishlistButton, ProductGallery, ProductBuyBox (variants + personalization +
-                  stub cart buttons), ReviewList, ProductFilters (plain GET form — query-param filters,
+                  working Add to Cart / Buy Now via the cart Server Actions), CartLineItem, GuestCartMerger, ReviewList, ProductFilters (plain GET form — query-param filters,
                   works without JS), CategoryCard, VendorCard, SearchBar, Pagination
 /components/vendor → VendorApplicationForm, ProductForm (RHF + Zod, variants via useFieldArray with
                   keyName "fieldKey"), ImageManager, ProductRowActions, PortalNav
@@ -143,14 +143,17 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   (incl. getVendorsForCategory — scopes a category page's vendor filter to vendors that
                   actually have products there), products.ts (listProducts w/ filter+sort+paginate,
                   getProductBySlug, getRelatedProducts, getTrendingProducts), reviews.ts, wishlists.ts
-/lib/auth       → session.ts (getServerUser/requireRole — always re-reads role from the DB), actions.ts
+/lib/auth       → redirect.ts (safeRedirectPath — use for EVERY user-supplied post-login redirect), session.ts (getServerUser/requireRole — always re-reads role from the DB), actions.ts
                   (Server Actions: sign-up/in/out, Google OAuth, password reset), rate-limit.ts
                   (Upstash — fails open/no-ops if not configured, never blocks on a missing dev credential)
 /lib/shop       → wishlist-actions.ts (toggleWishlistAction, a Server Action — not lib/commerce, that's
                   reserved for cart/checkout/commission/coupons, which are a different domain)
 /lib/commerce   → commission.ts (built, tested: resolveCommissionRate = vendor override → category →
                   platform_settings default → 10, `!= null` so 0 is a real override; computeCommission).
-                  cart.ts, checkout.ts, coupons.ts — not built yet (Stage 5+)
+                  pricing.ts (pure, tested: computeUnitPrice / effectiveStock / maxPurchasable — Stage 6
+                  checkout MUST reuse these), cart.ts (server-only: resolve cart, getCartView, add/set/remove,
+                  mergeGuestCartIntoUser), cart-actions.ts (Server Actions, rate-limited), guest-cart-cookie.ts
+                  (httpOnly `gp_cart`). checkout.ts, coupons.ts — not built yet (Stage 6+)
 /lib/security   → encryption.ts (AES-256-GCM encryptSecret/decryptSecret, key VENDOR_BANK_ENCRYPTION_KEY —
                   losing it makes stored bank numbers unrecoverable; same value needed in Vercel)
 /lib/vendor     → actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
@@ -305,6 +308,22 @@ Commission: `vendor_private.commission_rate` (nullable override) → `categories
 Testing: `npm test` (Vitest; needs `@types/node@^22`). Migration push: `supabase db push --password …` with
 stdin closed (`< /dev/null`) — a hung nested-heredoc one-liner once left a migration file empty; write SQL
 files with the editor tool.
+
+### Stage 5 (cart) — how carts are stored and what the DB enforces
+
+- **Two storage paths, one code path**: a signed-in cart uses the shopper's session client (RLS enforces ownership); a guest
+  cart has no RLS path by design and uses the service-role client, reachable ONLY via the token in the httpOnly `gp_cart`
+  cookie. Never add a way to look a guest cart up by anything a client can send other than that cookie.
+- `cart_items_enforce_catalog` (INVOKER trigger) makes the DB the authority: product must be active, `vendor_id` is copied
+  from the product, variants must belong to it / be active / be one per group. `unit_price_snapshot` is display-only and
+  must never be trusted — Stage 6 recomputes every price via `lib/commerce/pricing.ts`.
+- `cart_items.variant_ids uuid[]` holds the full option selection (`variant_id` mirrors the first for the FK). `order_items`
+  needs the same array in Stage 6.
+- `merge_guest_cart()` is service_role-only SECURITY DEFINER (it never reads `current_user`, so the Stage 2 masking rule
+  doesn't apply). Merge runs from sign-in / sign-up / OAuth callback; cookies can only be cleared in actions/route
+  handlers, never during render — hence the `GuestCartMerger` client safety net on `/cart`.
+- **PostgREST batch inserts fill keys missing from some rows with NULL, not the column DEFAULT** — a bulk insert where only
+  one row sets `personalization` violates NOT NULL. Set every key on every row (same lesson as the seed script).
 
 ## Auth
 

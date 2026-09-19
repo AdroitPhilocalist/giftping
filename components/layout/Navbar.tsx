@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
+import { getCartCount } from "@/lib/commerce/cart";
 
 const navLinks = [
   { label: "Explore Mall", href: "/" },
@@ -16,7 +17,10 @@ const navLinks = [
 
 export async function Navbar() {
   const user = await getServerUser();
-  const wishlistCount = user ? (await getWishlistProductIds(user.id)).size : 0;
+  const [wishlistCount, cartCount] = await Promise.all([
+    user ? getWishlistProductIds(user.id).then((ids) => ids.size) : 0,
+    getCartCount(),
+  ]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-dark/5 bg-brand-light/95 backdrop-blur">
@@ -68,10 +72,15 @@ export async function Navbar() {
           </Link>
           <Link
             href="/cart"
-            aria-label="Cart"
+            aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"}
             className="relative rounded-full p-2 text-brand-dark/70 hover:bg-brand-dark/5"
           >
             <ShoppingBag className="h-5 w-5" />
+            {cartCount > 0 ? (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-primary px-1 text-[10px] font-semibold text-brand-light">
+                {cartCount > 99 ? "99+" : cartCount}
+              </span>
+            ) : null}
           </Link>
 
           {user ? (

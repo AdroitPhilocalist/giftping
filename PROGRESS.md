@@ -6,39 +6,42 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
-**Stage 4 — Vendor Portal (core)** ✅ complete. Next session should start Stage 5 (Cart).
+**Stage 5 — Cart** ✅ complete. Next session should start Stage 6 (Checkout, pre-payment).
 
 ## Last Session Summary
 
-Full detail + reasoning: `docs/progress/2026-09-19-stage-4-vendor-portal.md`.
+Full detail + reasoning: `docs/progress/2026-09-19-stage-5-cart.md` (Stage 4 is in `2026-09-19-stage-4-vendor-portal.md`).
 
-- **Security hardening first**: probing showed anon could read vendor PAN/GSTIN/bank/commission and any customer
-  could self-insert an approved featured vendor / active product with fake ratings. Fixed via a `vendor_private`
-  table, pending-only INSERT policies and widened guard triggers (4 new migrations, hand-verified with psql).
-- **Vendor onboarding + admin approval gate**: `/vendor/register`, `/admin/vendors`, `/admin/products`
-  (approve/reject with reason → audit log + notification; approving a vendor promotes their role).
-- **Vendor portal** (`app/vendor/(portal)/`): dashboard, product CRUD + variants, image manager, status
-  badges/reviewer notes, Hide/Resubmit, orders stub. Editing a live product sends it back to review.
-- **Image pipeline**: upload route handler → sharp validation/re-encode → WebP 3 sizes → Supabase Storage bucket
-  `product-images` (no client write policies) → `next/image`.
-- **Commission resolution** (tested pure function) and **AES-256-GCM bank-detail encryption** (tested).
-- Verified end-to-end in a real browser: apply → approve → create product → upload → reject → resubmit →
-  approve → visible on PDP/vendor page/category/search. `lint`, `tsc`, 13 unit tests clean (`npm test`).
+- **Cart** at `/cart` grouped by vendor: stepper, remove, per-vendor subtotals, personalisation per line, live
+  price/stock re-evaluation with unavailable / out-of-stock / limited states. Navbar badge shows unit count.
+- **Guest carts** (httpOnly `gp_cart` cookie, service-role path) and an atomic **guest → account merge**
+  (`merge_guest_cart()` SQL fn) on sign-in / sign-up / OAuth callback, with a client safety net on the cart page.
+- **PDP Add to Cart / Buy Now are real** (Buy Now → `/cart` until checkout exists); personalisation inputs now work.
+- **DB hardening**: `cart_items_enforce_catalog` trigger (active product only, vendor_id from product, variant rules),
+  size CHECKs, `variant_ids uuid[]` for multi-group variants. Verified as a real customer via RLS + role tests.
+- `lib/commerce/pricing.ts` (tested) is the single pricing/stock rule set — checkout must reuse it.
+- **Fixed an open redirect** in sign-in / OAuth callback (`//evil.com` passed `startsWith("/")`) → `safeRedirectPath()`.
+- `lint`, `tsc`, 26 unit tests, `npm run build` all clean.
 
 ## Next Up
 
-**Stage 5 — Cart**: persistent multi-vendor cart grouped by vendor (`cart`/`cart_items` tables already exist from
-Stage 1), guest cart via cookie merged into the account cart on login without duplicating/losing items, wire the
-PDP "Add to Cart" stub (`components/shop/ProductBuyBox.tsx`) and a `/cart` page. Server never trusts
-`unit_price_snapshot`. Then Stage 6 Checkout, 7 Razorpay, 8 Shiprocket, 9 Diary + Vercel Cron.
+**Stage 6 — Checkout (pre-payment)**: address book (`addresses` table exists; CRUD + default address), a `/checkout` page
+(already auth-gated by `proxy.ts`; the cart's "Checkout" button is disabled until it exists — enable it), order-draft creation
+with **server-side recomputation of every price/total from the DB** (reuse `lib/commerce/pricing.ts`, never
+`unit_price_snapshot`), per-vendor split into `order_items` (needs a `variant_ids uuid[]` column like the cart — see the
+Stage 5 log), commission snapshot per line via `resolveCommissionRate`, coupon validation through the `validate_coupon()`
+RPC, delivery-charge placeholder (real pincode serviceability is Stage 8). "Done when": tampering with a client-side price in
+devtools has no effect on the server-created order total. Then Stage 7 Razorpay, 8 Shiprocket, 9 Diary + Vercel Cron.
 
 ## Open Questions / Blocked On
 
-- Nothing blocking. `VENDOR_BANK_ENCRYPTION_KEY` lives in gitignored `.env.local` — a second laptop must be given
-  the same key (or use a fresh dev DB); it must also be set in Vercel for production.
-- Whether to wire Resend as Supabase's SMTP now (Stage 2 auth-email rate limit) or at Stage 9 — still open.
-- Not built in Stage 4 (deliberate): bulk CSV upload, vendor logo/banner upload, real vendor order management,
-  admin notification emails, vendor-level rating rollup, Razorpay linked-account creation.
+- Nothing blocking. Stage 6 needs no new credentials (Razorpay test keys are needed at Stage 7).
+- Decide at Stage 6: GST handling on the order total (products carry `gst_rate`/`hsn_code`; are listed prices GST-inclusive?).
+- `VENDOR_BANK_ENCRYPTION_KEY` lives in gitignored `.env.local` — a second laptop needs the same key (or a fresh dev DB);
+  must also be set in Vercel for production.
+- Not built yet (deliberate, see the Stage 4 log): bulk CSV upload, vendor logo/banner upload, real vendor order
+  management (Stage 8), admin notification emails (Stage 10), vendor-level rating rollup, Razorpay linked accounts (Stage 7).
+- Stale guest carts (>30 days) should be purged by the Stage 9 Vercel Cron.
 
 ## Credentials Status
 

@@ -236,6 +236,7 @@ export type Database = {
           unit_price_snapshot: number
           updated_at: string
           variant_id: string | null
+          variant_ids: string[]
           vendor_id: string
         }
         Insert: {
@@ -248,6 +249,7 @@ export type Database = {
           unit_price_snapshot: number
           updated_at?: string
           variant_id?: string | null
+          variant_ids?: string[]
           vendor_id: string
         }
         Update: {
@@ -260,6 +262,7 @@ export type Database = {
           unit_price_snapshot?: number
           updated_at?: string
           variant_id?: string | null
+          variant_ids?: string[]
           vendor_id?: string
         }
         Relationships: [
@@ -1809,6 +1812,10 @@ export type Database = {
       is_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
       is_vendor_owner: { Args: { target_vendor_id: string }; Returns: boolean }
+      merge_guest_cart: {
+        Args: { p_guest_token: string; p_user_id: string }
+        Returns: undefined
+      }
       own_vendor_id: { Args: never; Returns: string }
       owns_product: { Args: { target_product_id: string }; Returns: boolean }
       search_products: {

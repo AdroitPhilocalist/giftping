@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/db/server";
+import { mergeGuestCartIntoUser } from "@/lib/commerce/cart";
+import { safeRedirectPath } from "@/lib/auth/redirect";
 
 // Landing point for both Google OAuth and email-confirmation links (both use Supabase's
 // PKCE `code` exchange flow). Password reset does NOT come through here — see
@@ -12,9 +14,10 @@ export async function GET(request: Request) {
 
   if (code) {
     const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      return NextResponse.redirect(`${origin}${next.startsWith("/") ? next : "/"}`);
+      if (data.user) await mergeGuestCartIntoUser(data.user.id);
+      return NextResponse.redirect(`${origin}${safeRedirectPath(next)}`);
     }
   }
 

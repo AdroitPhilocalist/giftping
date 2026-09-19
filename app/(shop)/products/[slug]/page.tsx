@@ -80,6 +80,7 @@ export default async function ProductDetailPage({
 
           <div className="mt-6">
             <ProductBuyBox
+              productId={product.id}
               basePrice={product.base_price}
               salePrice={product.sale_price}
               stockQuantity={product.stock_quantity}

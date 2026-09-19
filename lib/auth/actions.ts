@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { getRequestIp } from "@/lib/auth/request-ip";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/db/server";
+import { mergeGuestCartIntoUser } from "@/lib/commerce/cart";
+import { safeRedirectPath } from "@/lib/auth/redirect";
 import { authRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
 import {
   signUpSchema,
@@ -69,6 +71,7 @@ export async function signUpAction(_prev: ActionResult, formData: FormData): Pro
     return { success: "Check your email to confirm your account before signing in." };
   }
 
+  if (data.user) await mergeGuestCartIntoUser(data.user.id);
   redirect("/");
 }
 
@@ -86,14 +89,15 @@ export async function signInAction(_prev: ActionResult, formData: FormData): Pro
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
     return { error: "Incorrect email or password." };
   }
 
-  const redirectTo = formData.get("redirectTo");
-  redirect(typeof redirectTo === "string" && redirectTo.startsWith("/") ? redirectTo : "/");
+  // Carry anything they put in a guest cart over to their account before landing anywhere.
+  if (data.user) await mergeGuestCartIntoUser(data.user.id);
+  redirect(safeRedirectPath(formData.get("redirectTo")));
 }
 
 export async function signOutAction(): Promise<void> {
