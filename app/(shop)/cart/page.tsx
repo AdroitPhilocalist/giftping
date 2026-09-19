@@ -71,9 +71,15 @@ export default async function CartPage() {
                 Some items need your attention before you can check out.
               </p>
             ) : null}
-            <Button className="mt-5 w-full" disabled>
-              Checkout opens soon
-            </Button>
+            {cart.hasIssues ? (
+              <Button className="mt-5 w-full" disabled>
+                Proceed to checkout
+              </Button>
+            ) : (
+              <Button className="mt-5 w-full" asChild>
+                <Link href="/checkout">Proceed to checkout</Link>
+              </Button>
+            )}
             <p className="mt-2 text-center text-xs text-brand-dark/50">
               Final prices are confirmed at checkout.
             </p>

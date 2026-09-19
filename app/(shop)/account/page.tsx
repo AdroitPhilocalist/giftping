@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { requireRole } from "@/lib/auth/session";
 import { Card } from "@/components/ui/Card";
 
@@ -23,9 +24,12 @@ export default async function AccountPage() {
           </div>
         </dl>
       </Card>
-      <p className="mt-4 text-sm text-brand-dark/50">
-        Order history, saved addresses, and wishlist arrive in later stages.
-      </p>
+      <Card className="mt-4">
+        <Link href="/account/addresses" className="flex items-center justify-between text-sm font-medium text-brand-dark hover:text-brand-primary">
+          Saved addresses <span aria-hidden>→</span>
+        </Link>
+      </Card>
+      <p className="mt-4 text-sm text-brand-dark/50">Order history arrives with payments in the next stages.</p>
     </div>
   );
 }

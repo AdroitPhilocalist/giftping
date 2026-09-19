@@ -8,7 +8,8 @@ function isProtectedCustomerPath(pathname: string) {
   return (
     pathname.startsWith("/account") ||
     pathname.startsWith("/diary") ||
-    pathname.startsWith("/checkout")
+    pathname.startsWith("/checkout") ||
+    pathname.startsWith("/orders")
   );
 }
 

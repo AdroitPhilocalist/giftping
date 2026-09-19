@@ -31,6 +31,8 @@ export const searchRateLimit = createLimiter(60, "1 m");
 export const uploadRateLimit = createLimiter(20, "1 m");
 // Cart writes (add/update/remove/merge). Guests can create carts, so this also bounds cart-row spam per IP.
 export const cartRateLimit = createLimiter(60, "1 m");
+// Checkout: applying coupons (guessing codes) and placing orders.
+export const checkoutRateLimit = createLimiter(15, "1 m");
 
 export interface RateLimitResult {
   success: boolean;

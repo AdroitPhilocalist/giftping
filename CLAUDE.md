@@ -139,7 +139,8 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   keyName "fieldKey"), ImageManager, ProductRowActions, PortalNav
 /components/admin → DecisionButtons (Approve / Reject-with-reason modal)
 /components/diary → created in Stage 9
-/lib/db         → Supabase clients + generated types + per-table query helpers: categories.ts, vendors.ts
+/lib/account    → address-actions.ts (save / default / delete — session client, RLS + triggers enforce)
+/lib/db         → Supabase clients + generated types + per-table query helpers: addresses.ts, orders.ts, categories.ts, vendors.ts
                   (incl. getVendorsForCategory — scopes a category page's vendor filter to vendors that
                   actually have products there), products.ts (listProducts w/ filter+sort+paginate,
                   getProductBySlug, getRelatedProducts, getTrendingProducts), reviews.ts, wishlists.ts
@@ -153,7 +154,11 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   pricing.ts (pure, tested: computeUnitPrice / effectiveStock / maxPurchasable — Stage 6
                   checkout MUST reuse these), cart.ts (server-only: resolve cart, getCartView, add/set/remove,
                   mergeGuestCartIntoUser), cart-actions.ts (Server Actions, rate-limited), guest-cart-cookie.ts
-                  (httpOnly `gp_cart`). checkout.ts, coupons.ts — not built yet (Stage 6+)
+                  (httpOnly `gp_cart`), totals.ts (pure, tested: computeQuote — GST-inclusive prices, coupon scope +
+                  allocation, vendor- vs platform-funded discounts, per-vendor delivery, gift wrap, commission
+                  split), checkout.ts (server: rebuilds every price from the DB; persistOrder → place_order()),
+                  checkout-actions.ts (apply/remove coupon, placeOrderAction), coupons.ts (resolve_coupon RPC),
+                  settings.ts (platform_settings reader). Payments: Stage 7
 /lib/security   → encryption.ts (AES-256-GCM encryptSecret/decryptSecret, key VENDOR_BANK_ENCRYPTION_KEY —
                   losing it makes stored bank numbers unrecoverable; same value needed in Vercel)
 /lib/vendor     → actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
@@ -324,6 +329,24 @@ files with the editor tool.
   handlers, never during render — hence the `GuestCartMerger` client safety net on `/cart`.
 - **PostgREST batch inserts fill keys missing from some rows with NULL, not the column DEFAULT** — a bulk insert where only
   one row sets `personalization` violates NOT NULL. Set every key on every row (same lesson as the seed script).
+
+### Stage 6 (checkout) — order creation, money rules, and two more schema lessons
+
+- **Orders are created only by `place_order()`** (SQL, service_role-only, atomic; see the Stage 6 log). The TS side computes amounts from
+  the catalogue via `lib/commerce/checkout.ts` + `totals.ts`; the SQL function refuses internally inconsistent numbers
+  (`TOTALS_MISMATCH`). The client sends only address id / gift options / idempotency key — never a price. `unit_price_snapshot` is never read.
+- **Money rules** (all in `totals.ts`): prices are GST-inclusive; coupons apply to eligible (vendor/category) lines and are allocated in whole
+  paise; vendor-scoped coupons are vendor-funded, platform-wide ones platform-funded; delivery is per vendor shipment with a free threshold.
+  Delivery/gift-wrap/threshold live in `platform_settings`.
+- **Financial columns never go on a customer-readable table.** Commission/payout live in `order_item_financials` (vendor-own + admin
+  SELECT). Same rule as `vendor_private`: RLS is row-level, so a row a customer may read exposes every column of it.
+- **Every new function is EXECUTE-able by `anon`/`authenticated` unless you revoke it** — the Stage 1 grants migration set
+  `alter default privileges … grant execute on functions`. Always `revoke all … from public, anon, authenticated` and grant to `service_role`
+  for anything that isn't meant to be called from the client.
+- Checkout only *checks* stock; it reserves nothing. Stage 7 decrements stock atomically on payment capture and clears the cart.
+- An unpaid `created` order is a draft: the shopper's next checkout supersedes it and returns its coupon use. Stale drafts from shoppers who
+  never come back need a cron (Stage 9).
+- Route-prefix check for the new `/orders` protected segment: it doesn't prefix-match `/vendor/orders` (which starts with `/vendor`).
 
 ## Auth
 

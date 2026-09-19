@@ -195,6 +195,7 @@ export type Database = {
       }
       cart: {
         Row: {
+          coupon_code: string | null
           created_at: string
           guest_token: string | null
           id: string
@@ -202,6 +203,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          coupon_code?: string | null
           created_at?: string
           guest_token?: string | null
           id?: string
@@ -209,6 +211,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          coupon_code?: string | null
           created_at?: string
           guest_token?: string | null
           id?: string
@@ -784,12 +787,55 @@ export type Database = {
           },
         ]
       }
+      order_item_financials: {
+        Row: {
+          commission_amount: number
+          commission_base: number
+          commission_rate: number
+          created_at: string
+          order_item_id: string
+          platform_funded_discount: number
+          vendor_funded_discount: number
+          vendor_payout: number
+        }
+        Insert: {
+          commission_amount: number
+          commission_base: number
+          commission_rate: number
+          created_at?: string
+          order_item_id: string
+          platform_funded_discount?: number
+          vendor_funded_discount?: number
+          vendor_payout: number
+        }
+        Update: {
+          commission_amount?: number
+          commission_base?: number
+          commission_rate?: number
+          created_at?: string
+          order_item_id?: string
+          platform_funded_discount?: number
+          vendor_funded_discount?: number
+          vendor_payout?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_item_financials_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: true
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
-          commission_amount: number | null
-          commission_rate: number | null
           created_at: string
+          discount_amount: number
           fulfilment_status: string
+          gst_amount: number
+          gst_rate: number
+          hsn_code: string | null
           id: string
           order_id: string
           personalization: Json
@@ -802,15 +848,17 @@ export type Database = {
           total_price: number
           unit_price: number
           variant_id: string | null
+          variant_ids: string[]
           variant_label: string | null
           vendor_id: string
-          vendor_payout: number | null
         }
         Insert: {
-          commission_amount?: number | null
-          commission_rate?: number | null
           created_at?: string
+          discount_amount?: number
           fulfilment_status?: string
+          gst_amount?: number
+          gst_rate?: number
+          hsn_code?: string | null
           id?: string
           order_id: string
           personalization?: Json
@@ -823,15 +871,17 @@ export type Database = {
           total_price: number
           unit_price: number
           variant_id?: string | null
+          variant_ids?: string[]
           variant_label?: string | null
           vendor_id: string
-          vendor_payout?: number | null
         }
         Update: {
-          commission_amount?: number | null
-          commission_rate?: number | null
           created_at?: string
+          discount_amount?: number
           fulfilment_status?: string
+          gst_amount?: number
+          gst_rate?: number
+          hsn_code?: string | null
           id?: string
           order_id?: string
           personalization?: Json
@@ -844,9 +894,9 @@ export type Database = {
           total_price?: number
           unit_price?: number
           variant_id?: string | null
+          variant_ids?: string[]
           variant_label?: string | null
           vendor_id?: string
-          vendor_payout?: number | null
         }
         Relationships: [
           {
@@ -891,7 +941,9 @@ export type Database = {
           gift_message: string | null
           gift_wrap_charge: number
           gift_wrap_selected: boolean
+          gst_amount: number
           id: string
+          idempotency_key: string | null
           notes: string | null
           order_number: string
           placed_at: string | null
@@ -912,7 +964,9 @@ export type Database = {
           gift_message?: string | null
           gift_wrap_charge?: number
           gift_wrap_selected?: boolean
+          gst_amount?: number
           id?: string
+          idempotency_key?: string | null
           notes?: string | null
           order_number: string
           placed_at?: string | null
@@ -933,7 +987,9 @@ export type Database = {
           gift_message?: string | null
           gift_wrap_charge?: number
           gift_wrap_selected?: boolean
+          gst_amount?: number
           id?: string
+          idempotency_key?: string | null
           notes?: string | null
           order_number?: string
           placed_at?: string | null
@@ -1818,6 +1874,14 @@ export type Database = {
       }
       own_vendor_id: { Args: never; Returns: string }
       owns_product: { Args: { target_product_id: string }; Returns: boolean }
+      place_order: {
+        Args: { p_customer_id: string; p_items: Json; p_order: Json }
+        Returns: Json
+      }
+      resolve_coupon: {
+        Args: { p_code: string; p_user_id: string }
+        Returns: Json
+      }
       search_products: {
         Args: { search_query: string }
         Returns: {
