@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Store } from "lucide-react";
+import { VendorLogo } from "@/components/shop/VendorLogo";
 
 export function VendorCard({
   vendor,
@@ -11,9 +11,7 @@ export function VendorCard({
       href={`/vendors/${vendor.slug}`}
       className="flex items-center gap-3 rounded-2xl border border-brand-dark/10 bg-white p-4 transition-shadow hover:shadow-md"
     >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-accent text-brand-secondary-dark">
-        <Store className="h-5 w-5" />
-      </span>
+      <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-12 w-12" />
       <div className="min-w-0">
         <p className="truncate font-heading text-sm text-brand-dark">{vendor.business_name}</p>
         {vendor.short_description ? (

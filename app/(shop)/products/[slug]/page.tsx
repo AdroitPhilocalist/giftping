@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Star, Store } from "lucide-react";
+import { Star } from "lucide-react";
 import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ProductBuyBox } from "@/components/shop/ProductBuyBox";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ReviewList } from "@/components/shop/ReviewList";
+import { VendorLogo } from "@/components/shop/VendorLogo";
 import { WishlistButton } from "@/components/shop/WishlistButton";
 import { Badge } from "@/components/ui/Badge";
 import { getProductBySlug, getRelatedProducts } from "@/lib/db/products";
@@ -93,9 +94,7 @@ export default async function ProductDetailPage({
               href={`/vendors/${product.vendor.slug}`}
               className="mt-6 flex items-center gap-3 rounded-2xl border border-brand-dark/10 p-4 hover:shadow-sm"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-accent text-brand-secondary-dark">
-                <Store className="h-5 w-5" />
-              </span>
+              <VendorLogo url={product.vendor.logo_url} name={product.vendor.business_name} sizeClass="h-11 w-11" />
               <div className="min-w-0 flex-1">
                 <p className="font-heading text-sm text-brand-dark">{product.vendor.business_name}</p>
                 {product.vendor.short_description ? (

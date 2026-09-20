@@ -1,6 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { Star, Store } from "lucide-react";
+import Image from "next/image";
+import { Star } from "lucide-react";
+import { VendorLogo } from "@/components/shop/VendorLogo";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Pagination } from "@/components/shop/Pagination";
 import { Badge } from "@/components/ui/Badge";
@@ -31,6 +33,11 @@ export default async function VendorStorefrontPage({
 
   return (
     <div>
+      {vendor.banner_url ? (
+        <div className="relative aspect-[16/6] max-h-72 w-full overflow-hidden bg-brand-accent sm:aspect-[16/5]">
+          <Image src={vendor.banner_url} alt={`${vendor.business_name} banner`} fill priority sizes="100vw" className="object-cover" />
+        </div>
+      ) : null}
       <div className="border-b border-brand-dark/10 bg-brand-accent/40 py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="text-xs uppercase tracking-widest text-brand-dark/50">
@@ -40,9 +47,7 @@ export default async function VendorStorefrontPage({
             / {vendor.business_name}
           </p>
           <div className="mt-3 flex items-center gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-brand-secondary-dark shadow-sm">
-              <Store className="h-7 w-7" />
-            </span>
+            <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-16 w-16" iconClass="h-7 w-7" className="bg-white shadow-sm" />
             <div>
               <h1 className="font-heading text-3xl text-brand-dark">{vendor.business_name}</h1>
               {vendor.short_description ? (

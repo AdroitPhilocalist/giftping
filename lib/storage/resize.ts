@@ -99,3 +99,49 @@ export async function processBannerImage(input: Buffer): Promise<ProcessedBanner
   const [full, medium] = await Promise.all([render(BANNER_SIZES.full, 82), render(BANNER_SIZES.medium, 78)]);
   return { full: full.data, medium: medium.data, width: full.info.width, height: full.info.height };
 }
+
+/** Shared validation for the branding images below: real bytes via sharp, allowed formats, size, and the dimensions AS VIEWERS SEE THEM (EXIF-rotated). */
+async function inspectUpload(input: Buffer): Promise<{ width: number; height: number }> {
+  if (input.length > MAX_UPLOAD_BYTES) throw new ImageValidationError("Image is larger than 4MB.");
+  let metadata: Metadata;
+  try {
+    metadata = await sharp(input, { limitInputPixels: 50_000_000 }).metadata();
+  } catch {
+    throw new ImageValidationError("That file isn't a valid image.");
+  }
+  if (!metadata.format || !ALLOWED_INPUT_FORMATS.has(metadata.format)) throw new ImageValidationError("Only JPEG, PNG, or WebP images are supported.");
+  const rotated = (metadata.orientation ?? 1) >= 5;
+  return { width: (rotated ? metadata.height : metadata.width) ?? 0, height: (rotated ? metadata.width : metadata.height) ?? 0 };
+}
+
+export const LOGO_SIZE = 512;
+const LOGO_MIN_EDGE = 200;
+
+/** A boutique logo: centre-cropped to a square and stored at 512×512 WebP. Very stretched images are refused rather than cropped to nonsense. */
+export async function processVendorLogo(input: Buffer): Promise<{ logo: Buffer }> {
+  const { width, height } = await inspectUpload(input);
+  if (Math.min(width, height) < LOGO_MIN_EDGE) throw new ImageValidationError(`Logos must be at least ${LOGO_MIN_EDGE}px on their shortest side (512×512 is ideal).`);
+  const ratio = width / height;
+  if (ratio < 0.5 || ratio > 2) throw new ImageValidationError("Logos should be roughly square — this one would be cropped too much.");
+  const logo = await sharp(input, { limitInputPixels: 50_000_000 })
+    .rotate()
+    .resize({ width: LOGO_SIZE, height: LOGO_SIZE, fit: "cover", position: "centre" })
+    .webp({ quality: 86 })
+    .toBuffer();
+  return { logo };
+}
+
+export const VENDOR_BANNER_SIZES = { full: 1600, medium: 800 } as const;
+const VENDOR_BANNER_MIN_WIDTH = 1000;
+
+/** A boutique banner for the top of its storefront: wide (about 16:5), stored at 1600px and 800px wide. */
+export async function processVendorBanner(input: Buffer): Promise<{ full: Buffer; medium: Buffer }> {
+  const { width, height } = await inspectUpload(input);
+  if (width < VENDOR_BANNER_MIN_WIDTH) throw new ImageValidationError(`Banners must be at least ${VENDOR_BANNER_MIN_WIDTH}px wide (1600×500 is ideal).`);
+  const ratio = width / height;
+  if (ratio < 2 || ratio > 4.5) throw new ImageValidationError("Banners should be wide and short — about 16:5 (for example 1600×500).");
+  const render = (target: number, quality: number) =>
+    sharp(input, { limitInputPixels: 50_000_000 }).rotate().resize({ width: target, withoutEnlargement: true }).webp({ quality }).toBuffer();
+  const [full, medium] = await Promise.all([render(VENDOR_BANNER_SIZES.full, 82), render(VENDOR_BANNER_SIZES.medium, 78)]);
+  return { full, medium };
+}

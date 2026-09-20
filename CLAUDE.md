@@ -173,7 +173,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /lib/integrations → resend.ts (fetch client; no-op without a key), razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
                   shiprocket-status.ts / shiprocket-webhook.ts (pure, tested) built; msg91.ts, onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
-/lib/storage    → (also processBannerImage + the public `site-banners` bucket helpers in upload.ts — server-only writes via POST /api/admin/upload-banner) resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
+/lib/storage    → (also branding.ts — vendor logo/banner storage in the public `vendor-branding` bucket, written only by POST /api/vendor/upload-branding; processVendorLogo/processVendorBanner; processBannerImage + the public `site-banners` bucket helpers in upload.ts — server-only writes via POST /api/admin/upload-banner) resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
                   to WebP full 1600 / medium 800 / thumb 400, strips metadata; ImageValidationError),
                   upload.ts (service-role writes to the public `product-images` bucket). The bucket has NO
                   client write policies — the only write path is POST /api/vendor/upload-image (a route
@@ -431,6 +431,8 @@ files with the editor tool.
 
 - **Public read of scheduled content must be time-gated in RLS, not just in the query.** A policy of `is_active` alone leaks a not-yet-live campaign through the API; `banners` now exposes only rows live right now (active AND inside start/end), admins see everything. Do the same for any future scheduled content (promotions, announcements).
 - **A string that becomes an `href` is validated at every layer**: form schema + server action + a DB CHECK (`safeCtaUrl`: site path or https only). Images uploaded by admins follow the product-image model: the form returns only a server-generated storage path, the action rebuilds URLs from it; buckets have no client write policies, even for admins.
+
+- **User-supplied image URLs stored in a public table are constrained in the database, not just in the UI**: `vendors.logo_url`/`banner_url` are CHECK-pinned to that vendor's own folder in `vendor-branding`, so no write path (form, API, a direct RLS update) can point them elsewhere. Do the same for any future column that holds an uploaded-file URL.
 
 ## Auth
 

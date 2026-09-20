@@ -8,6 +8,7 @@ import { getServerUser } from "@/lib/auth/session";
 import { createAdminClient } from "@/lib/db/admin";
 import { appBaseUrl, notifyUser } from "@/lib/notifications/notify";
 import { buildVendorAccountEmail } from "@/lib/notifications/templates";
+import { removeBrandingFiles } from "@/lib/storage/branding";
 
 const id = z.string().uuid();
 
@@ -66,5 +67,32 @@ export async function setCommissionOverrideAction(vendorId: string, rate: string
   if (error) return { ok: false, error: "Couldn't save the commission." };
   await admin.from("audit_logs").insert({ actor_id: g.user.id, action: "vendor.commission_changed", entity_type: "vendor", entity_id: vendorId, before_data: { commission_rate: before?.commission_rate ?? null } as never, after_data: { commission_rate: value } as never });
   revalidatePath("/admin/vendors");
+  return { ok: true };
+}
+
+/** Moderation: an admin can take down a vendor's logo or banner (say, an inappropriate image). The vendor is told and can upload a different one. */
+export async function removeVendorBrandingAction(vendorId: string, kind: "logo" | "banner"): Promise<{ ok: boolean; error?: string }> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  if (!id.safeParse(vendorId).success || !z.enum(["logo", "banner"]).safeParse(kind).success) return { ok: false, error: "Invalid request." };
+
+  const admin = createAdminClient();
+  const { data: vendor } = await admin.from("vendors").select("business_name, slug, user_id, logo_url, banner_url").eq("id", vendorId).maybeSingle();
+  if (!vendor) return { ok: false, error: "Vendor not found." };
+  const previous = kind === "logo" ? vendor.logo_url : vendor.banner_url;
+  if (!previous) return { ok: false, error: `This boutique has no ${kind}.` };
+
+  const { error } = await admin.from("vendors").update(kind === "logo" ? { logo_url: null } : { banner_url: null }).eq("id", vendorId);
+  if (error) return { ok: false, error: "Couldn't remove the image." };
+  await removeBrandingFiles(previous);
+  await admin.from("audit_logs").insert({ actor_id: g.user.id, action: `vendor.${kind}_removed`, entity_type: "vendor", entity_id: vendorId, before_data: null, after_data: null });
+  if (vendor.user_id) {
+    await notifyUser({
+      userId: vendor.user_id, category: "vendor_updates", type: "vendor_branding_removed", title: `Your boutique ${kind} was removed`,
+      message: `GiftPing removed your boutique ${kind} because it didn't meet our guidelines. You can upload a different one in Settings.`, linkUrl: "/vendor/settings", push: false,
+    });
+  }
+  revalidatePath("/admin/vendors");
+  revalidatePath("/vendors");
+  revalidatePath(`/vendors/${vendor.slug}`);
   return { ok: true };
 }

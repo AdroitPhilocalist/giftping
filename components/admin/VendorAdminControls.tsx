@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { toast } from "@/components/ui/Toast";
-import { setCommissionOverrideAction, setVendorSuspendedAction } from "@/lib/admin/vendor-actions";
+import { removeVendorBrandingAction, setCommissionOverrideAction, setVendorSuspendedAction } from "@/lib/admin/vendor-actions";
 
-export function VendorAdminControls({ vendorId, name, status, commissionOverride }: { vendorId: string; name: string; status: string; commissionOverride: number | null }) {
+export function VendorAdminControls({ vendorId, name, status, commissionOverride, hasLogo = false, hasBanner = false }: { vendorId: string; name: string; status: string; commissionOverride: number | null; hasLogo?: boolean; hasBanner?: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [suspending, setSuspending] = useState(false);
@@ -32,6 +32,13 @@ export function VendorAdminControls({ vendorId, name, status, commissionOverride
         <Input id={`rate-${vendorId}`} inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="default" className="h-8 w-24 px-2 py-1 text-xs" />
         <Button type="submit" size="sm" variant="ghost" disabled={pending}>Save</Button>
       </form>
+      {hasLogo || hasBanner ? (
+        <span className="flex items-center gap-3 text-brand-dark/50">
+          Take down:
+          {hasLogo ? <button type="button" disabled={pending} onClick={() => confirm(`Remove ${name}'s logo? The vendor is told.`) && run(() => removeVendorBrandingAction(vendorId, "logo"), "Logo removed.", (m) => toast.error(m))} className="hover:text-red-700">logo</button> : null}
+          {hasBanner ? <button type="button" disabled={pending} onClick={() => confirm(`Remove ${name}'s banner? The vendor is told.`) && run(() => removeVendorBrandingAction(vendorId, "banner"), "Banner removed.", (m) => toast.error(m))} className="hover:text-red-700">banner</button> : null}
+        </span>
+      ) : null}
       {status === "approved" ? (
         <button type="button" onClick={() => { setReason(""); setError(null); setSuspending(true); }} className="text-brand-dark/60 hover:text-red-700">Suspend</button>
       ) : status === "suspended" ? (

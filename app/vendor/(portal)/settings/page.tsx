@@ -1,3 +1,4 @@
+import { VendorBrandingForm } from "@/components/vendor/VendorBrandingForm";
 import { VendorSettingsForm } from "@/components/vendor/VendorSettingsForm";
 import { requireApprovedVendor } from "@/lib/db/vendor-portal";
 
@@ -11,6 +12,7 @@ export default async function VendorSettingsPage() {
     <div>
       <h1 className="font-heading text-3xl text-brand-dark">Settings</h1>
       <p className="mt-1 mb-6 text-sm text-brand-dark/60">Your commission, bank account and legal details are managed by GiftPing — contact support to change them.</p>
+      <VendorBrandingForm logoUrl={vendor.logo_url} bannerUrl={vendor.banner_url} />
       <VendorSettingsForm
         initial={{
           shortDescription: vendor.short_description ?? "",
