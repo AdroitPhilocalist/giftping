@@ -4,20 +4,23 @@ import { CategoryCard } from "@/components/shop/CategoryCard";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { VendorCard } from "@/components/shop/VendorCard";
 import { SearchBar } from "@/components/shop/SearchBar";
+import { HeroBanners } from "@/components/shop/HeroBanners";
 import { getActiveCategories } from "@/lib/db/categories";
 import { getFeaturedVendors } from "@/lib/db/vendors";
 import { getTrendingProducts } from "@/lib/db/products";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
+import { getHomeBanners } from "@/lib/db/banners";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ account?: string }> }) {
   const user = await getServerUser();
   const accountDeleted = (await searchParams).account === "deleted";
-  const [categories, vendors, trending, wishlistIds] = await Promise.all([
+  const [categories, vendors, trending, wishlistIds, banners] = await Promise.all([
     getActiveCategories(),
     getFeaturedVendors(),
     getTrendingProducts(),
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
+    getHomeBanners(user ? (user.role === "vendor" || user.role === "admin" ? user.role : "customer") : "guest"),
   ]);
 
   return (
@@ -28,6 +31,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ a
         </p>
       ) : null}
     <div>
+      <HeroBanners banners={banners} />
       <section className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
         <p className="text-sm font-medium uppercase tracking-widest text-brand-secondary-dark">
           Welcome to GiftPing Mall

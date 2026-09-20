@@ -150,46 +150,58 @@ export type Database = {
       }
       banners: {
         Row: {
+          alt_text: string | null
           created_at: string
           cta_text: string | null
           cta_url: string | null
           ends_at: string | null
           headline: string | null
           id: string
+          image_medium_url: string | null
           image_url: string
           is_active: boolean
           sort_order: number
           starts_at: string | null
+          storage_path: string | null
           subheading: string | null
           target_audience: string
+          updated_at: string
         }
         Insert: {
+          alt_text?: string | null
           created_at?: string
           cta_text?: string | null
           cta_url?: string | null
           ends_at?: string | null
           headline?: string | null
           id?: string
+          image_medium_url?: string | null
           image_url: string
           is_active?: boolean
           sort_order?: number
           starts_at?: string | null
+          storage_path?: string | null
           subheading?: string | null
           target_audience?: string
+          updated_at?: string
         }
         Update: {
+          alt_text?: string | null
           created_at?: string
           cta_text?: string | null
           cta_url?: string | null
           ends_at?: string | null
           headline?: string | null
           id?: string
+          image_medium_url?: string | null
           image_url?: string
           is_active?: boolean
           sort_order?: number
           starts_at?: string | null
+          storage_path?: string | null
           subheading?: string | null
           target_audience?: string
+          updated_at?: string
         }
         Relationships: []
       }

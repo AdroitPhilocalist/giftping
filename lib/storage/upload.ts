@@ -58,3 +58,49 @@ export async function removeProductImageFiles(storagePath: string) {
     .storage.from(PRODUCT_IMAGE_BUCKET)
     .remove([`${stem}-full.webp`, `${stem}-medium.webp`, `${stem}-thumb.webp`]);
 }
+
+export const BANNER_BUCKET = "site-banners";
+/** Only paths this server generated are ever accepted back from a form: `banners/<uuid>-full.webp`. */
+export const BANNER_PATH_PATTERN = /^banners\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-full\.webp$/;
+
+export interface StoredBanner {
+  storagePath: string;
+  url: string;
+  mediumUrl: string;
+}
+
+export function bannerUrls(storagePath: string): { url: string; mediumUrl: string } {
+  const storage = createAdminClient().storage.from(BANNER_BUCKET);
+  const medium = storagePath.replace(/-full\.webp$/, "-medium.webp");
+  return { url: storage.getPublicUrl(storagePath).data.publicUrl, mediumUrl: storage.getPublicUrl(medium).data.publicUrl };
+}
+
+/** Service-role write of the two re-encoded renditions; the bucket has no client write policies (see the migration). */
+export async function storeBannerImage(image: { full: Buffer; medium: Buffer }): Promise<StoredBanner> {
+  const storage = createAdminClient().storage.from(BANNER_BUCKET);
+  const stem = `banners/${randomUUID()}`;
+  const uploads = [
+    { path: `${stem}-full.webp`, body: image.full },
+    { path: `${stem}-medium.webp`, body: image.medium },
+  ];
+  for (const upload of uploads) {
+    const { error } = await storage.upload(upload.path, upload.body, { contentType: "image/webp", cacheControl: "31536000", upsert: false });
+    if (error) {
+      await storage.remove(uploads.map((u) => u.path));
+      throw new Error(`Storage upload failed: ${error.message}`);
+    }
+  }
+  return { storagePath: uploads[0].path, ...bannerUrls(uploads[0].path) };
+}
+
+export async function bannerImageExists(storagePath: string): Promise<boolean> {
+  const storage = createAdminClient().storage.from(BANNER_BUCKET);
+  const medium = storagePath.replace(/-full\.webp$/, "-medium.webp");
+  const [a, b] = await Promise.all([storage.exists(storagePath), storage.exists(medium)]);
+  return Boolean(a.data && b.data);
+}
+
+export async function removeBannerImageFiles(storagePath: string) {
+  const medium = storagePath.replace(/-full\.webp$/, "-medium.webp");
+  await createAdminClient().storage.from(BANNER_BUCKET).remove([storagePath, medium]);
+}

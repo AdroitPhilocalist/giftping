@@ -173,7 +173,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /lib/integrations → resend.ts (fetch client; no-op without a key), razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
                   shiprocket-status.ts / shiprocket-webhook.ts (pure, tested) built; msg91.ts, onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
-/lib/storage    → resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
+/lib/storage    → (also processBannerImage + the public `site-banners` bucket helpers in upload.ts — server-only writes via POST /api/admin/upload-banner) resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
                   to WebP full 1600 / medium 800 / thumb 400, strips metadata; ImageValidationError),
                   upload.ts (service-role writes to the public `product-images` bucket). The bucket has NO
                   client write policies — the only write path is POST /api/vendor/upload-image (a route
@@ -187,7 +187,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   view.ts (dashboard view-model), reminder-email.ts (HTML-escaped builder) — all pure + tested; candidates.ts (catalogue slice for ideas),
                   reminders.ts (the cron engine, exactly-once via diary_reminder_log), actions.ts (Server Actions), format.ts
 /lib/validation → Zod schemas, one file per domain, shared by client forms and API routes
-/lib/content    → imagery.ts — central image-asset map (see "Image handoff" below) — not built yet
+/lib/content    → banners.ts (pure, tested: bannerStatus / audienceMatches / visibleBanners / safeCtaUrl for the admin-managed homepage carousel); imagery.ts — central image-asset map (see "Image handoff" below) — not built yet
 /lib/utils      → cn.ts (clsx + tailwind-merge), format.ts (formatCurrency — en-IN Intl formatter)
 /emails         → not used: the diary reminder email is built by lib/diary/reminder-email.ts (plain HTML, no dependency); revisit React Email in Stage 10 if wanted
 /app/api/cron   → diary-reminders/route.ts (built), invoked daily by Vercel Cron (vercel.json, Bearer CRON_SECRET); also runs the stale-unpaid-order
@@ -426,6 +426,11 @@ files with the editor tool.
 - **Refunds are reserve → gateway → apply.** `begin_refund()` row-locks the order and RESERVES the amount (a pending refund counts against the line), the gateway refund is tagged with our refund id (`notes.gp_refund_id`), then `complete_refund()` applies every consequence atomically. Razorpay has no idempotency key for refunds: before any retry, look the tag up at the gateway (`findRazorpayRefundByTag`) so a lost reply can't refund twice. A line is never refunded above what the customer paid for it.
 - **Vendor/commission effect is cumulative** (`refunded_payout`/`refunded_commission` on `order_item_financials`, originals untouched). A line already in a settlement gets a `vendor_adjustments` debit netted off the next payout (carried forward if larger); statements use the per-line snapshot taken when the settlement was created. Voiding a settlement must drop the debits on its lines (else they're deducted twice) and is refused if one was already netted elsewhere.
 - Anything that stores customer free text (return notes) must be scrubbed in `anonymize_user`; erasure is refused while a return/refund is open.
+
+### Stage 11 (banners) — admin-managed public content
+
+- **Public read of scheduled content must be time-gated in RLS, not just in the query.** A policy of `is_active` alone leaks a not-yet-live campaign through the API; `banners` now exposes only rows live right now (active AND inside start/end), admins see everything. Do the same for any future scheduled content (promotions, announcements).
+- **A string that becomes an `href` is validated at every layer**: form schema + server action + a DB CHECK (`safeCtaUrl`: site path or https only). Images uploaded by admins follow the product-image model: the form returns only a server-generated storage path, the action rebuilds URLs from it; buckets have no client write policies, even for admins.
 
 ## Auth
 

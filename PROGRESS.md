@@ -13,7 +13,7 @@ static project conventions that don't change session to session._
 
 ## Stage 11 in progress
 
-Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. Remaining: homepage banners, vendor logo/banner + CSV product upload, data-export for DPDP access requests, dashboard alert for paid orders stuck with a suspended vendor. **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 
+Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). Remaining: vendor logo/banner + CSV product upload, data-export for DPDP access requests, dashboard alert for paid orders stuck with a suspended vendor. **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 
 
 ## Last Session Summary
 
