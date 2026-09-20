@@ -8,7 +8,7 @@ static project conventions that don't change session to session._
 
 > **Deployment:** https://giftping-lime.vercel.app (Vercel, auto-deploys from `master`). Webhooks: `/api/webhooks/razorpay`, `/api/webhooks/courier-tracking`. Daily cron: `/api/cron/diary-reminders`.
 
-**Stage 9 — Personal Gifting Diary + daily cron** ✅ built and verified locally. **Stage 10 — email half done** (order/shipment/vendor emails + a preference-aware `notifyUser()`; real Resend connected in test mode); push + auth SMTP wait on OneSignal keys / a domain. **Stage 7 (payments) is now fully verified with a real Razorpay test payment**
+**Stage 9 — Personal Gifting Diary + daily cron** ✅ built and verified locally. **Stage 10 — email + web push built** (`notifyUser()` = in-app + email + push, preference-gated; real Resend in test mode; real OneSignal wired). Remaining: a real push received in a real browser on the deployed site, and Supabase auth SMTP (needs a domain). **Stage 7 (payments) is now fully verified with a real Razorpay test payment**
 (real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 10 — Notifications (email/push) & Stage 11 — Admin suite**.
 
 ## Stage 11 in progress
@@ -32,7 +32,7 @@ Full detail: `docs/progress/2026-09-20-stage-9-diary.md`, and the "Real-account 
 1. **Developer (unblocks real verification):** add to Vercel and redeploy — `CRON_SECRET` (any long random string; the value in `.env.local` is only for local), `NEXT_PUBLIC_RAZORPAY_KEY_ID`,
    `RAZORPAY_SECRET_KEY`, `SHIPROCKET_EMAIL`, `SHIPROCKET_PASSWORD`, `VENDOR_BANK_ENCRYPTION_KEY`, `NEXT_PUBLIC_APP_URL`. Resend key + a verified domain for real reminder emails.
    Shiprocket: recharge wallet (~₹500) + create/verify a pickup address, then tell me its name. Rotate the Shiprocket password and use a separate webhook token.
-2. **Stage 10 (remaining)**: OneSignal web push (client SDK, subscription flow, `push` channel in the reminder cron), order/shipment emails via Resend, notification preferences per channel,
+2. **Stage 10 (remaining)**: ~~OneSignal web push~~ (built; awaiting a real-browser subscribe test on the deployed site) (client SDK, subscription flow, `push` channel in the reminder cron), order/shipment emails via Resend, notification preferences per channel,
    verified-domain email + Supabase auth SMTP through Resend (fixes the auth-email rate limit).
 3. **Stage 11 — Admin suite**: dashboard/analytics, vendor mgmt (incl. commission override, support phone capture), product moderation, order oversight + cancellations/refunds/returns, coupons UI,
    homepage banners, user mgmt, DPDP deletion, vendor settlements (data is in `order_item_financials`), vendor logo/banner + CSV upload.

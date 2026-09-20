@@ -4,6 +4,7 @@ import Link from "next/link";
 import { User } from "lucide-react";
 import { Dropdown, DropdownTrigger, DropdownContent, DropdownItem } from "@/components/ui/Dropdown";
 import { signOutAction } from "@/lib/auth/actions";
+import { pushLogout } from "@/lib/push/client";
 import type { SessionUser } from "@/lib/auth/session";
 
 export function AccountMenu({ user }: { user: SessionUser }) {
@@ -44,7 +45,14 @@ export function AccountMenu({ user }: { user: SessionUser }) {
           nested form's native submit — confirmed by hand-testing (the cookie survived the
           click). onSelect calling the server action directly is the correct pattern here.
         */}
-        <DropdownItem onSelect={() => signOutAction()}>Sign Out</DropdownItem>
+        <DropdownItem
+          onSelect={async () => {
+            await pushLogout(); // unlink this browser from the user before the session ends
+            await signOutAction();
+          }}
+        >
+          Sign Out
+        </DropdownItem>
       </DropdownContent>
     </Dropdown>
   );

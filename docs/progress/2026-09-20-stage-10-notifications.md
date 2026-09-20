@@ -33,3 +33,21 @@ Date: 2026-09-20
 - **Supabase auth emails via Resend SMTP** (fixes the sign-up/password-reset rate limit): needs a verified domain. Until then auth emails use Supabase's shared sender and its strict limit.
 - Real customers can't be emailed until a domain is verified in Resend and `RESEND_FROM_EMAIL` is switched to an address on it.
 - Not built: React Email templates (plain HTML builders instead — no dependency), unsubscribe headers / one-click unsubscribe (add with the verified domain), email for vendor approval/rejection and product moderation (admin actions still write in-app only), digest emails.
+
+## Update — web push (OneSignal) built (2026-09-20, later the same day)
+
+- **Server**: `lib/integrations/onesignal.ts` (`sendPush`, addressed by `external_id` = GiftPing user id, `Key` auth, 24h TTL) + `onesignal-response.ts` (pure, tested against **real** responses). Key finding from the real API:
+  a user with no subscribed device gets **HTTP 200** with `{"id":"","errors":["All included players are not subscribed"]}` — checking only the status code would count it as "sent". Treated as `not_subscribed`, a normal outcome.
+- **`notifyUser()` now also pushes** (unless `push:false` or the user switched that category's push off); outcomes `sent | not_subscribed | skipped_* | failed`.
+- **Diary cron** has a `push` channel with its own exactly-once ledger claim ("not subscribed" keeps the claim; only a real failure releases it).
+- **Browser**: `OneSignalIdentity` (root layout, **signed-in users only** — anonymous visitors never download the SDK) loads the v16 SDK, inits, and `login(userId)`; `public/OneSignalSDKWorker.js`; sign-out calls
+  `pushLogout()` first so a shared computer stops receiving the last user's pushes. Permission is **never auto-prompted** — an explicit "Turn on" button in `/account/notifications` (`PushControls`).
+- **Preferences**: separate Email and Push switch per category (`setChannelPreferenceAction`; only the named column is written, so opting out of push leaves email on).
+- **Resend test-mode is no longer an "error"**: Resend's 403 "verify a domain / only send testing emails to your own address" is reported as not-configured and skipped quietly (the email claim is released so it retries once a domain is verified).
+
+### Verified
+Real OneSignal API from the cron: key valid, app configured for `https://giftping-lime.vercel.app` (0 subscribers so far); a due reminder attempts push → `pushNotSubscribed`, no errors; re-run doesn't retry; push opt-out skips without an API call and leaves email on. Settings page renders both switches per category.
+
+### NOT verified (needs a real browser on the deployed site)
+- Subscribing a browser and **receiving an actual push**. The SDK deliberately refuses to run on `localhost` ("Can only be used on: https://giftping-lime.vercel.app" unless OneSignal's dashboard "Local Testing" is enabled), and the in-app browser has notifications blocked. Test on the deployed site: sign in → Account → Notification settings → **Turn on** → allow → then a push can be sent to that user.
+- Push text for diary reminders includes the contact's name (visible on a lock screen and passing through OneSignal, a processor). Users can switch it off per category.

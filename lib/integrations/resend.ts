@@ -9,6 +9,7 @@ export function isResendConfigured(): boolean {
   return Boolean(process.env.RESEND_API_KEY);
 }
 
+/** `notConfigured` = no key, or Resend is still in test mode (unverified domain): skip quietly, don't treat as a failure. */
 export type SendResult = { ok: true; id: string | null } | { ok: false; error: string; notConfigured?: boolean };
 
 export async function sendEmail(args: { to: string; subject: string; html: string; text: string }): Promise<SendResult> {
@@ -29,6 +30,11 @@ export async function sendEmail(args: { to: string; subject: string; html: strin
       signal: AbortSignal.timeout(15_000),
     });
     const json = (await response.json().catch(() => null)) as { id?: string; message?: string } | null;
+    // Resend refuses every recipient but the account owner's until a sending domain is verified. That's a known "not ready yet" state,
+    // not a fault: report it like "not configured" so callers skip quietly instead of logging an error per message.
+    if (response.status === 403 && /verify a domain|only send testing emails/i.test(json?.message ?? "")) {
+      return { ok: false, error: json?.message ?? "Resend is in test mode", notConfigured: true };
+    }
     if (!response.ok) return { ok: false, error: json?.message ?? `Resend returned ${response.status}` };
     return { ok: true, id: json?.id ?? null };
   } catch (error) {
