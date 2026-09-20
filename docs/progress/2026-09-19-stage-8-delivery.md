@@ -70,3 +70,20 @@ payload and its exact status strings. Request/response field names were written 
 - Vendor profile should collect a support phone at registration (needed for the pickup location); today the booking asks the vendor to add one if missing.
 - Serviceability cache ignores weight (rarely matters for parcels); very heavy items could differ.
 - Shiprocket transaction cost is per shipment (courier freight, recovered via the delivery charge) — not part of the fixed API budget, as noted in CLAUDE.md.
+
+
+## Real-account verification (2026-09-20) — Shiprocket API user wired
+
+- Login works with the API user; response shapes checked read-only against the real API. **Findings:** an unserviceable route returns HTTP **200** with
+  an empty courier list and a "No courier service available…" message (not a 404) — handled, and now pinned by `shiprocket-serviceability.test.ts`
+  (parsing extracted to a pure function). Live ETA works end to end in checkout (Bengaluru → Kochi ≈ 3 days).
+- Production tracking webhook (`/api/webhooks/courier-tracking`) verified: token accepted on Vercel, no-AWB ping ignored.
+- **Account state that blocks real booking (developer action):** the account has **0 pickup locations** and a **₹0 wallet**. AWB assignment deducts
+  freight from the wallet. Shiprocket may also require phone-OTP verification of a new pickup address, which cannot be automated — create the first
+  pickup address in the Shiprocket panel, then store its exact name in `vendor_private.shiprocket_pickup_location` for that vendor (the booking code
+  reuses it instead of calling `addpickup`).
+- Not exercised against the real account (they change the account or spend money): `addpickup`, order creation, AWB assignment, pickup request.
+- Security note: the webhook token was set to the same value as the Shiprocket account password. Prefer a separate random token
+  (`openssl rand -base64 32`) in Shiprocket's webhook settings + `SHIPROCKET_WEBHOOK_SECRET` (local and Vercel), and rotate the password.
+- `.env` gotcha: Next's env loader expands `$name`. A value containing `$` must be double-quoted with `\$` in `.env.local` (verified Next then parses the
+  full 32 characters); Vercel's dashboard does not expand, so paste it raw there.

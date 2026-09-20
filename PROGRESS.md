@@ -6,6 +6,9 @@ static project conventions that don't change session to session._
 
 ## Current Stage
 
+> **Deployment:** https://giftping-lime.vercel.app (Vercel, auto-deploys from `master`). Webhooks: `/api/webhooks/razorpay`, `/api/webhooks/courier-tracking`.
+> **2026-09-20:** Razorpay test keys + Shiprocket API user wired locally and verified against the real APIs — see the "Real-account verification" sections in the Stage 7 and 8 logs.
+
 **Stage 8 — Delivery (Shiprocket)** ✅ built, ⚠️ **verified against a local mock only** (like Stage 7's payments). Two "First real test" runs are now
 pending on the developer's accounts: Razorpay (Stage 7 log) and Shiprocket (Stage 8 log). Next code stage: **Stage 9 — Personal Gifting Diary + Vercel Cron**.
 
@@ -60,8 +63,8 @@ Full detail: `docs/progress/2026-09-19-stage-8-delivery.md`.
 | Upstash Redis | Stage 2 (reused later) | 🟡 code-complete with graceful no-op fallback; not yet provisioned |
 | Supabase Storage bucket (`product-images`) | Stage 4 | ✅ created via migration, verified |
 | Vendor bank encryption key | Stage 4 | ✅ in `.env.local`; 🔴 must be set in Vercel before go-live |
-| Razorpay (test) | Stage 7 | 🔴 keys + webhook secret still needed — code is built and mock-verified |
-| Shiprocket (API user + webhook token; Lite/PAYG plan) | Stage 8 | 🔴 still needed — code is built and mock-verified |
+| Razorpay (test) | Stage 7 | 🟡 keys wired locally + verified against the real API; webhook secret set on Vercel. **Add `NEXT_PUBLIC_RAZORPAY_KEY_ID` + `RAZORPAY_SECRET_KEY` to Vercel and redeploy**; one human test payment still to observe |
+| Shiprocket (API user + webhook token; Lite/PAYG plan) | Stage 8 | 🟡 login + serviceability verified against the real API; webhook token set on Vercel. Account has 0 pickup locations and ₹0 wallet; add `SHIPROCKET_EMAIL`/`PASSWORD` to Vercel; use a separate webhook token |
 | Resend | Stage 9 (or earlier, see Open Questions) | 🔴 not needed yet |
 | OneSignal (free tier) | Stage 9 | 🔴 not needed yet |
 | ~~Remove.bg~~ | — | ❌ cut from scope, cost constraint |

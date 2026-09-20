@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/db/admin";
+import { interpretServiceability, type ServiceabilityResult } from "./shiprocket-serviceability";
 
 /**
  * Shiprocket REST client (plain fetch, no SDK). Field names follow Shiprocket's public API docs; they were written
@@ -108,11 +109,7 @@ async function call<T>(path: string, init: { method: "GET" | "POST"; body?: unkn
 // Serviceability
 // ---------------------------------------------------------------------------
 
-export interface ServiceabilityResult {
-  serviceable: boolean;
-  etdDays: number | null;
-  courierCount: number;
-}
+export type { ServiceabilityResult } from "./shiprocket-serviceability";
 
 export async function fetchServiceability(args: {
   pickupPincode: string;
@@ -126,16 +123,9 @@ export async function fetchServiceability(args: {
     cod: "0",
   });
   try {
-    const json = await call<{
-      data?: { available_courier_companies?: { estimated_delivery_days?: string | number }[] };
-    }>(`/courier/serviceability/?${qs}`, { method: "GET" });
-    const couriers = json.data?.available_courier_companies ?? [];
-    const days = couriers
-      .map((c) => Number(c.estimated_delivery_days))
-      .filter((n) => Number.isFinite(n) && n > 0);
-    return { serviceable: couriers.length > 0, etdDays: days.length ? Math.min(...days) : null, courierCount: couriers.length };
+    return interpretServiceability(await call<unknown>(`/courier/serviceability/?${qs}`, { method: "GET" }));
   } catch (error) {
-    // Shiprocket answers "no courier serviceable for this route" with a 404, which is a real answer, not an outage.
+    // Some routes answer with a 404 instead of an empty 200; both mean "no courier serves this route".
     if (error instanceof ShiprocketError && error.status === 404) return { serviceable: false, etdDays: null, courierCount: 0 };
     throw error;
   }

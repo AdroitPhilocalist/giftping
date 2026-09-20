@@ -82,3 +82,15 @@ deliveries and their exact payload shapes, and the real refund/capture API respo
 - Customer/admin-initiated refunds and cancellations (partial refunds, returns) — Stage 11 admin suite.
 - Order confirmation **emails** and push: Stage 10.
 - No PCI scope: card data never touches our servers (Razorpay Checkout iframe).
+
+
+## Real-account verification (2026-09-20) — Razorpay TEST keys wired
+
+- Keys verified against the real API: order create/fetch, and the real error shapes (`error.code` / `error.description`, 401 "Authentication failed")
+  match what `RazorpayError` parses. Real Checkout loads (overlay with the "Test Mode" ribbon); the server-stored total and Razorpay's own record
+  agree to the paisa (₹2,499 ↔ 249900) with the order number as receipt.
+- Production webhook on `https://giftping-lime.vercel.app/api/webhooks/razorpay` verified: a correctly signed probe is accepted (`unknown_order`),
+  unsigned is rejected. **Vercel had the webhook secret but NOT `NEXT_PUBLIC_RAZORPAY_KEY_ID` / `RAZORPAY_SECRET_KEY`** — the deployed order page
+  showed "Online payments aren't switched on yet" until those are added and the project redeployed.
+- Still to observe once, by a human: completing a test payment in the modal (card/UPI test values are typed by the developer, not the agent) and
+  the real `payment.captured` webhook confirming the order. Checklist: developer pays order GP-100028 (or any new order) → order flips to Confirmed.

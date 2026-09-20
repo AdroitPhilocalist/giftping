@@ -75,6 +75,13 @@ export function CheckoutForm({
   const deliveryChecking = Boolean(selectedId) && deliveryResult?.addressId !== selectedId;
 
   const undeliverable = delivery.filter((d) => d.status === "unserviceable");
+  // Only vendors we actually have something to say about (an unknown ETA renders nothing, not an empty bullet).
+  const deliveryLines = delivery.flatMap((d) => {
+    if (d.status === "unserviceable") return [{ key: d.vendorId, bad: true, text: `${d.vendorName} can't deliver to this pincode yet.` }];
+    if (d.status === "ok" && d.etdDays)
+      return [{ key: d.vendorId, bad: false, text: `${d.vendorName}: delivers in about ${d.etdDays} ${d.etdDays === 1 ? "day" : "days"} after dispatch.` }];
+    return [];
+  });
 
   const total = quote.totalBeforeWrap + (giftWrap ? giftWrapCharge : 0);
   const canPlace = !blocked && Boolean(selectedId) && !isPending && undeliverable.length === 0;
@@ -121,16 +128,12 @@ export function CheckoutForm({
           <div className="mt-3">
             <AddressBook addresses={addresses} selectedId={selectedId} onSelect={setSelectedId} />
           </div>
-          {selectedId && (deliveryChecking || delivery.length > 0) ? (
+          {selectedId && (deliveryChecking || deliveryLines.length > 0) ? (
             <ul className="mt-3 space-y-1 text-sm" aria-live="polite">
-              {deliveryChecking && delivery.length === 0 ? <li className="text-brand-dark/50">Checking delivery…</li> : null}
-              {delivery.map((d) => (
-                <li key={d.vendorId} className={d.status === "unserviceable" ? "font-medium text-red-700" : "text-brand-dark/60"}>
-                  {d.status === "unserviceable"
-                    ? `${d.vendorName} can't deliver to this pincode yet.`
-                    : d.status === "ok" && d.etdDays
-                      ? `${d.vendorName}: delivers in about ${d.etdDays} ${d.etdDays === 1 ? "day" : "days"} after dispatch.`
-                      : null}
+              {deliveryChecking && deliveryLines.length === 0 ? <li className="text-brand-dark/50">Checking delivery…</li> : null}
+              {deliveryLines.map((line) => (
+                <li key={line.key} className={line.bad ? "font-medium text-red-700" : "text-brand-dark/60"}>
+                  {line.text}
                 </li>
               ))}
             </ul>
