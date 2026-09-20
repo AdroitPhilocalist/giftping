@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth/session";
 const NAV = [
   { label: "Dashboard", href: "/admin/dashboard" },
   { label: "Orders", href: "/admin/orders" },
+  { label: "Coupons", href: "/admin/coupons" },
   { label: "Vendors", href: "/admin/vendors" },
   { label: "Products", href: "/admin/products" },
 ];

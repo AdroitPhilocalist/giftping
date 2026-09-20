@@ -5,6 +5,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Toaster } from "@/components/ui/Toast";
 import { OneSignalIdentity } from "@/components/shop/OneSignalIdentity";
 import { getServerUser } from "@/lib/auth/session";
+import { headers } from "next/headers";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import "./globals.css";
 
@@ -27,6 +28,9 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await getServerUser();
   const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+  // OneSignal's SDK refuses to run anywhere but the site address configured in its dashboard, so on localhost it only throws console errors.
+  const host = ((await headers()).get("host") ?? "").split(":")[0];
+  const pushSdkAllowed = host !== "localhost" && host !== "127.0.0.1";
   return (
     <html
       lang="en"
@@ -38,7 +42,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1">{children}</main>
           <Footer />
           <Toaster />
-          {user && oneSignalAppId ? <OneSignalIdentity appId={oneSignalAppId} userId={user.id} /> : null}
+          {user && oneSignalAppId && pushSdkAllowed ? <OneSignalIdentity appId={oneSignalAppId} userId={user.id} /> : null}
         </TooltipProvider>
       </body>
     </html>

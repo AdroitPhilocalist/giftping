@@ -28,3 +28,17 @@ Date: 2026-09-20
 ## Still to do in Stage 11
 Coupons UI (create/edit/deactivate, usage), dashboard KPIs (orders, GMV, AOV, commission earned, stale unpaid, low stock), user management + DPDP deletion/anonymisation, homepage banners, vendor management extras
 (commission override, support phone capture, suspend/reinstate), vendor settlements report, returns (post-delivery refunds, partial refunds), vendor logo/banner + CSV product upload.
+
+## Slice 2 — coupons and dashboard (2026-09-20)
+
+- **`/admin/coupons`**: list with a live status (active / paused / scheduled / expired / exhausted), plain-words description ("10% off, up to ₹1,000 on orders over ₹500"), usage (`3 / 100 used`), scope
+  (boutique / category), create + edit dialog, pause/activate, delete. Dates are **IST calendar days** (a coupon runs 00:00 IST on its first day to 23:59:59 IST on its last). A used coupon's code is locked and it
+  can't be deleted (pause it) so order history keeps its meaning. Runs on the admin's own session (RLS `is_admin`); the Server Actions re-check the DB role.
+- **DB integrity (`20260920130000_coupon_hardening.sql`)**: format/range constraints (code `^[A-Z0-9_-]{3,30}$`, percentage ≤ 100, positive values, limits ≥ 1, end after start) and a trigger so **nobody — not a vendor editing
+  their own coupon, not an admin session — can set or reset `used_count`** (only `place_order()`/`release_order_coupon()` can). Found because vendors may manage their own coupons and could otherwise reset usage to bypass the cap.
+- **`/admin/dashboard`** (7/30/90 days): sales (GMV), average order value, platform commission, refunds, sales-by-day bars (IST days), top 5 products and boutiques (net of discounts), low stock, new sign-ups, and a
+  **needs-attention** list (cancelled orders whose payment was never refunded, pending vendors/products, unpaid orders older than 48h). Aggregation is a pure tested function (`lib/admin/stats.ts`, 6 tests).
+- Verified: 21 DB checks as admin/vendor/customer (constraints, counter protection, vendor sees only own coupons, customers can't list or create, checkout's `resolve_coupon` reads what the admin created and refuses it once
+  paused); browser create/validation/pause/activate/delete; dashboard numbers matched an independent hand calculation on seeded orders (GMV ₹9,700, AOV ₹3,233.33, commission ₹400, 5 units, both rankings, low stock, stuck-refund alert).
+- The OneSignal SDK is no longer loaded on `localhost` (it refuses to run outside the dashboard-configured site and only produced console errors).
+- Not done: dashboard is limited to the latest 2,000 paid orders per period (shown when hit) — move to SQL views/materialised rollups if volume grows.

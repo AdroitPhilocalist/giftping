@@ -1,0 +1,62 @@
+import { createClient } from "@/lib/db/server";
+import { summariseOrders, type StatsOrder } from "@/lib/admin/stats";
+import { addDays, localDateIn } from "@/lib/diary/recurrence";
+
+const PAID = ["confirmed", "processing", "partially_shipped", "shipped", "partially_delivered", "delivered"];
+const one = <T,>(v: T | T[] | null | undefined): T | null => (Array.isArray(v) ? (v[0] ?? null) : (v ?? null));
+
+/** All read with the admin's own session (RLS is_admin). Diary tables have no admin policy, so nothing here can touch them. */
+export async function getAdminDashboard(days: 7 | 30 | 90) {
+  const supabase = await createClient();
+  const today = localDateIn("Asia/Kolkata");
+  const since = `${addDays(today, -(days - 1))}T00:00:00+05:30`;
+  const staleBefore = new Date(Date.now() - 48 * 3600e3).toISOString();
+
+  const [orders, refunds, pendingVendors, pendingProducts, lowStock, stuckRefunds, staleUnpaid, newCustomers] = await Promise.all([
+    supabase
+      .from("orders")
+      .select("id, total_amount, placed_at, items:order_items ( product_id, product_name, vendor_id, quantity, total_price, discount_amount, vendor:vendors ( business_name ), financials:order_item_financials ( commission_amount ) )")
+      .in("status", PAID)
+      .gte("placed_at", since)
+      .order("placed_at", { ascending: false })
+      .limit(2000),
+    supabase.from("payments").select("amount").eq("status", "refunded").gte("refunded_at", since),
+    supabase.from("vendors").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("products").select("id, name, stock_quantity, vendor:vendors ( business_name )").eq("status", "active").lte("stock_quantity", 5).order("stock_quantity").limit(8),
+    // a cancelled order whose payment is still captured = a refund that failed and needs a human
+    supabase.from("orders").select("id, order_number, payments!inner ( status )").eq("status", "cancelled").eq("payments.status", "captured"),
+    supabase.from("orders").select("id", { count: "exact", head: true }).in("status", ["created", "payment_initiated"]).lt("created_at", staleBefore),
+    supabase.from("users").select("id", { count: "exact", head: true }).eq("role", "customer").gte("created_at", since),
+  ]);
+  for (const r of [orders, refunds]) if (r.error) throw r.error;
+
+  const rows: StatsOrder[] = (orders.data ?? []).map((o) => ({
+    id: o.id,
+    total_amount: o.total_amount,
+    placed_at: o.placed_at as string,
+    items: o.items.map((i) => ({
+      product_id: i.product_id,
+      product_name: i.product_name,
+      vendor_id: i.vendor_id,
+      vendor_name: one(i.vendor)?.business_name ?? "Vendor",
+      quantity: i.quantity,
+      total_price: i.total_price,
+      discount_amount: i.discount_amount,
+      commission_amount: one(i.financials)?.commission_amount ?? 0,
+    })),
+  }));
+
+  return {
+    stats: summariseOrders(rows, { days, today }),
+    refundedCount: refunds.data?.length ?? 0,
+    refundedAmount: (refunds.data ?? []).reduce((s, p) => s + Number(p.amount), 0),
+    pendingVendors: pendingVendors.count ?? 0,
+    pendingProducts: pendingProducts.count ?? 0,
+    lowStock: (lowStock.data ?? []).map((p) => ({ id: p.id, name: p.name, stock: p.stock_quantity, vendor: one(p.vendor)?.business_name ?? "" })),
+    stuckRefunds: (stuckRefunds.data ?? []).map((o) => ({ id: o.id, number: o.order_number })),
+    staleUnpaid: staleUnpaid.count ?? 0,
+    newCustomers: newCustomers.count ?? 0,
+    truncated: (orders.data?.length ?? 0) >= 2000,
+  };
+}
