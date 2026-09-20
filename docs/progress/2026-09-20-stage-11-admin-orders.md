@@ -93,3 +93,11 @@ Migrations `20260920160000_returns_and_refunds.sql`, `…160100_erasure_covers_r
 - **Verified**: 74 + 12 + 5 DB checks as anon / customer / vendor / admin / stranger (caps, reservation race, retry, restock, exact reversal, debits, void rules, RLS, erasure) plus browser flows with a local mock gateway (customer request → admin approve → refund with gateway down → lost-reply retry → exactly one gateway refund → applied; debit visible to the vendor; statement + CSV reconcile; dashboard numbers hand-checked). 160 unit tests, lint, tsc, build clean. Test data removed.
 - **Not verified against the real Razorpay**: partial refunds and the `GET /payments/:id/refunds` tag lookup (mock only; full refunds were verified for real earlier). First real test: pay a small order, mark it delivered, refund part of a line and confirm one Razorpay refund with `gp_refund_id` in its notes.
 - **Not built:** reverse pickup with Shiprocket (approval tells the customer we'll arrange it; the admin coordinates by hand), photo evidence on requests, refund to store credit, customer-visible refund timeline beyond the line, GST credit notes for refunds (needs the accountant, with TCS/TDS).
+
+## OneSignal real-browser test (2026-09-20)
+
+- Google sign-in on the live site initially bounced to `localhost:3000/?code=…`: Supabase's **Site URL / Redirect URLs** still pointed at localhost. Fixed in the Supabase dashboard (Site URL = the Vercel URL; redirect allow-list has the Vercel URL and `http://localhost:3000/**`). A landing on `/?code=` instead of `/auth/callback?code=` is the tell-tale sign of a redirect that isn't on the allow-list.
+- Safari: "Turn on push" → browser permission → OneSignal shows a `SafariPush` subscription, enabled, with `external_id` = the GiftPing user id. A direct REST push and a real production run of `/api/cron/diary-reminders` (temporary diary event, then removed) both arrived; the run reported `pushSent: 1` and the immediate re-run `duplicatesSkipped: 1`.
+- Email in that run was skipped (Resend test mode only delivers to the account owner until a domain is verified) — expected.
+- Not covered: Chrome/Edge/Firefox (different push services), Brave (needs "Use Google services for push messaging"), mobile browsers.
+
