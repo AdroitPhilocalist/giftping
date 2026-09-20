@@ -138,7 +138,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /components/vendor → VendorApplicationForm, ProductForm (RHF + Zod, variants via useFieldArray with
                   keyName "fieldKey"), ImageManager, ProductRowActions, PortalNav
 /components/admin → DecisionButtons (Approve / Reject-with-reason modal)
-/components/diary → created in Stage 9
+/components/diary → DiaryForms (Contact/Event/Gift dialogs, DeleteButton, ReminderToggle), GiftingScoreCard, MiniCalendar, SuggestionList
 /lib/account    → address-actions.ts (save / default / delete — session client, RLS + triggers enforce)
 /lib/db         → Supabase clients + generated types + per-table query helpers: addresses.ts, orders.ts, categories.ts, vendors.ts
                   (incl. getVendorsForCategory — scopes a category page's vendor filter to vendors that
@@ -181,13 +181,15 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /lib/search     → index.ts — searchProducts(), wraps the search_products() Postgres RPC (Stage 1) and
                   re-joins ranked ids against the vendor/category-joined product-card shape (the RPC
                   itself returns raw unjoined rows). Swappable for Algolia later without touching callers.
-/lib/diary      → gifting-score.ts, suggestion-matcher.ts, recurrence.ts — not built yet (Stage 9)
+/lib/diary      → recurrence.ts (pure date maths, Feb 29 → Feb 28, exact-day reminders), gifting-score.ts, suggestion-matcher.ts,
+                  view.ts (dashboard view-model), reminder-email.ts (HTML-escaped builder) — all pure + tested; candidates.ts (catalogue slice for ideas),
+                  reminders.ts (the cron engine, exactly-once via diary_reminder_log), actions.ts (Server Actions), format.ts
 /lib/validation → Zod schemas, one file per domain, shared by client forms and API routes
 /lib/content    → imagery.ts — central image-asset map (see "Image handoff" below) — not built yet
 /lib/utils      → cn.ts (clsx + tailwind-merge), format.ts (formatCurrency — en-IN Intl formatter)
-/emails         → React Email templates — not built yet (Stage 9)
-/app/api/cron   → diary-reminders/route.ts, invoked by Vercel's Cron scheduler (vercel.json) — not a
-                  separate /jobs directory or a Railway worker, per the cost constraint above — not built yet
+/emails         → not used: the diary reminder email is built by lib/diary/reminder-email.ts (plain HTML, no dependency); revisit React Email in Stage 10 if wanted
+/app/api/cron   → diary-reminders/route.ts (built), invoked daily by Vercel Cron (vercel.json, Bearer CRON_SECRET); also runs the stale-unpaid-order
+                  and stale-guest-cart cleanups. Not a Railway worker, per the cost constraint above
 /scripts        → seed.ts (idempotent — categories, 2 vendors, 6 products w/ variants/images/reviews)
 /supabase/migrations → schema migrations, applied in order
 /public/seed-images → dev-only seed photography cropped from the client's own approved ui-references
@@ -387,6 +389,19 @@ files with the editor tool.
 - Vitest has no `@` path alias configured: pure modules that tests import must use relative imports.
 - **Unverified with real Shiprocket** (mock only): payload/response field names, pickup-location onboarding, real status strings. See "First real test" in
   `docs/progress/2026-09-19-stage-8-delivery.md`.
+
+### Stage 9 (diary) — privacy that survives copying, and how the cron stays exactly-once
+
+- **Diary privacy travels with the data.** Anything that copies diary content into another table inherits its privacy: reminders put a contact's name in
+  `notifications`, whose admin-read policy would have leaked it. Diary reminders are now owner-only there (`type <> 'diary_reminder'` on the admin branch).
+  When you add a new place diary content can land (emails aside), check who can read it.
+- **`user_id = auth.uid()` does not validate foreign keys.** A user could point their event at another user's `contact_id`. Guard triggers (SECURITY INVOKER, so the
+  lookup runs under the caller's RLS and a foreign row is invisible) require referenced rows to belong to the same user. Apply this to every owner-only table that references another.
+- **A `"use server"` file may only export async functions** (not constants or types-as-values) — it crashes at request time, not at build. Put shared constants in a plain module.
+- Reminders are **exactly-once by claim**: insert into `diary_reminder_log` (unique on event + occurrence + lead time + channel) BEFORE sending; conflict ⇒ already sent. Failed email ⇒ release the claim.
+  A reminder is due on exactly one calendar day (`daysUntil === leadTime`), never "within N days", so a daily run and its re-runs are safe. "Today" is the owner's timezone (`users.timezone`).
+- Vitest now has `vitest.config.ts` (`@` alias) — pure modules can use `@/` imports in tests.
+- Not verified with real Resend (no key at the time of writing); web push is Stage 10.
 
 ## Auth
 

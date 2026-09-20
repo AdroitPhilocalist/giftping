@@ -37,6 +37,8 @@ export const checkoutRateLimit = createLimiter(15, "1 m");
 export const deliveryRateLimit = createLimiter(30, "1 m");
 // Vendor dispatch actions (each books a real courier shipment).
 export const dispatchRateLimit = createLimiter(20, "1 m");
+// Diary writes (people, dates, gifts).
+export const diaryRateLimit = createLimiter(60, "1 m");
 
 export interface RateLimitResult {
   success: boolean;

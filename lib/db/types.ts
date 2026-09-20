@@ -490,6 +490,7 @@ export type Database = {
       }
       diary_contacts: {
         Row: {
+          budget_max: number | null
           created_at: string
           gift_preferences: string | null
           id: string
@@ -503,6 +504,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          budget_max?: number | null
           created_at?: string
           gift_preferences?: string | null
           id?: string
@@ -516,6 +518,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          budget_max?: number | null
           created_at?: string
           gift_preferences?: string | null
           id?: string
@@ -545,9 +548,13 @@ export type Database = {
           event_date: string
           event_type: string
           id: string
+          is_active: boolean
           is_recurring: boolean
           last_reminded_at: string | null
+          notes: string | null
+          reminder_days: number[]
           reminder_days_before: number
+          title: string | null
           updated_at: string
           user_id: string
         }
@@ -557,9 +564,13 @@ export type Database = {
           event_date: string
           event_type: string
           id?: string
+          is_active?: boolean
           is_recurring?: boolean
           last_reminded_at?: string | null
+          notes?: string | null
+          reminder_days?: number[]
           reminder_days_before?: number
+          title?: string | null
           updated_at?: string
           user_id: string
         }
@@ -569,9 +580,13 @@ export type Database = {
           event_date?: string
           event_type?: string
           id?: string
+          is_active?: boolean
           is_recurring?: boolean
           last_reminded_at?: string | null
+          notes?: string | null
+          reminder_days?: number[]
           reminder_days_before?: number
+          title?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -592,35 +607,89 @@ export type Database = {
           },
         ]
       }
+      diary_reminder_log: {
+        Row: {
+          channel: string
+          days_before: number
+          event_id: string
+          id: string
+          occurrence_date: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          days_before: number
+          event_id: string
+          id?: string
+          occurrence_date: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          days_before?: number
+          event_id?: string
+          id?: string
+          occurrence_date?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_reminder_log_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "diary_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_reminder_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gift_history: {
         Row: {
+          amount: number | null
           contact_id: string | null
           event_type: string | null
+          gift_name: string | null
           gifted_at: string
           id: string
           notes: string | null
           order_id: string | null
           order_item_id: string | null
+          product_id: string | null
           user_id: string
         }
         Insert: {
+          amount?: number | null
           contact_id?: string | null
           event_type?: string | null
+          gift_name?: string | null
           gifted_at?: string
           id?: string
           notes?: string | null
           order_id?: string | null
           order_item_id?: string | null
+          product_id?: string | null
           user_id: string
         }
         Update: {
+          amount?: number | null
           contact_id?: string | null
           event_type?: string | null
+          gift_name?: string | null
           gifted_at?: string
           id?: string
           notes?: string | null
           order_id?: string | null
           order_item_id?: string | null
+          product_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -643,6 +712,13 @@ export type Database = {
             columns: ["order_item_id"]
             isOneToOne: false
             referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gift_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
           {
@@ -2029,6 +2105,10 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_stale_unpaid_orders: {
+        Args: { p_hours?: number }
+        Returns: number
+      }
       confirm_order_payment: {
         Args: {
           p_amount_paise: number
@@ -2056,6 +2136,7 @@ export type Database = {
         Args: { p_customer_id: string; p_items: Json; p_order: Json }
         Returns: Json
       }
+      purge_stale_guest_carts: { Args: { p_days?: number }; Returns: number }
       release_order_coupon: { Args: { p_order_id: string }; Returns: undefined }
       resolve_coupon: {
         Args: { p_code: string; p_user_id: string }

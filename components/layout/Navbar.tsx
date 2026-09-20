@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { Heart, Menu, Search, ShoppingBag } from "lucide-react";
+import { Bell, Heart, Menu, Search, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getCartCount } from "@/lib/commerce/cart";
+import { getUnreadNotificationCount } from "@/lib/db/notifications";
 
 const navLinks = [
   { label: "Explore Mall", href: "/" },
@@ -17,9 +18,10 @@ const navLinks = [
 
 export async function Navbar() {
   const user = await getServerUser();
-  const [wishlistCount, cartCount] = await Promise.all([
+  const [wishlistCount, cartCount, unreadCount] = await Promise.all([
     user ? getWishlistProductIds(user.id).then((ids) => ids.size) : 0,
     getCartCount(),
+    user ? getUnreadNotificationCount(user.id) : 0,
   ]);
 
   return (
@@ -70,6 +72,20 @@ export async function Navbar() {
               </span>
             ) : null}
           </Link>
+          {user ? (
+            <Link
+              href="/notifications"
+              aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+              className="relative rounded-full p-2 text-brand-dark/70 hover:bg-brand-dark/5"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 ? (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              ) : null}
+            </Link>
+          ) : null}
           <Link
             href="/cart"
             aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"}

@@ -29,6 +29,11 @@ export default async function AccountPage() {
           Saved addresses <span aria-hidden>→</span>
         </Link>
       </Card>
+      <Card className="mt-4">
+        <Link href="/account/notifications" className="flex items-center justify-between text-sm font-medium text-brand-dark hover:text-brand-primary">
+          Notification settings <span aria-hidden>→</span>
+        </Link>
+      </Card>
       <p className="mt-4 text-sm text-brand-dark/50">Order history arrives with payments in the next stages.</p>
     </div>
   );
