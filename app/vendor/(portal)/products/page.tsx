@@ -22,9 +22,14 @@ export default async function VendorProductsPage() {
     <div>
       <div className="flex items-center justify-between gap-4">
         <h1 className="font-heading text-3xl text-brand-dark">Products</h1>
-        <Button asChild>
-          <Link href="/vendor/products/new">Add product</Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="secondary">
+            <Link href="/vendor/products/import">Import from CSV</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/vendor/products/new">Add product</Link>
+          </Button>
+        </div>
       </div>
 
       {products.length === 0 ? (
@@ -47,6 +52,9 @@ export default async function VendorProductsPage() {
                     {category?.name ?? "Uncategorised"} · {formatCurrency(product.sale_price ?? product.base_price)} ·{" "}
                     {product.stock_quantity} in stock
                   </p>
+                  {product.status === "inactive" && !product.thumbnail_url ? (
+                    <p className="mt-1 text-xs text-brand-dark/60">Draft — add a photo, then choose Resubmit to send it for review.</p>
+                  ) : null}
                   {product.status === "rejected" && product.rejection_reason ? (
                     <p className="mt-1 text-xs text-red-700">Reviewer note: {product.rejection_reason}</p>
                   ) : null}

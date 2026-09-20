@@ -1294,6 +1294,38 @@ export type Database = {
           },
         ]
       }
+      product_imports: {
+        Row: {
+          created_at: string
+          file_hash: string
+          id: string
+          product_count: number
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_hash: string
+          id?: string
+          product_count: number
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          file_hash?: string
+          id?: string
+          product_count?: number
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_imports_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_qna: {
         Row: {
           answer: string | null
@@ -2465,6 +2497,10 @@ export type Database = {
       fail_refund: {
         Args: { p_error: string; p_refund_id: string }
         Returns: undefined
+      }
+      import_vendor_products: {
+        Args: { p_file_hash: string; p_products: Json; p_vendor_id: string }
+        Returns: Json
       }
       is_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }

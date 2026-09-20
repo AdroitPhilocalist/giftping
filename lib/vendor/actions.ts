@@ -194,6 +194,12 @@ export async function setProductActiveAction(productId: string, active: boolean)
   if (!vendor) return { error: "No vendor profile." };
 
   const supabase = await createClient();
+  // A listing without a photo shows a blank placeholder to shoppers (and lands in the reviewer's queue), so it can't be sent for review yet.
+  if (active) {
+    const { data: product } = await supabase.from("products").select("thumbnail_url").eq("id", productId).eq("vendor_id", vendor.id).maybeSingle();
+    if (!product) return { error: "Product not found." };
+    if (!product.thumbnail_url) return { error: "Add at least one photo before sending this product for review." };
+  }
   // Deactivating is instant. Reactivating goes back through admin review ('pending') — the DB trigger
   // doesn't let a vendor set 'active' themselves.
   const { error } = await supabase

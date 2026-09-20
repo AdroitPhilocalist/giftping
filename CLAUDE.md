@@ -163,7 +163,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   processWebhookEvent — see the Stage 7 notes), payment-actions.ts
 /lib/security   → encryption.ts (AES-256-GCM encryptSecret/decryptSecret, key VENDOR_BANK_ENCRYPTION_KEY —
                   losing it makes stored bank numbers unrecoverable; same value needed in Vercel)
-/lib/vendor     → dispatch.ts (accept order + resumable Shiprocket booking saga), fulfilment-actions.ts, actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
+/lib/vendor     → product-csv.ts (pure, tested CSV parser + row validator reusing productSchema), product-import.ts + import-actions.ts (server preview/commit; import_vendor_products() is atomic, service_role-only, refuses a re-uploaded file), dispatch.ts (accept order + resumable Shiprocket booking saga), fulfilment-actions.ts, actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
                   actions), product-helpers.ts (syncProductThumbnail, sendBackToReviewIfLive)
 /lib/admin      → refunds.ts + refund-actions.ts (return decisions; begin→gateway→complete refunds, retryable), actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
                   admin client — those tables have no client write policies)
@@ -433,6 +433,11 @@ files with the editor tool.
 - **A string that becomes an `href` is validated at every layer**: form schema + server action + a DB CHECK (`safeCtaUrl`: site path or https only). Images uploaded by admins follow the product-image model: the form returns only a server-generated storage path, the action rebuilds URLs from it; buckets have no client write policies, even for admins.
 
 - **User-supplied image URLs stored in a public table are constrained in the database, not just in the UI**: `vendors.logo_url`/`banner_url` are CHECK-pinned to that vendor's own folder in `vendor-branding`, so no write path (form, API, a direct RLS update) can point them elsewhere. Do the same for any future column that holds an uploaded-file URL.
+
+### Stage 11 (bulk import) — user-supplied files
+
+- **Parse and validate uploaded files with the same schema as the manual form, twice**: a preview for the user and again inside the commit — the browser's preview is never trusted. Preserve the file's own row numbers in errors (blank lines count), or messages point at the wrong row.
+- **Bulk writes are one SQL transaction with a ledger row keyed on a hash of the input**, so a retry/double-submit can't duplicate data and a failure leaves nothing behind (the ledger row rolls back too, so the corrected file can be re-sent). Source files must not contain raw control characters — build such regexes from string escapes (`new RegExp("[\\u0000-…]")`).
 
 ## Auth
 
