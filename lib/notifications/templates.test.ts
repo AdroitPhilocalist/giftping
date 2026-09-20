@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeUrl } from "./email-layout";
-import { buildOrderConfirmedEmail, buildShipmentEmail, buildVendorNewOrderEmail } from "./templates";
+import { buildOrderCancelledEmail, buildOrderConfirmedEmail, buildShipmentEmail, buildVendorNewOrderEmail } from "./templates";
 
 const prefs = "https://giftping-lime.vercel.app/account/notifications";
 const order = { firstName: "Asha", orderNumber: "GP-100028", items: [{ name: "Premium Gift Hamper", quantity: 1, totalLabel: "₹2,499", detail: "Wrapping: Gold" }], totalLabel: "₹2,499", deliverTo: { name: "Asha Nair", line: "12 Marine Drive, Kochi, Kerala — 682031" }, orderUrl: "https://giftping-lime.vercel.app/orders/abc", preferencesUrl: prefs };
@@ -42,5 +42,16 @@ describe("email templates", () => {
     expect(e.html).toContain("Vintage Luxe Perfume × 2");
     expect(e.html).toContain("₹7,738.20");
     expect(e.text).toContain("Accept and ship: https://x.test/vendor/orders");
+  });
+  it("cancellation email: refund wording vs never-charged, reason escaped", () => {
+    const base = { firstName: "Asha", orderNumber: "GP-9", reason: "Item <b>unavailable</b>", supportNote: "Questions? Reply to this email.", orderUrl: "https://x.test/o", preferencesUrl: prefs };
+    const refunded = buildOrderCancelledEmail({ ...base, refundLabel: "₹2,499" });
+    expect(refunded.subject).toBe("Order GP-9 cancelled — refund on the way");
+    expect(refunded.html).toContain("₹2,499");
+    expect(refunded.html).toContain("5–7 working days");
+    expect(refunded.html).not.toContain("<b>unavailable</b>");
+    const unpaid = buildOrderCancelledEmail({ ...base, refundLabel: null, reason: null });
+    expect(unpaid.subject).toBe("Order GP-9 cancelled");
+    expect(unpaid.html).toContain("You weren't charged");
   });
 });

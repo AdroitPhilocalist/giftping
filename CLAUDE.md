@@ -405,6 +405,13 @@ files with the editor tool.
 - Vitest now has `vitest.config.ts` (`@` alias) — pure modules can use `@/` imports in tests.
 - Not verified with real Resend (no key at the time of writing); web push is Stage 10.
 
+### Stage 11 (admin) — money-moving admin actions
+
+- **Undo the physical side before the financial side.** Admin cancel = `cancel_order_and_restock()` (atomic) THEN the gateway refund; a refund failure leaves a cancelled order + captured payment
+  that the admin can retry, never a refunded order that can still ship. Any future money-moving action (partial refunds, returns, settlements) should keep this ordering and stay idempotent.
+- Admin pages read with the admin's OWN session so RLS `is_admin()` is the enforcement, and every admin Server Action re-checks `role === "admin"` from the DB — never a client claim.
+- Diary tables have no admin policy, so admin queries can't reach diary content even by accident.
+
 ## Auth
 
 `lib/auth/session.ts` (`getServerUser`/`requireRole`) and `proxy.ts` are two independent layers —

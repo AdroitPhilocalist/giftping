@@ -112,3 +112,32 @@ ${i.earningsLabel ? `<p style="margin:0;color:#555">Your earnings: <strong>${esc
   const text = [`Hi ${i.vendorName},`, "", `Order ${i.orderNumber} has been paid and is waiting for you.`, ...i.items.map((it) => `- ${it.name} × ${it.quantity}`), ...(i.earningsLabel ? [`Your earnings: ${i.earningsLabel}`] : []), "", `Accept and ship: ${i.dashboardUrl}`].join("\n");
   return { subject: `New order ${i.orderNumber} — ready for you to accept`, html, text };
 }
+
+// ---------------------------------------------------------------------------
+// Order cancelled (customer)
+// ---------------------------------------------------------------------------
+export interface OrderCancelledInput {
+  firstName: string;
+  orderNumber: string;
+  /** null when nothing had been charged */
+  refundLabel: string | null;
+  reason: string | null;
+  supportNote: string;
+  orderUrl: string;
+  preferencesUrl: string;
+}
+
+export function buildOrderCancelledEmail(i: OrderCancelledInput): BuiltEmail {
+  const html = renderEmailFrame({
+    preheader: `Order ${i.orderNumber} was cancelled`,
+    heading: "Your order was cancelled",
+    bodyHtml: `<p style="margin:0 0 8px;color:#555">Hi ${escapeHtml(i.firstName)},</p>
+<p style="margin:0 0 12px;color:#555">Order <strong>${escapeHtml(i.orderNumber)}</strong> has been cancelled${i.reason ? `: ${escapeHtml(i.reason)}` : "."}</p>
+${i.refundLabel ? `<p style="margin:0 0 12px;color:#555"><strong>${escapeHtml(i.refundLabel)}</strong> is being refunded to your original payment method. It usually appears within 5–7 working days.</p>` : `<p style="margin:0 0 12px;color:#555">You weren't charged for this order.</p>`}
+<p style="margin:0;color:#777;font-size:13px">${escapeHtml(i.supportNote)}</p>`,
+    cta: { label: "View the order", url: i.orderUrl },
+    footerHtml: footer(i.preferencesUrl),
+  });
+  const text = [`Hi ${i.firstName},`, "", `Order ${i.orderNumber} has been cancelled${i.reason ? `: ${i.reason}` : "."}`, i.refundLabel ? `${i.refundLabel} is being refunded to your original payment method (usually 5–7 working days).` : "You weren't charged for this order.", "", i.supportNote, `Order: ${i.orderUrl}`].join("\n");
+  return { subject: `Order ${i.orderNumber} cancelled${i.refundLabel ? " — refund on the way" : ""}`, html, text };
+}

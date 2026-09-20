@@ -2105,6 +2105,10 @@ export type Database = {
         }
         Returns: Json
       }
+      cancel_order_and_restock: {
+        Args: { p_order_id: string; p_reason: string }
+        Returns: Json
+      }
       cancel_stale_unpaid_orders: {
         Args: { p_hours?: number }
         Returns: number

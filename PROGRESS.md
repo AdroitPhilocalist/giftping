@@ -11,6 +11,10 @@ static project conventions that don't change session to session._
 **Stage 9 — Personal Gifting Diary + daily cron** ✅ built and verified locally. **Stage 10 — email half done** (order/shipment/vendor emails + a preference-aware `notifyUser()`; real Resend connected in test mode); push + auth SMTP wait on OneSignal keys / a domain. **Stage 7 (payments) is now fully verified with a real Razorpay test payment**
 (real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 10 — Notifications (email/push) & Stage 11 — Admin suite**.
 
+## Stage 11 in progress
+
+Slice 1 done: **admin orders + cancel/refund** (`docs/progress/2026-09-20-stage-11-admin-orders.md`). Remaining: coupons UI, dashboard KPIs, user mgmt + DPDP deletion, banners, vendor management extras, settlements report, returns, vendor logo/banner + CSV upload. **One real test payment is needed to observe a refund succeeding at Razorpay** (place an order, pay with a domestic test card/UPI, then Cancel & refund in /admin/orders).
+
 ## Last Session Summary
 
 Full detail: `docs/progress/2026-09-20-stage-9-diary.md`, and the "Real-account verification" sections of the Stage 7/8 logs.
