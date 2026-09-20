@@ -42,3 +42,17 @@ Coupons UI (create/edit/deactivate, usage), dashboard KPIs (orders, GMV, AOV, co
   paused); browser create/validation/pause/activate/delete; dashboard numbers matched an independent hand calculation on seeded orders (GMV ₹9,700, AOV ₹3,233.33, commission ₹400, 5 units, both rankings, low stock, stuck-refund alert).
 - The OneSignal SDK is no longer loaded on `localhost` (it refuses to run outside the dashboard-configured site and only produced console errors).
 - Not done: dashboard is limited to the latest 2,000 paid orders per period (shown when hit) — move to SQL views/materialised rollups if volume grows.
+
+## Slice 3 — user management and DPDP account erasure (2026-09-20)
+
+- **`anonymize_user()`** (SQL, service_role-only, idempotent; migration `20260920140000`): orders/payments can't be deleted (tax & accounting), so a person is **anonymised**. **Removed:** diary (people, dates, gifts, reminder history), addresses,
+  wishlist, cart, reviews (rating rollup recomputes), Q&A questions, notifications and preferences, loyalty ledger. **Scrubbed:** users row (name, email → a non-deliverable `.invalid` address, phone, avatar, birth date, gender, referral/OneSignal ids),
+  and every order's delivery address (kept only as city/state/pincode), gift message and notes. **Kept:** orders, items, payments, coupon redemptions. **Refused, changing nothing:** admin accounts, owners of a vendor profile, and
+  customers with an order still in progress (a vendor needs the real address to deliver it).
+- **Service** (`lib/admin/users.ts`): emails the person first (address is about to be scrubbed), anonymises, then **soft-deletes the Supabase Auth login** (blocks sign-in, keeps the row so foreign keys hold). Audit trail records who/what with **no personal data**.
+- **Self-service**: "Delete my account" on `/account` (type `DELETE`; the account erased is always the signed-in one — no id from the client; admins excluded), then signed out and redirected with a confirmation notice.
+- **Admin** `/admin/users` (search by name/email, role filter, paginated): **Suspend/Reinstate** (blocks sign-in at Auth level AND `users.is_active`, so the app treats them as signed out on the very next request) and **Erase data** (type `ERASE`, for a
+  data-erasure request). Admins can't act on other admins or themselves. `getServerUser()` now returns null for suspended/erased accounts.
+- **Verified**: 27 DB/Auth checks on a throwaway user with data in every table (refusals change nothing; erased data gone; delivered order kept with amounts intact and address scrubbed; login refused after soft-delete; anon and customers can't call it);
+  browser: admin suspend → Supabase says "User is banned", reinstate, erase with the typed confirmation gate; self-service delete with the gate (lowercase `delete` rejected) → signed out → data erased → cannot sign in; audit rows have no personal data. Test accounts removed.
+- **Not built:** a grace period/undo window before erasure, a data-export ("download my data") for DPDP access requests, role editing in the UI (roles only change through the vendor-approval flow, on purpose), erasing a vendor owner (must close the vendor first).

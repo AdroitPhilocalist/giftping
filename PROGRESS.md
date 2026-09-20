@@ -13,7 +13,7 @@ static project conventions that don't change session to session._
 
 ## Stage 11 in progress
 
-Slice 1 done: **admin orders + cancel/refund** (`docs/progress/2026-09-20-stage-11-admin-orders.md`). Remaining: coupons UI, dashboard KPIs, user mgmt + DPDP deletion, banners, vendor management extras, settlements report, returns, vendor logo/banner + CSV upload. **One real test payment is needed to observe a refund succeeding at Razorpay** (place an order, pay with a domestic test card/UPI, then Cancel & refund in /admin/orders).
+Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**. (original slice 1 note:) (`docs/progress/2026-09-20-stage-11-admin-orders.md`). Remaining: homepage banners, vendor management extras (commission override, support phone capture, suspend/reinstate), vendor settlements report, returns/partial refunds, vendor logo/banner + CSV upload, data-export for DPDP access requests.
 
 ## Last Session Summary
 

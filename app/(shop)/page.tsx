@@ -10,8 +10,9 @@ import { getTrendingProducts } from "@/lib/db/products";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 
-export default async function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ account?: string }> }) {
   const user = await getServerUser();
+  const accountDeleted = (await searchParams).account === "deleted";
   const [categories, vendors, trending, wishlistIds] = await Promise.all([
     getActiveCategories(),
     getFeaturedVendors(),
@@ -20,6 +21,12 @@ export default async function Home() {
   ]);
 
   return (
+    <>
+      {accountDeleted ? (
+        <p role="status" className="bg-brand-accent px-4 py-3 text-center text-sm text-brand-dark">
+          Your account has been deleted and your personal data erased. We&apos;re sorry to see you go — you&apos;re always welcome back.
+        </p>
+      ) : null}
     <div>
       <section className="mx-auto max-w-7xl px-4 py-16 text-center sm:px-6 lg:px-8">
         <p className="text-sm font-medium uppercase tracking-widest text-brand-secondary-dark">
@@ -96,5 +103,6 @@ export default async function Home() {
         </div>
       </section>
     </div>
+    </>
   );
 }

@@ -28,11 +28,12 @@ export const getServerUser = cache(async function getServerUser(): Promise<Sessi
 
   const { data: profile } = await supabase
     .from("users")
-    .select("id, email, full_name, role")
+    .select("id, email, full_name, role, is_active, deleted_at")
     .eq("id", authUser.id)
     .single();
 
-  if (!profile) return null;
+  // A suspended or erased account is signed out on the very next request, not when its token eventually expires.
+  if (!profile || !profile.is_active || profile.deleted_at) return null;
 
   return {
     id: profile.id,

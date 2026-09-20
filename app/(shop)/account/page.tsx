@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DeleteAccountSection } from "@/components/shop/DeleteAccountSection";
 import { requireRole } from "@/lib/auth/session";
 import { Card } from "@/components/ui/Card";
 
@@ -34,6 +35,7 @@ export default async function AccountPage() {
           Notification settings <span aria-hidden>→</span>
         </Link>
       </Card>
+      {user.role === "admin" ? null : <DeleteAccountSection />}
       <p className="mt-4 text-sm text-brand-dark/50">Order history arrives with payments in the next stages.</p>
     </div>
   );

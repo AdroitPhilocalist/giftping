@@ -2095,6 +2095,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      anonymize_user: { Args: { p_user_id: string }; Returns: Json }
       apply_shipment_update: {
         Args: {
           p_awb: string

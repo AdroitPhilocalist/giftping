@@ -141,3 +141,26 @@ ${i.refundLabel ? `<p style="margin:0 0 12px;color:#555"><strong>${escapeHtml(i.
   const text = [`Hi ${i.firstName},`, "", `Order ${i.orderNumber} has been cancelled${i.reason ? `: ${i.reason}` : "."}`, i.refundLabel ? `${i.refundLabel} is being refunded to your original payment method (usually 5–7 working days).` : "You weren't charged for this order.", "", i.supportNote, `Order: ${i.orderUrl}`].join("\n");
   return { subject: `Order ${i.orderNumber} cancelled${i.refundLabel ? " — refund on the way" : ""}`, html, text };
 }
+
+// ---------------------------------------------------------------------------
+// Account deleted (customer) — sent to the address on file just before it is scrubbed
+// ---------------------------------------------------------------------------
+export interface AccountDeletedInput {
+  firstName: string;
+  byAdmin: boolean;
+  appUrl: string;
+}
+
+export function buildAccountDeletedEmail(i: AccountDeletedInput): BuiltEmail {
+  const html = renderEmailFrame({
+    preheader: "Your GiftPing account has been deleted",
+    heading: "Your account has been deleted",
+    bodyHtml: `<p style="margin:0 0 8px;color:#555">Hi ${escapeHtml(i.firstName)},</p>
+<p style="margin:0 0 12px;color:#555">${i.byAdmin ? "As you asked, we've" : "We've"} deleted your GiftPing account. Your diary, saved addresses, wishlist, reviews and notifications have been removed, and your personal details have been erased.</p>
+<p style="margin:0;color:#777;font-size:13px">We keep a minimal record of past orders (amounts and dates, without your name or address), because tax and accounting law requires it. If this wasn't you, reply to this email straight away.</p>`,
+    cta: { label: "Visit GiftPing", url: i.appUrl },
+    footerHtml: "This is the last email you'll receive from us.",
+  });
+  const text = [`Hi ${i.firstName},`, "", `${i.byAdmin ? "As you asked, we've" : "We've"} deleted your GiftPing account. Your diary, addresses, wishlist, reviews and notifications are removed and your personal details erased.`, "We keep a minimal record of past orders (without your name or address) as tax and accounting law requires.", "If this wasn't you, reply to this email straight away."].join("\n");
+  return { subject: "Your GiftPing account has been deleted", html, text };
+}
