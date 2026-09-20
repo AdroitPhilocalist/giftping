@@ -51,6 +51,17 @@ export default async function VendorRegisterPage() {
     );
   }
 
+  if (vendor?.status === "suspended") {
+    return (
+      <StatusCard icon={<XCircle className="h-8 w-8 text-brand-secondary-dark" />} title="Your boutique is paused">
+        <p className="text-brand-dark/60">
+          {vendor.business_name} is currently paused and your products are hidden from shoppers. Orders that were already paid are being
+          looked after by the GiftPing team. Please reply to the email we sent you, or contact support, to sort this out.
+        </p>
+      </StatusCard>
+    );
+  }
+
   if (vendor) {
     return (
       <StatusCard icon={<Clock className="h-8 w-8 text-brand-secondary-dark" />} title="Application under review">

@@ -1,4 +1,5 @@
 import { DecisionButtons } from "@/components/admin/DecisionButtons";
+import { VendorAdminControls } from "@/components/admin/VendorAdminControls";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { createClient } from "@/lib/db/server";
@@ -53,12 +54,24 @@ export default async function AdminVendorsPage() {
 
       <h2 className="mb-3 mt-10 font-heading text-lg text-brand-dark">Decided ({decided.length})</h2>
       <ul className="divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-white">
-        {decided.map((vendor) => (
-          <li key={vendor.id} className="flex items-center justify-between p-4 text-sm">
-            <span className="font-medium text-brand-dark">{vendor.business_name}</span>
-            <Badge variant={vendor.status === "approved" ? "primary" : "neutral"}>{vendor.status}</Badge>
-          </li>
-        ))}
+        {decided.map((vendor) => {
+          const d = Array.isArray(vendor.details) ? vendor.details[0] : vendor.details;
+          const wh = d?.warehouse_address as { city?: string; pincode?: string } | null;
+          return (
+            <li key={vendor.id} className="space-y-2 p-4 text-sm">
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-medium text-brand-dark">{vendor.business_name}</span>
+                <Badge variant={vendor.status === "approved" ? "primary" : vendor.status === "suspended" ? "gold" : "neutral"}>{vendor.status}</Badge>
+              </div>
+              <p className="text-xs text-brand-dark/50">
+                {vendor.support_email ?? "no email"} · {vendor.support_phone ?? "no phone"} · pickup {wh?.pincode ? `${wh.city ?? ""} ${wh.pincode}` : "not set"} · commission {d?.commission_rate == null ? "default" : `${Number(d.commission_rate)}% (override)`}
+              </p>
+              {vendor.status === "approved" || vendor.status === "suspended" ? (
+                <VendorAdminControls vendorId={vendor.id} name={vendor.business_name} status={vendor.status} commissionOverride={d?.commission_rate == null ? null : Number(d.commission_rate)} />
+              ) : null}
+            </li>
+          );
+        })}
         {decided.length === 0 ? <li className="p-4 text-sm text-brand-dark/50">None yet.</li> : null}
       </ul>
     </div>

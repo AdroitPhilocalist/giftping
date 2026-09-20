@@ -164,3 +164,38 @@ export function buildAccountDeletedEmail(i: AccountDeletedInput): BuiltEmail {
   const text = [`Hi ${i.firstName},`, "", `${i.byAdmin ? "As you asked, we've" : "We've"} deleted your GiftPing account. Your diary, addresses, wishlist, reviews and notifications are removed and your personal details erased.`, "We keep a minimal record of past orders (without your name or address) as tax and accounting law requires.", "If this wasn't you, reply to this email straight away."].join("\n");
   return { subject: "Your GiftPing account has been deleted", html, text };
 }
+
+// ---------------------------------------------------------------------------
+// Vendor: payout sent / account status changed
+// ---------------------------------------------------------------------------
+export interface PayoutPaidInput { vendorName: string; amountLabel: string; reference: string; itemCount: number; payoutsUrl: string; preferencesUrl: string }
+
+export function buildPayoutPaidEmail(i: PayoutPaidInput): BuiltEmail {
+  const html = renderEmailFrame({
+    preheader: `${i.amountLabel} has been paid to your bank account`,
+    heading: "Your payout has been sent",
+    bodyHtml: `<p style="margin:0 0 12px;color:#555">Hi ${escapeHtml(i.vendorName)}, we've paid <strong>${escapeHtml(i.amountLabel)}</strong> to your registered bank account for ${i.itemCount} delivered ${i.itemCount === 1 ? "item" : "items"}.</p>
+<p style="margin:0;color:#777;font-size:13px">Bank reference: <strong>${escapeHtml(i.reference)}</strong>. It can take a working day to show in your account. A line-by-line statement is in your dashboard.</p>`,
+    cta: { label: "See your payouts", url: i.payoutsUrl },
+    footerHtml: footer(i.preferencesUrl),
+  });
+  const text = [`Hi ${i.vendorName},`, "", `We've paid ${i.amountLabel} to your registered bank account for ${i.itemCount} delivered item(s).`, `Bank reference: ${i.reference}`, "", `Statement: ${i.payoutsUrl}`].join("\n");
+  return { subject: `Payout of ${i.amountLabel} sent`, html, text };
+}
+
+export interface VendorAccountInput { vendorName: string; kind: "suspended" | "reinstated"; reason: string | null; dashboardUrl: string; preferencesUrl: string }
+
+export function buildVendorAccountEmail(i: VendorAccountInput): BuiltEmail {
+  const suspended = i.kind === "suspended";
+  const html = renderEmailFrame({
+    preheader: suspended ? "Your GiftPing boutique has been paused" : "Your GiftPing boutique is live again",
+    heading: suspended ? "Your boutique has been paused" : "Your boutique is live again",
+    bodyHtml: suspended
+      ? `<p style="margin:0 0 12px;color:#555">Hi ${escapeHtml(i.vendorName)}, your boutique has been paused and your products are hidden from shoppers.${i.reason ? ` Reason: ${escapeHtml(i.reason)}.` : ""}</p><p style="margin:0;color:#777;font-size:13px">Orders that were already paid will be looked after by the GiftPing team. Reply to this email if you'd like to talk it through.</p>`
+      : `<p style="margin:0;color:#555">Hi ${escapeHtml(i.vendorName)}, good news — your boutique has been reinstated and your products are visible to shoppers again.</p>`,
+    cta: { label: "Open your dashboard", url: i.dashboardUrl },
+    footerHtml: footer(i.preferencesUrl),
+  });
+  const text = [`Hi ${i.vendorName},`, "", suspended ? `Your boutique has been paused and your products are hidden.${i.reason ? ` Reason: ${i.reason}.` : ""}` : "Your boutique has been reinstated and is visible to shoppers again.", `Dashboard: ${i.dashboardUrl}`].join("\n");
+  return { subject: suspended ? "Your GiftPing boutique has been paused" : "Your GiftPing boutique is live again", html, text };
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeUrl } from "./email-layout";
-import { buildOrderCancelledEmail, buildOrderConfirmedEmail, buildShipmentEmail, buildVendorNewOrderEmail } from "./templates";
+import { buildPayoutPaidEmail, buildVendorAccountEmail, buildOrderCancelledEmail, buildOrderConfirmedEmail, buildShipmentEmail, buildVendorNewOrderEmail } from "./templates";
 
 const prefs = "https://giftping-lime.vercel.app/account/notifications";
 const order = { firstName: "Asha", orderNumber: "GP-100028", items: [{ name: "Premium Gift Hamper", quantity: 1, totalLabel: "₹2,499", detail: "Wrapping: Gold" }], totalLabel: "₹2,499", deliverTo: { name: "Asha Nair", line: "12 Marine Drive, Kochi, Kerala — 682031" }, orderUrl: "https://giftping-lime.vercel.app/orders/abc", preferencesUrl: prefs };
@@ -53,5 +53,16 @@ describe("email templates", () => {
     const unpaid = buildOrderCancelledEmail({ ...base, refundLabel: null, reason: null });
     expect(unpaid.subject).toBe("Order GP-9 cancelled");
     expect(unpaid.html).toContain("You weren't charged");
+  });
+  it("payout and vendor-status emails: content, and hostile names/reasons are escaped", () => {
+    const paid = buildPayoutPaidEmail({ vendorName: "<i>Aurelia</i>", amountLabel: "₹1,100", reference: "UTR<1>", itemCount: 2, payoutsUrl: "https://x.test/vendor/payouts", preferencesUrl: prefs });
+    expect(paid.subject).toBe("Payout of ₹1,100 sent");
+    expect(paid.html).toContain("2 delivered items");
+    expect(paid.html).not.toContain("<i>Aurelia</i>");
+    expect(paid.html).toContain("UTR&lt;1&gt;");
+    const sus = buildVendorAccountEmail({ vendorName: "V", kind: "suspended", reason: "Repeated late dispatch <script>", dashboardUrl: "https://x.test", preferencesUrl: prefs });
+    expect(sus.subject).toBe("Your GiftPing boutique has been paused");
+    expect(sus.html).not.toContain("<script>");
+    expect(buildVendorAccountEmail({ vendorName: "V", kind: "reinstated", reason: null, dashboardUrl: "https://x.test", preferencesUrl: prefs }).subject).toBe("Your GiftPing boutique is live again");
   });
 });

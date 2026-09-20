@@ -56,3 +56,24 @@ Coupons UI (create/edit/deactivate, usage), dashboard KPIs (orders, GMV, AOV, co
 - **Verified**: 27 DB/Auth checks on a throwaway user with data in every table (refusals change nothing; erased data gone; delivered order kept with amounts intact and address scrubbed; login refused after soft-delete; anon and customers can't call it);
   browser: admin suspend → Supabase says "User is banned", reinstate, erase with the typed confirmation gate; self-service delete with the gate (lowercase `delete` rejected) → signed out → data erased → cannot sign in; audit rows have no personal data. Test accounts removed.
 - **Not built:** a grace period/undo window before erasure, a data-export ("download my data") for DPDP access requests, role editing in the UI (roles only change through the vendor-approval flow, on purpose), erasing a vendor owner (must close the vendor first).
+
+## Slice 4 — vendor controls and the payout ledger (2026-09-20)
+
+Migration `20260920150000_vendor_controls_and_payouts.sql`.
+
+- **Suspend / reinstate a boutique** (`/admin/vendors`, reason required to suspend, vendor notified by in-app + email, audit-logged). Until now a suspended vendor's products stayed public and only checkout refused them.
+  The products SELECT policy now also requires `vendor_is_approved(vendor_id)`, so a suspended boutique disappears from the storefront, search and categories (product + vendor pages 404) while its owner and admins still see it. A suspended
+  vendor who opens the portal lands on a "Your boutique is paused" page.
+- **Commission override** per vendor (0–100, blank = use category/platform default). Applies to **future orders only**: commission is snapshotted per line in `order_item_financials` at order time.
+- **Vendor settings** (`/vendor/settings`): storefront profile, support email/phone, pickup address. Changing the warehouse address clears the registered Shiprocket pickup location so the next booking re-registers it (names now carry a random suffix so
+  re-registration isn't refused as a duplicate). **A vendor can no longer set `shiprocket_pickup_location` themselves** (guard trigger) — they could otherwise have pointed it at another vendor's warehouse.
+- **Payout ledger.** Every delivered line is settled **exactly once** (`order_item_financials.settlement_id`, null = unsettled) and only after `platform_settings.payout_hold_days` (default 7) from delivery. Cancelled/refunded orders never appear.
+  All money functions are service_role-only, atomic, row-locked: `create_settlement` (locks the vendor row so two admins clicking at once can't double-settle), `mark_settlement_paid` (UTR ≥ 4 chars, idempotent), `void_settlement` (refuses once settled —
+  reverse with an adjustment, never a void), `payout_overview`, `settlement_items_all`. Nothing is paid automatically: admin creates a settlement, pays by bank transfer, records the UTR, and the vendor is notified.
+- **Admin UI** `/admin/settlements` (per-vendor payable / in-hold / settled, history) + `/admin/settlements/[id]` (lines, CSV, mark paid, void). **Bank details** are decrypted only through an explicit "Reveal" that is audit-logged
+  (`vendor.bank_details_revealed`). **CSV export** (`/api/settlements/[id]/csv`) is read with the caller's own session (RLS decides; 401 signed-out, 404 otherwise), neutralises spreadsheet formula injection, adds a TOTAL row and IST delivery dates.
+- **Vendor** `/vendor/payouts`: what's payable, what's still in the hold window (with the date each becomes payable), and settlement history with UTRs.
+- **Verified**: 33 DB checks as anon/customer/vendor/admin (guard triggers, exactly-once settlement, hold window, concurrent create, void/paid state rules, storefront hiding); browser: create settlement (₹5,669.10 across 2 due lines, ₹900 still in hold), bank reveal,
+  short UTR rejected, mark paid, CSV content and formula-safety, vendor payouts + settings pages, commission validation (150 rejected, 12.5 saved), suspend-needs-reason, storefront hides then restores the boutique. 144 unit tests, lint, tsc, build clean. Test data removed afterwards.
+- **Not built / decisions needed:** marketplace **TCS (GST) / TDS (194-O)** deductions on payouts and a GST invoice for the commission — needs the client's accountant; Razorpay Route automatic splits (manual settlement is the current model);
+  clawback of already-settled payouts when a post-delivery refund happens (comes with the returns slice); paid orders whose vendor is suspended before shipping don't yet surface in the dashboard "needs attention".

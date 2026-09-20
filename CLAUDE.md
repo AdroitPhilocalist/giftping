@@ -412,6 +412,15 @@ files with the editor tool.
 - Admin pages read with the admin's OWN session so RLS `is_admin()` is the enforcement, and every admin Server Action re-checks `role === "admin"` from the DB — never a client claim.
 - Diary tables have no admin policy, so admin queries can't reach diary content even by accident.
 
+### Stage 11 (admin suite) — lessons worth reusing
+
+- **A status flag must be enforced where the data is read, not only where it's written.** Suspended vendors' products stayed public because only checkout checked vendor status; the products SELECT policy now includes `vendor_is_approved(vendor_id)`.
+  Re-check public SELECT policies whenever a new "hidden" state is introduced.
+- **Payouts**: each delivered line is settled exactly once via `order_item_financials.settlement_id`, after `platform_settings.payout_hold_days`. Only `create_settlement` / `mark_settlement_paid` / `void_settlement` (service_role, row-locked) move money state;
+  a settled settlement is never voided. Bank numbers are decrypted only in `lib/admin/payouts.ts` `revealBankDetails` (audit-logged). CSV exports must go through `csvCell` (formula-injection safe).
+- **Vendor-editable columns that name external resources** (Shiprocket pickup location) are admin/service-only via the guard trigger — a free-text external identifier is a cross-tenant pointer.
+- A **counter a tenant can edit** (`coupons.used_count`) must be locked by trigger, not just hidden in the UI; `"use server"` files may only export async functions (constants crash at runtime).
+
 ## Auth
 
 `lib/auth/session.ts` (`getServerUser`/`requireRole`) and `proxy.ts` are two independent layers —

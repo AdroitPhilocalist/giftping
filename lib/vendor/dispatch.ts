@@ -125,7 +125,8 @@ export async function bookShipment(args: { vendorId: string; orderId: string; pk
       if (!wh?.line1 || !wh.city || !wh.state || !wh.pincode) throw new ShiprocketError(400, "Your warehouse address is incomplete.");
       if (phone.length !== 10) throw new ShiprocketError(400, "Add a 10-digit support phone number to your vendor profile.");
 
-      pickupName = `GP-${vendor.slug}`.slice(0, 36);
+      // Unique per registration: if the vendor later changes their warehouse the old name still exists at Shiprocket, and re-using it would be refused as a duplicate.
+      pickupName = `GP-${vendor.slug}`.slice(0, 28) + `-${Math.random().toString(36).slice(2, 6)}`;
       await addPickupLocation({
         name: pickupName,
         contactName: vendor.business_name,

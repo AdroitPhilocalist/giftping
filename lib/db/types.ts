@@ -892,6 +892,7 @@ export type Database = {
           created_at: string
           order_item_id: string
           platform_funded_discount: number
+          settlement_id: string | null
           vendor_funded_discount: number
           vendor_payout: number
         }
@@ -902,6 +903,7 @@ export type Database = {
           created_at?: string
           order_item_id: string
           platform_funded_discount?: number
+          settlement_id?: string | null
           vendor_funded_discount?: number
           vendor_payout: number
         }
@@ -912,6 +914,7 @@ export type Database = {
           created_at?: string
           order_item_id?: string
           platform_funded_discount?: number
+          settlement_id?: string | null
           vendor_funded_discount?: number
           vendor_payout?: number
         }
@@ -921,6 +924,13 @@ export type Database = {
             columns: ["order_item_id"]
             isOneToOne: true
             referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_item_financials_settlement_id_fkey"
+            columns: ["settlement_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_settlements"
             referencedColumns: ["id"]
           },
         ]
@@ -1883,8 +1893,13 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          created_by: string | null
           id: string
           invoice_url: string | null
+          item_count: number
+          notes: string | null
+          paid_by: string | null
+          payment_reference: string | null
           razorpay_transfer_id: string | null
           settled_at: string | null
           settlement_period_end: string | null
@@ -1895,8 +1910,13 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          created_by?: string | null
           id?: string
           invoice_url?: string | null
+          item_count?: number
+          notes?: string | null
+          paid_by?: string | null
+          payment_reference?: string | null
           razorpay_transfer_id?: string | null
           settled_at?: string | null
           settlement_period_end?: string | null
@@ -1907,8 +1927,13 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          created_by?: string | null
           id?: string
           invoice_url?: string | null
+          item_count?: number
+          notes?: string | null
+          paid_by?: string | null
+          payment_reference?: string | null
           razorpay_transfer_id?: string | null
           settled_at?: string | null
           settlement_period_end?: string | null
@@ -1917,6 +1942,20 @@ export type Database = {
           vendor_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "vendor_settlements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_settlements_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "vendor_settlements_vendor_id_fkey"
             columns: ["vendor_id"]
@@ -2123,10 +2162,22 @@ export type Database = {
         }
         Returns: Json
       }
+      create_settlement: {
+        Args: { p_admin_id: string; p_vendor_id: string }
+        Returns: Json
+      }
       current_user_role: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
       is_vendor_owner: { Args: { target_vendor_id: string }; Returns: boolean }
+      mark_settlement_paid: {
+        Args: {
+          p_admin_id: string
+          p_reference: string
+          p_settlement_id: string
+        }
+        Returns: Json
+      }
       merge_guest_cart: {
         Args: { p_guest_token: string; p_user_id: string }
         Returns: undefined
@@ -2137,6 +2188,19 @@ export type Database = {
       }
       own_vendor_id: { Args: never; Returns: string }
       owns_product: { Args: { target_product_id: string }; Returns: boolean }
+      payout_overview: {
+        Args: never
+        Returns: {
+          business_name: string
+          in_hold: number
+          open_settlements: number
+          payable: number
+          payable_items: number
+          settled: number
+          status: string
+          vendor_id: string
+        }[]
+      }
       place_order: {
         Args: { p_customer_id: string; p_items: Json; p_order: Json }
         Returns: Json
@@ -2197,6 +2261,22 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      settlement_items_all: {
+        Args: { p_vendor_id: string }
+        Returns: {
+          commission: number
+          customer_paid: number
+          delivered_at: string
+          due_at: string
+          is_due: boolean
+          order_id: string
+          order_item_id: string
+          order_number: string
+          payout: number
+          product_name: string
+          quantity: number
+        }[]
+      }
       validate_coupon: {
         Args: { p_code: string; p_order_amount: number; p_vendor_id?: string }
         Returns: {
@@ -2211,6 +2291,14 @@ export type Database = {
       vendor_has_order_item: {
         Args: { target_order_id: string }
         Returns: boolean
+      }
+      vendor_is_approved: {
+        Args: { target_vendor_id: string }
+        Returns: boolean
+      }
+      void_settlement: {
+        Args: { p_note: string; p_settlement_id: string }
+        Returns: Json
       }
     }
     Enums: {
