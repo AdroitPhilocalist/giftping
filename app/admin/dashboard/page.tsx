@@ -17,6 +17,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
   const peak = Math.max(1, ...stats.daily.map((x) => x.gmv));
 
   const attention = [
+    d.waitingOnSuspended.length > 0 && { tone: "red", text: `${d.waitingOnSuspended.length} paid ${d.waitingOnSuspended.length === 1 ? "order is" : "orders are"} stuck with a suspended boutique — nobody is shipping ${d.waitingOnSuspended.length === 1 ? "it" : "them"}`, href: `/admin/orders/${d.waitingOnSuspended[0].orderId}`, cta: "Look after now" },
     d.stuckRefunds.length > 0 && { tone: "red", text: `${d.stuckRefunds.length} cancelled ${d.stuckRefunds.length === 1 ? "order has" : "orders have"} a payment that was never refunded`, href: `/admin/orders/${d.stuckRefunds[0].id}`, cta: "Fix now" },
     d.unfinishedRefunds > 0 && { tone: "red", text: `${d.unfinishedRefunds} ${d.unfinishedRefunds === 1 ? "refund hasn't" : "refunds haven't"} gone through`, href: "/admin/returns", cta: "Fix now" },
     d.pendingReturns > 0 && { tone: "gold", text: `${d.pendingReturns} return ${d.pendingReturns === 1 ? "request" : "requests"} waiting`, href: "/admin/returns", cta: "Review" },
@@ -56,6 +57,22 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
             </li>
           ))}
         </ul>
+      ) : null}
+
+      {d.waitingOnSuspended.length > 0 ? (
+        <section aria-labelledby="waiting-heading" className="rounded-2xl border border-red-200 bg-white p-4">
+          <h2 id="waiting-heading" className="font-heading text-lg text-brand-dark">Paid orders waiting on a suspended boutique</h2>
+          <p className="mt-1 text-sm text-brand-dark/60">The customer has paid, but the boutique was suspended before it shipped, so nobody will dispatch these. Either reinstate the boutique, or open the order and cancel &amp; refund it.</p>
+          <ul className="mt-3 divide-y divide-brand-dark/10 text-sm">
+            {d.waitingOnSuspended.slice(0, 10).map((w) => (
+              <li key={`${w.orderId}:${w.vendorId}`} className="flex flex-wrap items-center justify-between gap-2 py-2">
+                <span><strong className="text-brand-dark">{w.orderNumber}</strong> · {w.vendorName} · {w.itemCount} {w.itemCount === 1 ? "item" : "items"}{w.placedAt ? ` · paid ${new Date(w.placedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}` : ""}</span>
+                <span className="flex gap-4"><Link href={`/admin/orders/${w.orderId}`} className="text-brand-primary underline">Open order</Link><Link href="/admin/vendors" className="text-brand-dark/60 underline">Vendors</Link></span>
+              </li>
+            ))}
+            {d.waitingOnSuspended.length > 10 ? <li className="py-2 text-brand-dark/50">…and {d.waitingOnSuspended.length - 10} more</li> : null}
+          </ul>
+        </section>
       ) : null}
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

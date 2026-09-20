@@ -16,11 +16,11 @@ export function VendorAdminControls({ vendorId, name, status, commissionOverride
   const [error, setError] = useState<string | null>(null);
   const [rate, setRate] = useState(commissionOverride === null ? "" : String(commissionOverride));
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string }>, done: string, onError: (e: string) => void) =>
+  const run = (fn: () => Promise<{ ok: boolean; error?: string; message?: string }>, done: string, onError: (e: string) => void) =>
     startTransition(async () => {
       const r = await fn();
       if (!r.ok) return onError(r.error ?? "Something went wrong.");
-      toast.success(done);
+      toast.success(r.message ?? done);
       setSuspending(false);
       router.refresh();
     });

@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/db/admin";
 import { appBaseUrl, notifyUser } from "@/lib/notifications/notify";
 import { buildVendorAccountEmail } from "@/lib/notifications/templates";
 import { removeBrandingFiles } from "@/lib/storage/branding";
+import { getOrdersWaitingOnSuspendedVendors } from "@/lib/db/admin-waiting";
 
 const id = z.string().uuid();
 
@@ -20,7 +21,7 @@ async function gate() {
 }
 
 /** Suspend hides the boutique's products from shoppers immediately (storefront RLS follows vendor status) and locks the vendor out of the portal. Paid orders stay visible to admins. */
-export async function setVendorSuspendedAction(vendorId: string, suspended: boolean, reason?: string): Promise<{ ok: boolean; error?: string }> {
+export async function setVendorSuspendedAction(vendorId: string, suspended: boolean, reason?: string): Promise<{ ok: boolean; error?: string; message?: string }> {
   const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
   if (!id.safeParse(vendorId).success) return { ok: false, error: "Invalid vendor." };
   const cleanReason = (reason ?? "").trim().slice(0, 200) || null;
@@ -47,7 +48,16 @@ export async function setVendorSuspendedAction(vendorId: string, suspended: bool
     });
   }
   revalidatePath("/admin/vendors");
+  revalidatePath("/admin/dashboard");
   revalidatePath("/", "layout");
+
+  // The moment to warn: suspending doesn't cancel orders customers already paid for — someone has to look after them.
+  if (suspended) {
+    const waiting = await getOrdersWaitingOnSuspendedVendors(admin, vendorId).catch(() => []);
+    if (waiting.length > 0) {
+      return { ok: true, message: `Boutique suspended. ${waiting.length} paid ${waiting.length === 1 ? "order is" : "orders are"} still waiting on them — see the dashboard to reinstate them or cancel & refund.` };
+    }
+  }
   return { ok: true };
 }
 

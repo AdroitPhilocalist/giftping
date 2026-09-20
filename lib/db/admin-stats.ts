@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/db/server";
 import { summariseOrders, type StatsOrder } from "@/lib/admin/stats";
 import { addDays, localDateIn } from "@/lib/diary/recurrence";
+import { getOrdersWaitingOnSuspendedVendors } from "@/lib/db/admin-waiting";
 
 const PAID = ["confirmed", "processing", "partially_shipped", "shipped", "partially_delivered", "delivered"];
 const one = <T,>(v: T | T[] | null | undefined): T | null => (Array.isArray(v) ? (v[0] ?? null) : (v ?? null));
@@ -34,6 +35,11 @@ export async function getAdminDashboard(days: 7 | 30 | 90) {
     supabase.from("users").select("id", { count: "exact", head: true }).eq("role", "customer").gte("created_at", since),
   ]);
   for (const r of [orders, cancelRefunds, lineRefunds]) if (r.error) throw r.error;
+  // a failure here must not take the whole dashboard down
+  const waitingOnSuspended = await getOrdersWaitingOnSuspendedVendors(supabase).catch((error) => {
+    console.error("Couldn't load orders waiting on suspended vendors", error);
+    return [];
+  });
 
   const rows: StatsOrder[] = (orders.data ?? []).map((o) => ({
     id: o.id,
@@ -56,6 +62,7 @@ export async function getAdminDashboard(days: 7 | 30 | 90) {
     stats: summariseOrders(rows, { days, today }),
     refundedCount: (cancelRefunds.data?.length ?? 0) + (lineRefunds.data?.length ?? 0),
     refundedAmount: [...(cancelRefunds.data ?? []), ...(lineRefunds.data ?? [])].reduce((s, p) => s + Number(p.amount), 0),
+    waitingOnSuspended,
     pendingReturns: pendingReturns.count ?? 0,
     unfinishedRefunds: unfinishedRefunds.count ?? 0,
     pendingVendors: pendingVendors.count ?? 0,
