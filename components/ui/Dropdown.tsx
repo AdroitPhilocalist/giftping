@@ -22,7 +22,7 @@ export function DropdownContent({
         align={align}
         sideOffset={8}
         className={cn(
-          "z-50 min-w-48 rounded-xl border border-brand-dark/10 bg-white p-1.5 shadow-lg",
+          "z-50 min-w-48 rounded-xl border border-brand-dark/10 bg-brand-surface p-1.5 shadow-lg",
           className,
         )}
       >

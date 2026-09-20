@@ -50,7 +50,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
       ) : null}
       {order.notes ? <p className="text-sm text-brand-dark/70"><span className="text-brand-dark/50">Note: </span>{order.notes}</p> : null}
 
-      <section className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+      <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
         <h2 className="font-heading text-lg text-brand-dark">Items</h2>
         <ul className="mt-2 divide-y divide-brand-dark/10 text-sm">
           {order.items.map((i) => {
@@ -93,7 +93,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
       </section>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <section className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
           <h2 className="font-heading text-lg text-brand-dark">Delivery</h2>
           <p className="mt-2 font-medium">{addr.recipient_name}</p>
           <p className="text-brand-dark/70">{[addr.address_line1, addr.address_line2, addr.landmark].filter(Boolean).join(", ")}</p>
@@ -101,7 +101,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
           <p className="text-brand-dark/60">Mobile: {addr.phone}</p>
           {order.gift_message ? <p className="mt-2 italic text-brand-dark/70">Card: “{order.gift_message}”</p> : null}
         </section>
-        <section className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
           <h2 className="font-heading text-lg text-brand-dark">Payments</h2>
           {order.payments.length === 0 ? <p className="mt-2 text-brand-dark/50">No payment attempt.</p> : (
             <ul className="mt-2 space-y-2">
@@ -118,7 +118,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
       </div>
 
       {order.return_requests.length > 0 || order.refunds.length > 0 ? (
-        <section className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <h2 className="font-heading text-lg text-brand-dark">Returns &amp; refunds</h2>
             {totalRefunded > 0 ? <p className="text-brand-dark/60">Refunded so far: <strong className="text-brand-dark">{formatCurrency(totalRefunded)}</strong></p> : null}
@@ -157,7 +157,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
       ) : null}
 
       {order.shipments.filter((s) => !s.is_return).length > 0 ? (
-        <section className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
           <h2 className="font-heading text-lg text-brand-dark">Shipments</h2>
           <ul className="mt-2 space-y-3">
             {order.shipments.filter((s) => !s.is_return).map((s) => (

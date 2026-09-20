@@ -53,7 +53,7 @@ export default async function AdminVendorsPage() {
       )}
 
       <h2 className="mb-3 mt-10 font-heading text-lg text-brand-dark">Decided ({decided.length})</h2>
-      <ul className="divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-white">
+      <ul className="divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-brand-surface">
         {decided.map((vendor) => {
           const d = Array.isArray(vendor.details) ? vendor.details[0] : vendor.details;
           const wh = d?.warehouse_address as { city?: string; pincode?: string } | null;

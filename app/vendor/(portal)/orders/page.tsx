@@ -30,7 +30,7 @@ export default async function VendorOrdersPage() {
           {orders.map((order) => {
             const a = order.address;
             return (
-              <li key={order.orderId} className="space-y-4 rounded-2xl border border-brand-dark/10 bg-white p-5">
+              <li key={order.orderId} className="space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="font-heading text-lg text-brand-dark">{order.orderNumber}</p>

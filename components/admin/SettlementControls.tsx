@@ -37,7 +37,7 @@ export function SettlementActions({ settlementId, vendorId, status }: { settleme
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+      <div className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
         <h2 className="flex items-center gap-2 font-heading text-lg text-brand-dark"><Landmark className="h-4 w-4 text-brand-secondary-dark" /> Vendor bank account</h2>
         {bank ? (
           <dl className="mt-2 space-y-1">
@@ -55,7 +55,7 @@ export function SettlementActions({ settlementId, vendorId, status }: { settleme
       </div>
 
       {open ? (
-        <div className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+        <div className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
           <h2 className="font-heading text-lg text-brand-dark">Record the payment</h2>
           <p className="mt-1 text-brand-dark/60">After you&apos;ve transferred the money, enter the bank reference (UTR / transaction id). The vendor is emailed.</p>
           <form className="mt-3 flex flex-wrap items-center gap-2" onSubmit={(e) => {

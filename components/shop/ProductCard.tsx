@@ -33,7 +33,7 @@ export function ProductCard({
     : 0;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-brand-dark/10 bg-white transition-shadow hover:shadow-lg hover:shadow-brand-dark/5">
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface transition-shadow hover:shadow-lg hover:shadow-brand-dark/5">
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative">
           <ProductImage

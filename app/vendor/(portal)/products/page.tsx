@@ -37,7 +37,7 @@ export default async function VendorProductsPage() {
           You haven&apos;t added any products yet.
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-white">
+        <ul className="mt-6 divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-brand-surface">
           {products.map((product) => {
             const status = STATUS_LABEL[product.status] ?? STATUS_LABEL.pending;
             const category = Array.isArray(product.category) ? product.category[0] : product.category;

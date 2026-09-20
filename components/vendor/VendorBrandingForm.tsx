@@ -97,7 +97,7 @@ function BrandingSlot({ kind, url }: { kind: Kind; url: string | null }) {
 /** Uploads save immediately (they're not part of the settings form below): pick a file and the storefront updates. */
 export function VendorBrandingForm({ logoUrl, bannerUrl }: { logoUrl: string | null; bannerUrl: string | null }) {
   return (
-    <section aria-labelledby="branding-heading" className="mb-6 space-y-6 rounded-2xl border border-brand-dark/10 bg-white p-5">
+    <section aria-labelledby="branding-heading" className="mb-6 space-y-6 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
       <h2 id="branding-heading" className="font-heading text-lg text-brand-dark">Your boutique&apos;s look</h2>
       <BrandingSlot kind="logo" url={logoUrl} />
       <BrandingSlot kind="banner" url={bannerUrl} />

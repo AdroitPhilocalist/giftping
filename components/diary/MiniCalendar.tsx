@@ -12,7 +12,7 @@ export function MiniCalendar({ today, moments }: { today: ISODate; moments: Mome
   const cells: (number | null)[] = [...Array(leading).fill(null), ...Array.from({ length: daysInMonth(year, month) }, (_, i) => i + 1)];
 
   return (
-    <section aria-labelledby="cal-heading" className="rounded-2xl border border-brand-dark/10 bg-white p-5">
+    <section aria-labelledby="cal-heading" className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
       <h2 id="cal-heading" className="font-heading text-lg text-brand-dark">{MONTHS[month - 1]} {year}</h2>
       <div className="mt-3 grid grid-cols-7 gap-y-1 text-center text-xs">
         {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => <span key={i} className="pb-1 text-brand-dark/40">{d}</span>)}

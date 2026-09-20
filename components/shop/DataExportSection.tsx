@@ -37,7 +37,7 @@ export function DataExportSection() {
   }
 
   return (
-    <section className="mt-4 rounded-2xl border border-brand-dark/10 bg-white p-5">
+    <section className="mt-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
       <h2 className="font-heading text-lg text-brand-dark">Download my data</h2>
       <p className="mt-1 text-sm text-brand-dark/70">
         Get a copy of the personal data we hold about you — your details, addresses, orders and payments, wishlist, reviews, gifting diary and notifications — as a file you can keep.

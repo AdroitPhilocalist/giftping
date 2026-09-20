@@ -84,10 +84,10 @@ export function HeroBanners({ banners }: { banners: HomeBanner[] }) {
 
         {count > 1 ? (
           <>
-            <button type="button" onClick={() => go(-1)} aria-label="Previous offer" className="absolute left-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-brand-dark shadow hover:bg-white sm:flex">
+            <button type="button" onClick={() => go(-1)} aria-label="Previous offer" className="absolute left-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-surface/80 text-brand-dark shadow hover:bg-brand-surface sm:flex">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <button type="button" onClick={() => go(1)} aria-label="Next offer" className="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-brand-dark shadow hover:bg-white sm:flex">
+            <button type="button" onClick={() => go(1)} aria-label="Next offer" className="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-surface/80 text-brand-dark shadow hover:bg-brand-surface sm:flex">
               <ChevronRight className="h-5 w-5" />
             </button>
             <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2" role="tablist" aria-label="Choose an offer">
@@ -99,7 +99,7 @@ export function HeroBanners({ banners }: { banners: HomeBanner[] }) {
                   aria-selected={i === index}
                   aria-label={`Offer ${i + 1} of ${count}`}
                   onClick={() => setIndex(i)}
-                  className={cn("h-2 rounded-full transition-all", i === index ? "w-6 bg-white" : "w-2 bg-white/55 hover:bg-white/80")}
+                  className={cn("h-2 rounded-full transition-all", i === index ? "w-6 bg-brand-surface" : "w-2 bg-brand-surface/55 hover:bg-brand-surface/80")}
                 />
               ))}
             </div>

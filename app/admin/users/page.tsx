@@ -31,14 +31,14 @@ export default async function AdminUsersPage({ searchParams }: { searchParams: P
       <p className="mt-1 text-sm text-brand-dark/60">{count ?? 0} accounts. Suspending blocks sign-in immediately; erasing removes personal data (diary contents are never visible to admins).</p>
 
       <form method="get" className="mt-5 flex flex-wrap gap-2">
-        <input name="q" defaultValue={q} placeholder="Search name or email" aria-label="Search users" className="w-64 rounded-xl border border-brand-dark/15 bg-white px-4 py-2 text-sm" />
-        <select name="role" defaultValue={sp.role ?? ""} aria-label="Filter by role" className="rounded-xl border border-brand-dark/15 bg-white px-3 py-2 text-sm">
+        <input name="q" defaultValue={q} placeholder="Search name or email" aria-label="Search users" className="w-64 rounded-xl border border-brand-dark/15 bg-brand-surface px-4 py-2 text-sm" />
+        <select name="role" defaultValue={sp.role ?? ""} aria-label="Filter by role" className="rounded-xl border border-brand-dark/15 bg-brand-surface px-3 py-2 text-sm">
           <option value="">All roles</option><option value="customer">Customers</option><option value="vendor">Vendors</option><option value="admin">Admins</option>
         </select>
         <button className="rounded-xl bg-brand-primary px-4 py-2 text-sm text-brand-light">Filter</button>
       </form>
 
-      <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+      <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
         {(users ?? []).map((u) => (
           <li key={u.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
             <div className="min-w-0">

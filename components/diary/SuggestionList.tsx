@@ -14,7 +14,7 @@ export function SuggestionList({ suggestions, pool, compact }: { suggestions: Su
         const p = pool.byId.get(s.productId)!;
         return (
           <li key={s.productId}>
-            <Link href={`/products/${p.slug}`} className="flex gap-3 rounded-xl border border-brand-dark/10 bg-white p-2.5 transition-shadow hover:shadow-sm">
+            <Link href={`/products/${p.slug}`} className="flex gap-3 rounded-xl border border-brand-dark/10 bg-brand-surface p-2.5 transition-shadow hover:shadow-sm">
               <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg">
                 <ProductImage src={p.thumbnail} alt={p.name} className="h-full w-full" sizes="56px" />
               </div>

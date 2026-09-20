@@ -5,7 +5,7 @@ export function GiftingScoreCard({ score }: { score: GiftingScore }) {
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
   return (
-    <section aria-labelledby="score-heading" className="rounded-2xl border border-brand-dark/10 bg-white p-5">
+    <section aria-labelledby="score-heading" className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
       <h2 id="score-heading" className="font-heading text-lg text-brand-dark">Your Gifting Score</h2>
       <div className="mt-3 flex items-center gap-5">
         <div className="relative h-28 w-28 shrink-0" role="img" aria-label={`Gifting score ${score.score} out of 100, ${score.label}`}>

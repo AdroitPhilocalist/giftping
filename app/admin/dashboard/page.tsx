@@ -27,7 +27,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
   ].filter(Boolean) as { tone: string; text: string; href: string; cta: string }[];
 
   const tile = (label: string, value: string, sub?: string) => (
-    <div className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+    <div className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
       <p className="text-xs uppercase tracking-wide text-brand-dark/50">{label}</p>
       <p className="mt-1 font-heading text-2xl text-brand-dark">{value}</p>
       {sub ? <p className="text-xs text-brand-dark/50">{sub}</p> : null}
@@ -41,7 +41,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
           <h1 className="font-heading text-3xl text-brand-dark">Dashboard</h1>
           <p className="mt-1 text-sm text-brand-dark/60">Signed in as {user.fullName}. Paid orders, last {days} days.</p>
         </div>
-        <nav aria-label="Period" className="flex gap-1 rounded-full border border-brand-dark/10 bg-white p-1 text-sm">
+        <nav aria-label="Period" className="flex gap-1 rounded-full border border-brand-dark/10 bg-brand-surface p-1 text-sm">
           {RANGES.map((r) => (
             <Link key={r} href={`/admin/dashboard?range=${r}`} aria-current={r === days ? "page" : undefined} className={`rounded-full px-3 py-1 ${r === days ? "bg-brand-primary text-brand-light" : "text-brand-dark/70 hover:bg-brand-accent"}`}>{r}d</Link>
           ))}
@@ -60,7 +60,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
       ) : null}
 
       {d.waitingOnSuspended.length > 0 ? (
-        <section aria-labelledby="waiting-heading" className="rounded-2xl border border-red-200 bg-white p-4">
+        <section aria-labelledby="waiting-heading" className="rounded-2xl border border-red-200 bg-brand-surface p-4">
           <h2 id="waiting-heading" className="font-heading text-lg text-brand-dark">Paid orders waiting on a suspended boutique</h2>
           <p className="mt-1 text-sm text-brand-dark/60">The customer has paid, but the boutique was suspended before it shipped, so nobody will dispatch these. Either reinstate the boutique, or open the order and cancel &amp; refund it.</p>
           <ul className="mt-3 divide-y divide-brand-dark/10 text-sm">
@@ -83,7 +83,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
       </div>
       {d.truncated ? <p className="text-xs text-brand-dark/50">Showing the latest 2,000 orders in this period — totals are a lower bound.</p> : null}
 
-      <section aria-labelledby="daily-heading" className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+      <section aria-labelledby="daily-heading" className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
         <h2 id="daily-heading" className="font-heading text-lg text-brand-dark">Sales by day</h2>
         <div className="mt-3 flex h-32 items-end gap-px" role="img" aria-label={`Daily sales for the last ${days} days`}>
           {stats.daily.map((x) => (
@@ -95,7 +95,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
 
       <div className="grid gap-4 md:grid-cols-2">
         {([["Top products", stats.topProducts], ["Top boutiques", stats.topVendors]] as const).map(([title, list]) => (
-          <section key={title} className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+          <section key={title} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
             <h2 className="font-heading text-lg text-brand-dark">{title}</h2>
             {list.length === 0 ? <p className="mt-2 text-sm text-brand-dark/50">No sales in this period.</p> : (
               <ol className="mt-2 space-y-1.5 text-sm">
@@ -109,7 +109,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <section className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
           <h2 className="font-heading text-lg text-brand-dark">Low stock</h2>
           {d.lowStock.length === 0 ? <p className="mt-2 text-sm text-brand-dark/50">Everything live has healthy stock.</p> : (
             <ul className="mt-2 space-y-1.5 text-sm">
@@ -117,7 +117,7 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
             </ul>
           )}
         </section>
-        <section className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
           <h2 className="font-heading text-lg text-brand-dark">Customers</h2>
           <p className="mt-2 font-heading text-2xl text-brand-dark">{d.newCustomers}</p>
           <p className="text-sm text-brand-dark/60">new sign-ups in the last {days} days</p>

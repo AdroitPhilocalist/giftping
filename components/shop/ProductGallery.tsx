@@ -40,7 +40,7 @@ export function ProductGallery({ images, productName }: { images: GalleryImage[]
               type="button"
               aria-label="Previous image"
               onClick={() => setActiveIndex((i) => (i - 1 + images.length) % images.length)}
-              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-brand-dark shadow-sm"
+              className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-surface/90 text-brand-dark shadow-sm"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -48,7 +48,7 @@ export function ProductGallery({ images, productName }: { images: GalleryImage[]
               type="button"
               aria-label="Next image"
               onClick={() => setActiveIndex((i) => (i + 1) % images.length)}
-              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-brand-dark shadow-sm"
+              className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-surface/90 text-brand-dark shadow-sm"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

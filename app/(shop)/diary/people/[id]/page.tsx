@@ -60,7 +60,7 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
       </div>
 
       {contact.interests.length > 0 || contact.gift_preferences || contact.notes ? (
-        <div className="mt-5 space-y-2 rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+        <div className="mt-5 space-y-2 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
           {contact.interests.length > 0 ? <p><span className="text-brand-dark/50">Interests: </span><span className="text-brand-secondary-dark">{contact.interests.join(" · ")}</span></p> : null}
           {contact.gift_preferences ? <p><span className="text-brand-dark/50">Preferences: </span>{contact.gift_preferences}</p> : null}
           {contact.notes ? <p className="text-brand-dark/70"><span className="text-brand-dark/50">Notes: </span>{contact.notes}</p> : null}
@@ -81,7 +81,7 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
             {events.map((e) => {
               const m = view.moments.find((x) => x.event.id === e.id);
               return (
-                <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-dark/10 bg-white p-4">
+                <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
                   <div>
                     <p className="font-medium text-brand-dark">{e.title ?? EVENT_TYPE_LABEL[e.event_type as keyof typeof EVENT_TYPE_LABEL] ?? e.event_type}</p>
                     <p className="text-xs text-brand-dark/60">
@@ -116,7 +116,7 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
         {gifts.length === 0 ? (
           <p className="mt-3 text-sm text-brand-dark/50">Nothing logged yet.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-white">
+          <ul className="mt-3 divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-brand-surface">
             {gifts.map((g) => (
               <li key={g.id} className="flex items-center justify-between gap-3 p-3 text-sm">
                 <div>

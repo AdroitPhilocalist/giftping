@@ -87,7 +87,8 @@ export function PayNowButton({ orderId, total, enabled }: { orderId: string; tot
         name: "GiftPing",
         description: `Order ${started.orderNumber}`,
         prefill: { name: started.name, email: started.email },
-        theme: { color: "#1A4731" },
+        // the payment window is a third-party page, so it needs a literal colour: read the ACTIVE theme's primary colour
+        theme: { color: getComputedStyle(document.documentElement).getPropertyValue("--gp-primary").trim() || "#0c2a1d" }, // theme-safe: fallback only
         handler: async (response: RazorpaySuccess) => {
           setConfirming(true);
           const result = await confirmPaymentAction({

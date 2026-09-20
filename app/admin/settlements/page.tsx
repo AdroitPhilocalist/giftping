@@ -37,7 +37,7 @@ const netFor = (r: { payable: number; open_adjustments: number }) => Number(r.pa
         {rows.length === 0 ? (
           <p className="rounded-2xl border border-dashed border-brand-dark/15 p-10 text-center text-sm text-brand-dark/50">No partner vendors yet.</p>
         ) : (
-          <ul className="divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+          <ul className="divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
             {rows.map((r) => (
               <li key={r.vendor_id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
@@ -57,7 +57,7 @@ const netFor = (r: { payable: number; open_adjustments: number }) => Number(r.pa
       <section aria-labelledby="hist-heading">
         <h2 id="hist-heading" className="font-heading text-xl text-brand-dark">Settlements</h2>
         {(settlements ?? []).length === 0 ? <p className="mt-3 text-sm text-brand-dark/50">None yet.</p> : (
-          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
             {(settlements ?? []).map((s) => (
               <li key={s.id}>
                 <Link href={`/admin/settlements/${s.id}`} className="flex flex-wrap items-center justify-between gap-3 p-4 hover:bg-brand-accent/40">

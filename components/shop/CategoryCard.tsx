@@ -13,7 +13,7 @@ export function CategoryCard({
     >
       <span
         className="flex h-16 w-16 items-center justify-center rounded-full text-brand-light transition-transform group-hover:scale-105 sm:h-20 sm:w-20"
-        style={{ backgroundColor: category.theme_color ?? "#1A4731" }}
+        style={{ backgroundColor: category.theme_color ?? "var(--gp-primary)" }}
       >
         <Gift className="h-7 w-7 sm:h-8 sm:w-8" strokeWidth={1.5} />
       </span>

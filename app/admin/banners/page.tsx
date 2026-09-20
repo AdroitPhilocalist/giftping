@@ -30,7 +30,7 @@ export default async function AdminBannersPage() {
       {!banners || banners.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-dashed border-brand-dark/15 p-12 text-center text-brand-dark/50">No banners yet. Create the first one — the homepage shows its usual welcome until you do.</p>
       ) : (
-        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
           {banners.map((b, i) => {
             const status = bannerStatus(b);
             const form: BannerFormValues = {

@@ -45,7 +45,7 @@ export default async function SettlementPage({ params }: { params: Promise<{ id:
       <p className="text-sm text-brand-dark/70">Pay to: <strong>{bank?.bank_account_name ?? "—"}</strong> · ••••{bank?.bank_account_last4 ?? "----"} · {bank?.bank_ifsc ?? "—"}</p>
       <SettlementActions settlementId={s.id} vendorId={s.vendor_id} status={s.status} />
 
-      <section className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+      <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
         <h2 className="font-heading text-lg text-brand-dark">Lines</h2>
         {(lines ?? []).length === 0 ? <p className="mt-2 text-sm text-brand-dark/50">{s.status === "failed" ? "Voided — its lines returned to the payable pool." : "No lines."}</p> : (
           <ul className="mt-2 divide-y divide-brand-dark/10 text-sm">

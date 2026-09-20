@@ -62,17 +62,15 @@ original plan entirely and constrains which tier of everything else is acceptabl
 - **Net effect of the above**: realistic year-one API costs land closer to ~₹10,000–20,000/yr, well under
   the ₹40,000–50,000 ceiling — comfortable headroom, not a tight squeeze.
 
-## Design tokens
+## Design tokens and theming (Stage 12 — read `docs/design/DESIGN_DIRECTION.md`)
 
-Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
+The look is defined by CSS variables `--gp-*` in `app/globals.css` (default theme "native": warm cream canvas `#FBF6F1`, deep forest green `#0C2A1D`, copper accent `#B75F22`, ink `#1C1916`; display serif **Newsreader**, body **DM Sans**). Tailwind's `brand-*` utilities (`bg-brand-primary`, `text-brand-secondary`, `bg-brand-surface`, `rounded-card`, `shadow-card`, `font-heading`…) read those variables at runtime via `@theme inline`.
 
-- `brand-primary` `#1A4731` (deep forest green), `brand-primary-dark` `#123322`
-- `brand-secondary` `#C9A84C` (warm gold), `brand-secondary-dark` `#AB8B34`
-- `brand-accent` `#F5ECD7` (cream)
-- `brand-dark` `#1A1A1A`, `brand-light` `#FAFAF8` (page background)
-- Headings: Playfair Display → Tailwind class `font-heading`. Body: Inter → `font-sans` (default).
-- No automatic dark-mode variant — the brand is a fixed warm/light palette, not adaptive.
-- Mascot: a robin bird (nav tagline strip, empty states, "Ask GiftPing AI" prompt, decorative cards).
+- **Components must use tokens, never raw colours** — `lib/theme/theme-safety.test.ts` fails the build on a hex/rgb colour, `bg-white`, non-brand palette colours, etc. (exceptions: red for errors, `text-white`/`bg-black/…` scrims on photos, and lines marked `theme-safe:` with a reason).
+- **A festival/seasonal theme is additive**: `app/themes/<id>.css` (a `:root[data-theme="<id>"]` block — `:root[…]`, NOT bare `[…]`, or it loses to the defaults), an entry in `lib/theme/themes.ts`, artwork in `public/themes/<id>/` mapped in `lib/content/imagery.ts`, then schedule/preview it. `app/layout.tsx` sets `data-theme` on `<html>` from `getActiveTheme()` (`lib/theme/active.ts`). `/design` is the live style sheet with a preview switcher (demo themes `demo-night`, `demo-jewel` exist only to prove the mechanism).
+- Ornaments are SVG in code (`components/ornaments/`, `currentColor`); entrance motion is `components/motion/Reveal.tsx`; everything respects `prefers-reduced-motion`.
+- Chrome: `components/layout/` — AnnouncementBar, Logo (type-based until the real logo file exists), NavLinks (active underline), MobileMenu (Radix dialog), MobileTabBar, TrustStrip, Footer. Main nav lives in `lib/nav.ts`.
+- Mascot: a robin (empty states, "Ask GiftPing AI", decorative cards) — artwork comes from ChatGPT prompts in `docs/design/asset-prompts.md`.
 
 ## Stack decisions (deviations from the SRS, made deliberately — see plan doc for full reasoning)
 

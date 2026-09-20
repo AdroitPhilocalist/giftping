@@ -28,7 +28,7 @@ export default async function CartPage() {
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem]">
           <div className="space-y-6">
             {cart.groups.map((group) => (
-              <section key={group.vendorId} className="rounded-2xl border border-brand-dark/10 bg-white p-5">
+              <section key={group.vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
                 <header className="flex items-center gap-2 border-b border-brand-dark/10 pb-3">
                   <Store className="h-4 w-4 text-brand-secondary-dark" />
                   {group.vendorSlug ? (
@@ -52,7 +52,7 @@ export default async function CartPage() {
             ))}
           </div>
 
-          <aside className="h-fit rounded-2xl border border-brand-dark/10 bg-white p-5 lg:sticky lg:top-32">
+          <aside className="h-fit rounded-2xl border border-brand-dark/10 bg-brand-surface p-5 lg:sticky lg:top-32">
             <h2 className="font-heading text-lg text-brand-dark">Order Summary</h2>
             <dl className="mt-4 space-y-2 text-sm">
               <div className="flex justify-between">

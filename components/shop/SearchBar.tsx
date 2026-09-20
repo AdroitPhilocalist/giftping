@@ -16,7 +16,7 @@ export function SearchBar({
         name="q"
         defaultValue={defaultValue}
         placeholder="Search for gifts, occasions, people..."
-        className="w-full rounded-full border border-brand-dark/10 bg-white py-3 pl-11 pr-4 text-sm text-brand-dark placeholder:text-brand-dark/40 focus:border-brand-secondary focus:outline-none focus:ring-2 focus:ring-brand-secondary/30"
+        className="w-full rounded-full border border-brand-dark/10 bg-brand-surface py-3 pl-11 pr-4 text-sm text-brand-dark placeholder:text-brand-dark/40 focus:border-brand-secondary focus:outline-none focus:ring-2 focus:ring-brand-secondary/30"
       />
     </form>
   );

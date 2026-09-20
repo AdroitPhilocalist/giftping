@@ -18,7 +18,7 @@ export default async function NotificationSettingsPage() {
       <h1 className="mt-2 font-heading text-3xl text-brand-dark">Notification settings</h1>
       <p className="mt-1 text-sm text-brand-dark/60">Choose which emails you&apos;d like. You&apos;ll always see updates inside GiftPing, and order emails about payments and delivery are important — keep those on.</p>
       <PushControls />
-      <ul className="mt-6 divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-white">
+      <ul className="mt-6 divide-y divide-brand-dark/10 rounded-2xl border border-brand-dark/10 bg-brand-surface">
         {NOTIFICATION_CATEGORIES.map((c) => (
           <NotificationToggle key={c.key} category={c.key} label={c.label} hint={c.hint} initialEmail={prefs.get(c.key)?.email_enabled ?? true} initialPush={prefs.get(c.key)?.push_enabled ?? true} />
         ))}

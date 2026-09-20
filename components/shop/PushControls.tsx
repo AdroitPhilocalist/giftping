@@ -25,7 +25,7 @@ export function PushControls() {
   };
 
   return (
-    <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-dark/10 bg-white p-4">
+    <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <BellRing className="mt-0.5 h-5 w-5 shrink-0 text-brand-secondary-dark" />
         <div>

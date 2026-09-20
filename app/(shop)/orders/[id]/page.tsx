@@ -109,7 +109,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               const deliveredAt = shipment?.status === "delivered" ? sorted.find((e) => e.raw_status === "DELIVERED")?.occurred_at : undefined;
               const events = deliveredAt ? sorted.filter((e) => +new Date(e.occurred_at) <= +new Date(deliveredAt)) : sorted;
               return (
-                <div key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+                <div key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-heading text-brand-dark">{group.name}</p>
                     <Badge variant={shipment?.status === "delivered" ? "primary" : "gold"}>
@@ -162,7 +162,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <div className="mt-8 grid gap-8 md:grid-cols-[1fr_20rem]">
         <div className="space-y-4">
           {Array.from(byVendor.entries()).map(([vendorId, group]) => (
-            <section key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+            <section key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
               <h2 className="border-b border-brand-dark/10 pb-2 font-heading text-sm text-brand-dark">{group.name}</h2>
               <ul className="divide-y divide-brand-dark/10">
                 {group.items.map((item) => {
@@ -223,7 +223,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+          <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
             <h2 className="font-heading text-base text-brand-dark">Deliver to</h2>
             <p className="mt-2 font-medium text-brand-dark">{address.recipient_name}</p>
             <p className="text-brand-dark/70">{[address.address_line1, address.address_line2, address.landmark].filter(Boolean).join(", ")}</p>
@@ -234,7 +234,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             {order.gift_message ? <p className="mt-3 text-xs italic text-brand-dark/60">Gift message: “{order.gift_message}”</p> : null}
           </section>
 
-          <section className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+          <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
             <h2 className="font-heading text-base text-brand-dark">Summary</h2>
             <dl className="mt-3 space-y-2">
               <SummaryRow label="Subtotal" value={formatCurrency(Number(order.subtotal))} />

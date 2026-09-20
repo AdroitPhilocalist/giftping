@@ -47,7 +47,7 @@ export default async function VendorStorefrontPage({
             / {vendor.business_name}
           </p>
           <div className="mt-3 flex items-center gap-4">
-            <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-16 w-16" iconClass="h-7 w-7" className="bg-white shadow-sm" />
+            <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-16 w-16" iconClass="h-7 w-7" className="bg-brand-surface shadow-sm" />
             <div>
               <h1 className="font-heading text-3xl text-brand-dark">{vendor.business_name}</h1>
               {vendor.short_description ? (

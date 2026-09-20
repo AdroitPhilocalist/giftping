@@ -60,7 +60,7 @@ export function ImageManager({ productId, images }: { productId: string; images:
   }
 
   return (
-    <div className="rounded-2xl border border-brand-dark/10 bg-white p-5">
+    <div className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="font-heading text-lg text-brand-dark">Photos</h2>
@@ -101,7 +101,7 @@ export function ImageManager({ productId, images }: { productId: string; images:
                     disabled={isPending}
                     aria-label="Make main photo"
                     onClick={() => run(() => setPrimaryImageAction(image.id), "Main photo updated")}
-                    className="rounded-full bg-white/90 p-1.5 text-brand-dark"
+                    className="rounded-full bg-brand-surface/90 p-1.5 text-brand-dark"
                   >
                     <Star className="h-3.5 w-3.5" />
                   </button>
@@ -113,7 +113,7 @@ export function ImageManager({ productId, images }: { productId: string; images:
                   disabled={isPending}
                   aria-label="Remove photo"
                   onClick={() => run(() => deleteProductImageAction(image.id), "Photo removed")}
-                  className="rounded-full bg-white/90 p-1.5 text-red-600"
+                  className="rounded-full bg-brand-surface/90 p-1.5 text-red-600"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>

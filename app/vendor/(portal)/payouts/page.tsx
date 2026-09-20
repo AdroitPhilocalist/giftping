@@ -34,7 +34,7 @@ export default async function VendorPayoutsPage() {
       </div>
       <div className="grid gap-3 sm:grid-cols-3">
         {[["Payable now", payable], ["Waiting for the hold period", inHold], ["Paid so far", paid]].map(([label, value]) => (
-          <div key={label as string} className="rounded-2xl border border-brand-dark/10 bg-white p-4"><p className="text-xs uppercase tracking-wide text-brand-dark/50">{label as string}</p><p className="mt-1 font-heading text-2xl text-brand-dark">{formatCurrency(value as number)}</p></div>
+          <div key={label as string} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4"><p className="text-xs uppercase tracking-wide text-brand-dark/50">{label as string}</p><p className="mt-1 font-heading text-2xl text-brand-dark">{formatCurrency(value as number)}</p></div>
         ))}
       </div>
 
@@ -42,7 +42,7 @@ export default async function VendorPayoutsPage() {
         <section>
           <h2 className="font-heading text-xl text-brand-dark">Refund deductions</h2>
           <p className="mt-1 text-sm text-brand-dark/60">Refunds on items that were already paid out. They&apos;re taken off your next payout{dueLines + debits < 0 ? " — right now they exceed what's payable, so they carry forward" : ""}.</p>
-          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white text-sm">
+          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface text-sm">
             {(openDebits ?? []).map((a) => (
               <li key={a.id} className="flex flex-wrap justify-between gap-2 p-3"><span>{a.reason}</span><strong className="text-red-700">{formatCurrency(Number(a.amount))}</strong></li>
             ))}
@@ -53,7 +53,7 @@ export default async function VendorPayoutsPage() {
       <section>
         <h2 className="font-heading text-xl text-brand-dark">Settlements</h2>
         {(settlements ?? []).length === 0 ? <p className="mt-3 text-sm text-brand-dark/50">No payouts yet.</p> : (
-          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
             {(settlements ?? []).map((s) => (
               <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 p-4 text-sm">
                 <div><p className="font-medium text-brand-dark">{formatCurrency(Number(s.amount))} <span className="font-normal text-brand-dark/50">· {s.item_count} lines</span></p>
@@ -71,7 +71,7 @@ export default async function VendorPayoutsPage() {
       {upcoming.length > 0 ? (
         <section>
           <h2 className="font-heading text-xl text-brand-dark">Coming up</h2>
-          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white text-sm">
+          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface text-sm">
             {upcoming.slice(0, 15).map((l) => (
               <li key={l.order_item_id} className="flex flex-wrap justify-between gap-2 p-3">
                 <span>{l.order_number} · {l.product_name} × {l.quantity}</span>

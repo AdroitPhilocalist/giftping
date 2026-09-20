@@ -116,7 +116,7 @@ export function ProductImportForm() {
           {preview.errorTotal === 0 && preview.validCount > 0 ? (
             <section className="rounded-2xl border border-brand-primary/30 bg-brand-primary/5 p-4 text-sm" aria-label="Ready to import">
               <h2 className="flex items-center gap-2 font-medium text-brand-dark"><CheckCircle2 className="h-4 w-4 text-brand-primary" /> {preview.validCount} {preview.validCount === 1 ? "product is" : "products are"} ready to import</h2>
-              <ul className="mt-3 divide-y divide-brand-dark/10 rounded-xl bg-white">
+              <ul className="mt-3 divide-y divide-brand-dark/10 rounded-xl bg-brand-surface">
                 {preview.sample.map((p) => (
                   <li key={p.row} className="flex flex-wrap justify-between gap-2 p-2.5">
                     <span className="font-medium text-brand-dark">{p.name} <span className="font-normal text-brand-dark/50">· {p.category}</span></span>

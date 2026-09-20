@@ -24,8 +24,8 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       <p className="mt-1 text-sm text-brand-dark/60">{total} {total === 1 ? "order" : "orders"}{sp.status ? ` · ${sp.status.replace(/_/g, " ")}` : ""}</p>
 
       <form method="get" className="mt-5 flex flex-wrap gap-2">
-        <input name="q" defaultValue={sp.q} placeholder="Order number, e.g. GP-100028" className="w-64 rounded-xl border border-brand-dark/15 bg-white px-4 py-2 text-sm" aria-label="Search by order number" />
-        <select name="status" defaultValue={sp.status ?? ""} className="rounded-xl border border-brand-dark/15 bg-white px-3 py-2 text-sm" aria-label="Filter by status">
+        <input name="q" defaultValue={sp.q} placeholder="Order number, e.g. GP-100028" className="w-64 rounded-xl border border-brand-dark/15 bg-brand-surface px-4 py-2 text-sm" aria-label="Search by order number" />
+        <select name="status" defaultValue={sp.status ?? ""} className="rounded-xl border border-brand-dark/15 bg-brand-surface px-3 py-2 text-sm" aria-label="Filter by status">
           <option value="">All statuses</option>
           {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
         </select>
@@ -35,7 +35,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
       {orders.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-dashed border-brand-dark/15 p-12 text-center text-brand-dark/50">No orders match.</p>
       ) : (
-        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
           {orders.map((o) => {
             const customer = Array.isArray(o.customer) ? o.customer[0] : o.customer;
             return (

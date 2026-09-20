@@ -24,7 +24,7 @@ export default async function NotificationsPage() {
           <p className="text-sm text-brand-dark/60">Nothing yet — order updates and diary reminders will appear here.</p>
         </div>
       ) : (
-        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
           {items.map((item) => <NotificationItem key={item.id} item={item} />)}
         </ul>
       )}

@@ -13,7 +13,7 @@ export function DeleteAccountSection() {
   const [pending, startTransition] = useTransition();
 
   return (
-    <section className="mt-8 rounded-2xl border border-red-200 bg-white p-5">
+    <section className="mt-8 rounded-2xl border border-red-200 bg-brand-surface p-5">
       <h2 className="font-heading text-lg text-brand-dark">Delete my account</h2>
       <p className="mt-1 text-sm text-brand-dark/70">
         Permanently removes your gifting diary, saved addresses, wishlist, reviews and notifications, and erases your personal details. We keep a minimal record of past orders — without your name or address — because tax law requires it.

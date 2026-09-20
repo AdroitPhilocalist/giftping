@@ -15,7 +15,7 @@ import { toast } from "@/components/ui/Toast";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <fieldset className="space-y-4 rounded-2xl border border-brand-dark/10 bg-white p-5">
+    <fieldset className="space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
       <legend className="px-1 font-heading text-lg text-brand-dark">{title}</legend>
       {children}
     </fieldset>

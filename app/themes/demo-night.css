@@ -1,0 +1,16 @@
+/* TEST THEME — proves the token architecture (a dark canvas needs no component changes). Not for production use; see docs/design/DESIGN_DIRECTION.md. */
+:root[data-theme="demo-night"] {
+  --gp-canvas: #14110f;
+  --gp-surface: #1e1a17;
+  --gp-peach: #2b241f;
+  --gp-glow: rgb(232 170 110 / 0.1);
+  --gp-ink: #f3ebe2;
+  --gp-primary: #2f6b4d;
+  --gp-primary-dark: #245640;
+  --gp-on-primary: #fbf6f1;
+  --gp-copper: #e0975a;
+  --gp-copper-dark: #f0b07a;
+  --gp-on-copper: #14110f;
+  --gp-shadow-card: 0 8px 30px rgb(0 0 0 / 0.35);
+  --gp-shadow-lift: 0 16px 44px rgb(0 0 0 / 0.5);
+}

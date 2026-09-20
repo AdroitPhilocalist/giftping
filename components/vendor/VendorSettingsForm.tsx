@@ -31,7 +31,7 @@ export function VendorSettingsForm({ initial }: { initial: Required<VendorSettin
         });
       }}
     >
-      <fieldset className="space-y-4 rounded-2xl border border-brand-dark/10 bg-white p-5">
+      <fieldset className="space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
         <legend className="px-1 font-heading text-lg text-brand-dark">Your boutique</legend>
         <Field label="Tagline" id="s-tag"><Input id="s-tag" value={form.shortDescription ?? ""} maxLength={120} onChange={(e) => set("shortDescription", e.target.value)} /></Field>
         <Field label="Brand story" id="s-desc"><Textarea id="s-desc" value={form.description} maxLength={1500} onChange={(e) => set("description", e.target.value)} /></Field>
@@ -40,7 +40,7 @@ export function VendorSettingsForm({ initial }: { initial: Required<VendorSettin
           <Field label="Support phone (10 digits — also used to register your courier pickup)" id="s-phone"><Input id="s-phone" inputMode="tel" value={form.supportPhone} onChange={(e) => set("supportPhone", e.target.value)} /></Field>
         </div>
       </fieldset>
-      <fieldset className="space-y-4 rounded-2xl border border-brand-dark/10 bg-white p-5">
+      <fieldset className="space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
         <legend className="px-1 font-heading text-lg text-brand-dark">Pickup address</legend>
         <p className="-mt-2 text-xs text-brand-dark/50">Where couriers collect your parcels. Changing it re-registers your pickup with the courier at your next booking.</p>
         <Field label="Address" id="s-l1"><Input id="s-l1" value={form.warehouseLine1} onChange={(e) => set("warehouseLine1", e.target.value)} /></Field>

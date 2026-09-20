@@ -44,10 +44,10 @@ export default async function ImportProductsPage() {
 
       <section className="space-y-3">
         <h2 className="font-heading text-xl text-brand-dark">1. Get the template</h2>
-        <a href="/api/vendor/product-template" className="inline-flex items-center gap-2 rounded-full border border-brand-dark/15 bg-white px-4 py-2 text-sm text-brand-dark hover:bg-brand-accent">
+        <a href="/api/vendor/product-template" className="inline-flex items-center gap-2 rounded-full border border-brand-dark/15 bg-brand-surface px-4 py-2 text-sm text-brand-dark hover:bg-brand-accent">
           <Download className="h-4 w-4" /> Download the CSV template
         </a>
-        <details className="rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+        <details className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
           <summary className="cursor-pointer font-medium text-brand-dark">What goes in each column?</summary>
           <dl className="mt-3 space-y-2">
             {COLUMNS.map(([name, kind, help]) => (
@@ -72,7 +72,7 @@ export default async function ImportProductsPage() {
       {(history ?? []).length > 0 ? (
         <section>
           <h2 className="font-heading text-xl text-brand-dark">Earlier imports</h2>
-          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white text-sm">
+          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface text-sm">
             {(history ?? []).map((h) => (
               <li key={h.id} className="flex justify-between gap-3 p-3"><span>{h.product_count} {h.product_count === 1 ? "product" : "products"}</span><span className="text-brand-dark/60">{new Date(h.created_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</span></li>
             ))}

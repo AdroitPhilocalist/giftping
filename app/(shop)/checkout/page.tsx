@@ -36,7 +36,7 @@ export default async function CheckoutPage() {
   const items = (
     <div className="space-y-4">
       {Array.from(groups.entries()).map(([vendorId, group]) => (
-        <div key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-white p-4">
+        <div key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
           <div className="flex items-center justify-between border-b border-brand-dark/10 pb-2 text-sm">
             <span className="flex items-center gap-2 font-heading text-brand-dark">
               <Store className="h-4 w-4 text-brand-secondary-dark" />

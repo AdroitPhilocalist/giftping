@@ -32,7 +32,7 @@ export default async function AdminCouponsPage() {
       {!coupons || coupons.length === 0 ? (
         <p className="mt-8 rounded-2xl border border-dashed border-brand-dark/15 p-12 text-center text-brand-dark/50">No coupons yet. Create the first one — try a welcome offer.</p>
       ) : (
-        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white">
+        <ul className="mt-6 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface">
           {coupons.map((c) => {
             const status = couponStatus(c);
             const form: CouponFormValues = {

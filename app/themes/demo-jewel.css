@@ -1,0 +1,16 @@
+/* TEST THEME — a festive-style palette swap (plum + gold on warm ivory) to prove a makeover is only variables. Not for production use. */
+:root[data-theme="demo-jewel"] {
+  --gp-canvas: #fbf3f6;
+  --gp-surface: #fffafc;
+  --gp-peach: #f6e0ea;
+  --gp-glow: rgb(214 120 160 / 0.16);
+  --gp-ink: #24121b;
+  --gp-primary: #4a1236;
+  --gp-primary-dark: #330a25;
+  --gp-on-primary: #fdf2f7;
+  --gp-copper: #b8862b;
+  --gp-copper-dark: #94691a;
+  --gp-on-copper: #fffaf4;
+  --gp-radius-card: 1.75rem;
+  --gp-radius-button: 999px;
+}

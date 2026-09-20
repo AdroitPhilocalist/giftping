@@ -27,7 +27,7 @@ export function ProductFilters({
   };
 }) {
   return (
-    <form method="get" className="space-y-4 rounded-2xl border border-brand-dark/10 bg-white p-5">
+    <form method="get" className="space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
       <h2 className="font-heading text-base text-brand-dark">Filter & Sort</h2>
 
       {vendors.length > 0 ? (

@@ -1,35 +1,135 @@
 @import "tailwindcss";
+@import "./themes/demo-night.css";
+@import "./themes/demo-jewel.css";
 
+/* ============================================================================
+   GiftPing design tokens — see docs/design/DESIGN_DIRECTION.md
+
+   Everything visual comes from the --gp-* variables below. The default look ("native") lives on :root; a festival or seasonal theme is a
+   :root[data-theme="<id>"] block (app/themes/<id>.css) that overrides ANY of them. Components never contain a raw colour, so a theme restyles the
+   whole site without touching a component.
+   ============================================================================ */
 :root {
-  --color-brand-primary: #1a4731;
-  --color-brand-primary-dark: #123322;
-  --color-brand-secondary: #c9a84c;
-  --color-brand-secondary-dark: #ab8b34;
-  --color-brand-accent: #f5ecd7;
-  --color-brand-dark: #1a1a1a;
-  --color-brand-light: #fafaf8;
+  /* surfaces */
+  --gp-canvas: #fbf6f1;          /* page background — warm cream, never pure white */
+  --gp-surface: #fffcf9;         /* cards, panels, inputs */
+  --gp-peach: #f8e9da;           /* soft panels, chips, hover fills */
+  --gp-glow: rgb(232 170 110 / 0.16); /* the warm light behind heroes */
 
-  --background: var(--color-brand-light);
-  --foreground: var(--color-brand-dark);
+  /* ink */
+  --gp-ink: #1c1916;             /* text */
+
+  /* brand */
+  --gp-primary: #0c2a1d;         /* deep forest green: bars, main buttons, footer */
+  --gp-primary-dark: #061a11;
+  --gp-on-primary: #fbf6f1;      /* text on primary */
+  --gp-copper: #b75f22;          /* accent: emphasised words, links, active states, badges */
+  --gp-copper-dark: #97490f;
+  --gp-on-copper: #fffaf4;
+
+  /* shape & depth */
+  --gp-radius-card: 1.25rem;
+  --gp-radius-button: 0.75rem;
+  --gp-shadow-card: 0 8px 30px rgb(28 25 22 / 0.06);
+  --gp-shadow-lift: 0 16px 44px rgb(28 25 22 / 0.12);
+
+  /* imagery scrims and ornaments */
+  --gp-hero-scrim: rgb(12 42 29 / 0.72);
+  --gp-ornament: var(--gp-copper);
+
+  /* motion */
+  --gp-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --gp-dur: 500ms;
+
+  /* fonts (families are loaded in app/layout.tsx; a theme may point these elsewhere) */
+  --gp-font-display: var(--font-newsreader), Georgia, serif;
+  --gp-font-body: var(--font-dm-sans), system-ui, sans-serif;
 }
 
+/* Tailwind utilities read the variables AT RUNTIME (inline), so switching data-theme re-skins the page instantly with no rebuild. */
 @theme inline {
-  --color-brand-primary: var(--color-brand-primary);
-  --color-brand-primary-dark: var(--color-brand-primary-dark);
-  --color-brand-secondary: var(--color-brand-secondary);
-  --color-brand-secondary-dark: var(--color-brand-secondary-dark);
-  --color-brand-accent: var(--color-brand-accent);
-  --color-brand-dark: var(--color-brand-dark);
-  --color-brand-light: var(--color-brand-light);
+  --color-brand-light: var(--gp-canvas);
+  --color-brand-surface: var(--gp-surface);
+  --color-brand-accent: var(--gp-peach);
+  --color-brand-dark: var(--gp-ink);
+  --color-brand-primary: var(--gp-primary);
+  --color-brand-primary-dark: var(--gp-primary-dark);
+  --color-brand-on-primary: var(--gp-on-primary);
+  --color-brand-secondary: var(--gp-copper);
+  --color-brand-secondary-dark: var(--gp-copper-dark);
+  --color-brand-on-secondary: var(--gp-on-copper);
+  --color-brand-ornament: var(--gp-ornament);
 
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--gp-canvas);
+  --color-foreground: var(--gp-ink);
 
-  --font-heading: var(--font-playfair);
-  --font-sans: var(--font-inter);
+  --radius-card: var(--gp-radius-card);
+  --radius-button: var(--gp-radius-button);
+  --shadow-card: var(--gp-shadow-card);
+  --shadow-lift: var(--gp-shadow-lift);
+
+  --font-heading: var(--gp-font-display);
+  --font-sans: var(--gp-font-body);
+}
+
+html {
+  background: var(--gp-canvas);
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  color: var(--gp-ink);
+  background:
+    radial-gradient(900px 520px at 88% -8%, var(--gp-glow), transparent 70%),
+    var(--gp-canvas);
+  background-attachment: fixed;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--gp-copper);
+  color: var(--gp-canvas);
+}
+
+/* headings share one rhythm: tight leading, slight negative tracking on large sizes */
+h1, h2, h3, .font-heading {
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
+}
+
+/* Reusable emotional accent: the key phrase of a headline, in copper italics. */
+.accent-word {
+  color: var(--gp-copper);
+  font-style: italic;
+}
+
+/* Scroll-in reveal (progressively enhanced by components/motion/Reveal.tsx; visible by default without JS) */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity var(--gp-dur) var(--gp-ease), transform var(--gp-dur) var(--gp-ease);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal[data-revealed="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+
+/* A slow "breathing" float for hanging gifts, the robin, decorative elements */
+@keyframes gp-float {
+  0%, 100% { transform: translateY(0) rotate(var(--float-rotate, 0deg)); }
+  50% { transform: translateY(-8px) rotate(var(--float-rotate, 0deg)); }
+}
+.float-slow { animation: gp-float 7s var(--gp-ease) infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal { opacity: 1; transform: none; }
 }

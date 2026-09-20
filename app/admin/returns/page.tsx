@@ -50,7 +50,7 @@ export default async function AdminReturnsPage({ searchParams }: { searchParams:
       ) : (
         <ul className="space-y-3">
           {requests.map((r) => (
-            <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-brand-dark/10 bg-white p-4 text-sm">
+            <li key={r.id} className="flex flex-wrap items-start justify-between gap-3 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
               <div>
                 <p className="font-medium text-brand-dark">
                   <Link href={`/admin/orders/${r.order_id}`} className="underline">{one(r.order)?.order_number}</Link> · {one(r.item)?.product_name} × {r.quantity}{" "}

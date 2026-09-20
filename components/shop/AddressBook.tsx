@@ -60,7 +60,7 @@ export function AddressBook({
             key={address.id}
             className={cn(
               "flex gap-3 rounded-2xl border p-4",
-              isSelected ? "border-brand-primary bg-brand-primary/5" : "border-brand-dark/10 bg-white",
+              isSelected ? "border-brand-primary bg-brand-primary/5" : "border-brand-dark/10 bg-brand-surface",
               isPending && "opacity-60",
             )}
           >

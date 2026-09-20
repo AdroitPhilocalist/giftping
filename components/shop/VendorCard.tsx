@@ -9,7 +9,7 @@ export function VendorCard({
   return (
     <Link
       href={`/vendors/${vendor.slug}`}
-      className="flex items-center gap-3 rounded-2xl border border-brand-dark/10 bg-white p-4 transition-shadow hover:shadow-md"
+      className="flex items-center gap-3 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 transition-shadow hover:shadow-md"
     >
       <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-12 w-12" />
       <div className="min-w-0">

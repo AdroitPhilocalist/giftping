@@ -144,7 +144,7 @@ export function CheckoutForm({
           <h2 id="gift-heading" className="font-heading text-xl text-brand-dark">
             2. Make it a gift
           </h2>
-          <div className="mt-3 space-y-4 rounded-2xl border border-brand-dark/10 bg-white p-4">
+          <div className="mt-3 space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
             <label className="flex items-start gap-3 text-sm">
               <input
                 type="checkbox"
@@ -183,7 +183,7 @@ export function CheckoutForm({
         </section>
       </div>
 
-      <aside className="h-fit space-y-4 rounded-2xl border border-brand-dark/10 bg-white p-5 lg:sticky lg:top-32">
+      <aside className="h-fit space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5 lg:sticky lg:top-32">
         <h2 className="font-heading text-lg text-brand-dark">Order Summary</h2>
 
         {quote.couponCode ? (

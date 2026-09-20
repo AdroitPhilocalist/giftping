@@ -9,7 +9,7 @@ static project conventions that don't change session to session._
 > **Deployment:** https://giftping-lime.vercel.app (Vercel, auto-deploys from `master`). Webhooks: `/api/webhooks/razorpay`, `/api/webhooks/courier-tracking`. Daily cron: `/api/cron/diary-reminders`.
 
 **Stage 9 — Personal Gifting Diary + daily cron** ✅ built and verified locally. **Stage 10 — email + web push built** (`notifyUser()` = in-app + email + push, preference-gated; real Resend in test mode; real OneSignal wired). **Web push verified for real on the deployed site (Safari, 2026-09-20)**: subscribed via Account → Notification settings, OneSignal showed an enabled SafariPush linked to the user's id, a direct push and the production diary cron's push were both received, and a second cron run sent nothing (exactly-once). Not yet tried in Chrome/Brave (Brave needs "Use Google services for push messaging" turned on). Remaining: Supabase auth SMTP (needs a domain). **Stage 7 (payments) is now fully verified with a real Razorpay test payment**
-(real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 10 — Notifications (email/push) & Stage 11 — Admin suite**.
+(real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 12 in progress — slice 1 (design foundation + theming) done, see `docs/progress/2026-09-21-stage-12-design-foundation.md`**; then homepage + mall directory, boutique, product, order tracking, diary, cart/checkout, static pages; Stage 13 go-live.
 
 ## Stage 11 in progress
 

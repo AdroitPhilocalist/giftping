@@ -73,7 +73,7 @@ export default async function DiaryPage() {
               ) : (
                 <ul className="mt-3 space-y-3">
                   {view.upcoming.map((m) => (
-                    <li key={m.event.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-dark/10 bg-white p-4">
+                    <li key={m.event.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
                       <div className="flex items-center gap-3">
                         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-accent text-brand-secondary-dark"><Cake className="h-5 w-5" /></span>
                         <div>
@@ -116,7 +116,7 @@ export default async function DiaryPage() {
                   const next = view.nextByContact.get(c.id);
                   return (
                     <li key={c.id}>
-                      <Link href={`/diary/people/${c.id}`} className="block rounded-2xl border border-brand-dark/10 bg-white p-4 transition-shadow hover:shadow-sm">
+                      <Link href={`/diary/people/${c.id}`} className="block rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 transition-shadow hover:shadow-sm">
                         <div className="flex items-center justify-between">
                           <p className="font-medium text-brand-dark">{c.name}{c.is_favorite ? " ★" : ""}</p>
                           {c.relationship ? <Badge>{c.relationship}</Badge> : null}
