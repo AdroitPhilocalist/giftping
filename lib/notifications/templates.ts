@@ -245,3 +245,22 @@ export function buildReturnUpdateEmail(i: ReturnUpdateInput): BuiltEmail {
   const text = [`Hi ${i.firstName},`, "", copy.heading + " — " + i.productName + " (order " + i.orderNumber + ")" + (i.amountLabel && i.kind === "refunded" ? `: ${i.amountLabel} refunded to your original payment method (usually 5–7 working days).` : "."), i.note ? `Note from our team: ${i.note}` : "", `Order: ${i.orderUrl}`].filter(Boolean).join("\n");
   return { subject: copy.subject, html, text };
 }
+
+// ---------------------------------------------------------------------------
+// A copy of the account's data was downloaded (security notice)
+// ---------------------------------------------------------------------------
+export interface DataExportInput { firstName: string; whenLabel: string; accountUrl: string; preferencesUrl: string }
+
+export function buildDataExportEmail(i: DataExportInput): BuiltEmail {
+  const html = renderEmailFrame({
+    preheader: "A copy of your GiftPing data was downloaded",
+    heading: "A copy of your data was downloaded",
+    bodyHtml: `<p style="margin:0 0 8px;color:#555">Hi ${escapeHtml(i.firstName)},</p>
+<p style="margin:0 0 12px;color:#555">On <strong>${escapeHtml(i.whenLabel)}</strong>, someone signed in to your account downloaded a copy of the personal data GiftPing holds about you.</p>
+<p style="margin:0;color:#777;font-size:13px">If that was you, there's nothing to do. If it wasn't, change your password now and get in touch — reply to this email and we'll help.</p>`,
+    cta: { label: "Go to my account", url: i.accountUrl },
+    footerHtml: footer(i.preferencesUrl),
+  });
+  const text = [`Hi ${i.firstName},`, "", `On ${i.whenLabel}, someone signed in to your account downloaded a copy of the personal data GiftPing holds about you.`, "If that was you, there's nothing to do. If it wasn't, change your password now and reply to this email.", `Account: ${i.accountUrl}`].join("\n");
+  return { subject: "A copy of your GiftPing data was downloaded", html, text };
+}

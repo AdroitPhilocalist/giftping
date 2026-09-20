@@ -2494,6 +2494,7 @@ export type Database = {
         }
         Returns: Json
       }
+      export_user_data: { Args: { p_user_id: string }; Returns: Json }
       fail_refund: {
         Args: { p_error: string; p_refund_id: string }
         Returns: undefined

@@ -439,6 +439,11 @@ files with the editor tool.
 - **Parse and validate uploaded files with the same schema as the manual form, twice**: a preview for the user and again inside the commit — the browser's preview is never trusted. Preserve the file's own row numbers in errors (blank lines count), or messages point at the wrong row.
 - **Bulk writes are one SQL transaction with a ledger row keyed on a hash of the input**, so a retry/double-submit can't duplicate data and a failure leaves nothing behind (the ledger row rolls back too, so the corrected file can be re-sent). Source files must not contain raw control characters — build such regexes from string escapes (`new RegExp("[\\u0000-…]")`).
 
+### Stage 11 (data export) — right of access
+
+- **Build a personal-data export from an explicit column list inside one SQL function** (`export_user_data`), never `select *` or a generic dump, and test it with a second user's data present. Anything that adds a new table holding personal data must be added to that function (and to `anonymize_user`).
+- **Sensitive-but-harmless-looking endpoints are POST-only, scoped to the session user, throttled from the audit log, audit-logged without personal data, and announced to the account holder.**
+
 ## Auth
 
 `lib/auth/session.ts` (`getServerUser`/`requireRole`) and `proxy.ts` are two independent layers —

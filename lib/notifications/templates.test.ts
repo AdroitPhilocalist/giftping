@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeUrl } from "./email-layout";
-import { buildOrderCancelledEmail, buildOrderConfirmedEmail, buildPayoutPaidEmail, buildReturnUpdateEmail, buildShipmentEmail, buildVendorAccountEmail, buildVendorNewOrderEmail } from "./templates";
+import { buildOrderCancelledEmail, buildDataExportEmail, buildOrderConfirmedEmail, buildPayoutPaidEmail, buildReturnUpdateEmail, buildShipmentEmail, buildVendorAccountEmail, buildVendorNewOrderEmail } from "./templates";
 
 const prefs = "https://giftping-lime.vercel.app/account/notifications";
 const order = { firstName: "Asha", orderNumber: "GP-100028", items: [{ name: "Premium Gift Hamper", quantity: 1, totalLabel: "₹2,499", detail: "Wrapping: Gold" }], totalLabel: "₹2,499", deliverTo: { name: "Asha Nair", line: "12 Marine Drive, Kochi, Kerala — 682031" }, orderUrl: "https://giftping-lime.vercel.app/orders/abc", preferencesUrl: prefs };
@@ -77,4 +77,13 @@ describe("email templates", () => {
     expect(refunded.html).toContain("5–7 working days");
     expect(refunded.text).toContain("₹450.00 refunded");
   });
+  it("data-export notice: says when, escapes the name, tells them what to do if it wasn't them", () => {
+    const e = buildDataExportEmail({ firstName: "<b>Asha</b>", whenLabel: "21 Sept 2026, 9:30 pm IST", accountUrl: "https://x.test/account", preferencesUrl: prefs });
+    expect(e.subject).toBe("A copy of your GiftPing data was downloaded");
+    expect(e.html).toContain("21 Sept 2026, 9:30 pm IST");
+    expect(e.html).not.toContain("<b>Asha</b>");
+    expect(e.html).toContain("change your password");
+    expect(e.text).toContain("If it wasn't");
+  });
 });
+
