@@ -5,14 +5,16 @@ const ORDER_SELECT = `
   subtotal, discount_amount, delivery_charge, gst_amount, total_amount, coupon_code,
   items:order_items (
     id, product_id, vendor_id, product_name, product_image, variant_label, personalization, quantity,
-    unit_price, total_price, discount_amount,
+    unit_price, total_price, discount_amount, refunded_amount, returned_quantity,
     fulfilment_status,
     vendor:vendors ( business_name, slug )
   ),
   shipments (
-    id, vendor_id, status, awb_number, courier_name, tracking_url, estimated_delivery, is_return,
+    id, vendor_id, status, awb_number, courier_name, tracking_url, estimated_delivery, is_return, delivered_at,
     events:shipment_events ( id, raw_status, activity, location, occurred_at )
-  )
+  ),
+  return_requests ( id, order_item_id, quantity, reason, status, decision_note, created_at ),
+  refunds ( id, order_item_id, amount, status, processed_at )
 `;
 
 /** Read under the shopper's session: RLS returns the order only to its customer (or the vendor/admin involved). */

@@ -12,13 +12,16 @@ export default async function VendorPayoutsPage() {
   const d = Array.isArray(vendor.details) ? vendor.details[0] : vendor.details;
 
   // The vendor id comes from the signed-in session (never the request). The payout functions are service-role only, so this read uses the admin client scoped to that id.
-  const [{ data: lines }, { data: settlements }, { data: hold }] = await Promise.all([
+  const [{ data: lines }, { data: settlements }, { data: hold }, { data: openDebits }] = await Promise.all([
     createAdminClient().rpc("settlement_items_all", { p_vendor_id: vendor.id }),
     (await createClient()).from("vendor_settlements").select("id, amount, status, item_count, created_at, settled_at, payment_reference").eq("vendor_id", vendor.id).order("created_at", { ascending: false }).limit(30),
     createAdminClient().from("platform_settings").select("value").eq("key", "payout_hold_days").maybeSingle(),
+    (await createClient()).from("vendor_adjustments").select("id, amount, reason, created_at").eq("vendor_id", vendor.id).is("settlement_id", null).order("created_at", { ascending: false }),
   ]);
   const all = lines ?? [];
-  const payable = all.filter((l) => l.is_due).reduce((s, l) => s + Number(l.payout), 0);
+  const dueLines = all.filter((l) => l.is_due).reduce((s, l) => s + Number(l.payout), 0);
+  const debits = (openDebits ?? []).reduce((s, a) => s + Number(a.amount), 0); // negative
+  const payable = Math.max(0, dueLines + debits);
   const upcoming = all.filter((l) => !l.is_due).sort((a, b) => +new Date(a.due_at) - +new Date(b.due_at));
   const inHold = upcoming.reduce((s, l) => s + Number(l.payout), 0);
   const paid = (settlements ?? []).filter((s) => s.status === "settled").reduce((s, x) => s + Number(x.amount), 0);
@@ -34,6 +37,18 @@ export default async function VendorPayoutsPage() {
           <div key={label as string} className="rounded-2xl border border-brand-dark/10 bg-white p-4"><p className="text-xs uppercase tracking-wide text-brand-dark/50">{label as string}</p><p className="mt-1 font-heading text-2xl text-brand-dark">{formatCurrency(value as number)}</p></div>
         ))}
       </div>
+
+      {(openDebits ?? []).length > 0 ? (
+        <section>
+          <h2 className="font-heading text-xl text-brand-dark">Refund deductions</h2>
+          <p className="mt-1 text-sm text-brand-dark/60">Refunds on items that were already paid out. They&apos;re taken off your next payout{dueLines + debits < 0 ? " — right now they exceed what's payable, so they carry forward" : ""}.</p>
+          <ul className="mt-3 divide-y divide-brand-dark/10 overflow-hidden rounded-2xl border border-brand-dark/10 bg-white text-sm">
+            {(openDebits ?? []).map((a) => (
+              <li key={a.id} className="flex flex-wrap justify-between gap-2 p-3"><span>{a.reason}</span><strong className="text-red-700">{formatCurrency(Number(a.amount))}</strong></li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section>
         <h2 className="font-heading text-xl text-brand-dark">Settlements</h2>

@@ -14,6 +14,12 @@ export interface SettlementLine {
   payout: number;
 }
 
+export interface SettlementAdjustment {
+  reason: string;
+  /** negative = deducted from the vendor */
+  amount: number;
+}
+
 const DANGEROUS_START = /^[=+\-@\t\r]/;
 
 export function csvCell(value: string | number): string {
@@ -29,10 +35,14 @@ export function buildSettlementCsv(args: {
   status: string;
   paymentReference: string | null;
   lines: SettlementLine[];
+  /** refund debits netted into this settlement */
+  adjustments?: SettlementAdjustment[];
 }): string {
   const header = ["Order", "Delivered on", "Product", "Qty", "Customer paid (INR)", "Platform commission (INR)", "Payout to vendor (INR)"];
   const rows = args.lines.map((l) => [l.orderNumber, l.deliveredOn, l.productName, String(l.quantity), l.customerPaid, l.commission, l.payout]);
-  const total = args.lines.reduce((sum, l) => sum + l.payout, 0);
+  const adjustments = args.adjustments ?? [];
+  const adjRows = adjustments.map((a) => ["", "", `Refund adjustment: ${a.reason}`, "", "", "", a.amount]);
+  const total = args.lines.reduce((sum, l) => sum + l.payout, 0) + adjustments.reduce((sum, a) => sum + a.amount, 0);
   const lines = [
     [`Settlement ${args.settlementId}`],
     ["Vendor", args.vendorName],
@@ -41,6 +51,7 @@ export function buildSettlementCsv(args: {
     [],
     header,
     ...rows,
+    ...adjRows,
     ["", "", "", "", "", "TOTAL PAYOUT", total],
   ];
   // CRLF + BOM: opens cleanly in Excel with rupee-free numerics and non-ASCII product names intact.

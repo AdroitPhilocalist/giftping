@@ -16,7 +16,10 @@ export interface StatsOrder {
     quantity: number;
     total_price: number | string;
     discount_amount: number | string;
+    /** commission still kept by GiftPing after refunds */
     commission_amount: number | string;
+    /** money already refunded on this line (partial or full) */
+    refunded_amount?: number | string;
   }[];
 }
 
@@ -54,7 +57,7 @@ export function summariseOrders(orders: StatsOrder[], range: { days: number; tod
     if (day) { day.gmv += total; day.orders += 1; }
 
     for (const item of order.items) {
-      const net = Number(item.total_price) - Number(item.discount_amount);
+      const net = Number(item.total_price) - Number(item.discount_amount) - Number(item.refunded_amount ?? 0);
       commission += Number(item.commission_amount);
       unitsSold += item.quantity;
       const pKey = item.product_id ?? item.product_name;

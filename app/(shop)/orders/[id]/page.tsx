@@ -3,10 +3,13 @@ import { z } from "zod";
 import { CheckCircle2, Clock, ExternalLink, Truck, XCircle } from "lucide-react";
 import { SHIPMENT_STATUS_LABEL } from "@/lib/integrations/shiprocket-status";
 import { PayNowButton } from "@/components/shop/PayNowButton";
+import { CancelReturnButton, RequestReturnButton } from "@/components/shop/ReturnRequestControls";
 import { isRazorpayConfigured } from "@/lib/integrations/razorpay";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { Badge } from "@/components/ui/Badge";
 import { getServerUser } from "@/lib/auth/session";
+import { RETURN_REASONS, returnWindow, type ReturnReason } from "@/lib/commerce/refunds";
+import { getReturnWindowDays } from "@/lib/commerce/returns";
 import { getMyOrder } from "@/lib/db/orders";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -46,6 +49,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const order = await getMyOrder(id, user.id);
   if (!order) notFound();
 
+  const windowDays = await getReturnWindowDays();
   const address = (order.delivery_address ?? {}) as Address;
   const byVendor = new Map<string, { name: string; items: typeof order.items }>();
   for (const item of order.items) {
@@ -163,8 +167,17 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               <ul className="divide-y divide-brand-dark/10">
                 {group.items.map((item) => {
                   const p = (item.personalization ?? {}) as Record<string, string>;
+                  const paid = Number(item.total_price) - Number(item.discount_amount);
+                  const requests = order.return_requests.filter((r) => r.order_item_id === item.id).sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
+                  const openRequest = requests.find((r) => r.status === "requested" || r.status === "approved") ?? null;
+                  const refundedNow = order.refunds.filter((r) => r.order_item_id === item.id && r.status === "processed").reduce((s, r) => s + Number(r.amount), 0);
+                  const refundInProgress = order.refunds.some((r) => r.order_item_id === item.id && r.status !== "processed");
+                  const deliveredAt = order.shipments.find((s) => s.vendor_id === item.vendor_id && !s.is_return && s.status === "delivered")?.delivered_at ?? null;
+                  const window = returnWindow({ deliveredAt, windowDays });
+                  const canRequest = item.fulfilment_status === "delivered" && window.open && !openRequest && item.returned_quantity < item.quantity && Number(item.refunded_amount) < paid;
+                  const lastRequest = requests[0] ?? null;
                   return (
-                    <li key={item.id} className="flex gap-3 py-3 text-sm">
+                    <li key={item.id} className="flex flex-wrap gap-3 py-3 text-sm">
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-dark/10">
                         <ProductImage src={item.product_image} alt={item.product_name} className="h-full w-full" sizes="64px" />
                       </div>
@@ -181,6 +194,26 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                         </p>
                       </div>
                       <p className="font-medium text-brand-dark">{formatCurrency(Number(item.total_price))}</p>
+                      {(refundedNow > 0 || refundInProgress || openRequest || lastRequest || canRequest) ? (
+                        <div className="w-full space-y-1 border-t border-dashed border-brand-dark/10 pt-2 text-xs sm:pl-[4.75rem]">
+                          {refundedNow > 0 ? <p className="text-brand-primary">{formatCurrency(refundedNow)} refunded to your original payment method (usually 5–7 working days).</p> : null}
+                          {refundInProgress ? <p className="text-brand-dark/70">A refund is being processed.</p> : null}
+                          {openRequest ? (
+                            <p className="flex flex-wrap items-center gap-2 text-brand-dark/80">
+                              <span>{openRequest.status === "requested" ? "Return requested — we're reviewing it" : "Return approved — we'll arrange the pickup"} ({RETURN_REASONS[openRequest.reason as ReturnReason] ?? openRequest.reason}).</span>
+                              {openRequest.status === "requested" ? <CancelReturnButton returnId={openRequest.id} /> : null}
+                            </p>
+                          ) : lastRequest && lastRequest.status === "rejected" ? (
+                            <p className="text-brand-dark/70">Your return request wasn&apos;t approved{lastRequest.decision_note ? `: ${lastRequest.decision_note}` : "."}</p>
+                          ) : null}
+                          {canRequest ? (
+                            <RequestReturnButton
+                              orderItemId={item.id} productName={item.product_name} maxQuantity={item.quantity - item.returned_quantity}
+                              closesOn={window.closesAt ? window.closesAt.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null}
+                            />
+                          ) : null}
+                        </div>
+                      ) : null}
                     </li>
                   );
                 })}

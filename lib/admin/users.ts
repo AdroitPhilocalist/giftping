@@ -12,6 +12,7 @@ import { buildAccountDeletedEmail } from "@/lib/notifications/templates";
 export type EraseOutcome = { ok: true } | { ok: false; error: string };
 
 const REFUSALS: Record<string, string> = {
+  open_returns: "A return request or refund for this account is still open. Erasure can happen once it's finished.",
   open_orders: "There's an order still in progress. Erasure can happen once it's delivered or cancelled — a vendor needs the address to deliver it.",
   vendor_account: "This account owns a vendor profile. Close the vendor account first.",
   admin_protected: "Admin accounts can't be erased this way.",

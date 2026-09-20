@@ -892,6 +892,10 @@ export type Database = {
           created_at: string
           order_item_id: string
           platform_funded_discount: number
+          refunded_commission: number
+          refunded_payout: number
+          settled_commission: number | null
+          settled_payout: number | null
           settlement_id: string | null
           vendor_funded_discount: number
           vendor_payout: number
@@ -903,6 +907,10 @@ export type Database = {
           created_at?: string
           order_item_id: string
           platform_funded_discount?: number
+          refunded_commission?: number
+          refunded_payout?: number
+          settled_commission?: number | null
+          settled_payout?: number | null
           settlement_id?: string | null
           vendor_funded_discount?: number
           vendor_payout: number
@@ -914,6 +922,10 @@ export type Database = {
           created_at?: string
           order_item_id?: string
           platform_funded_discount?: number
+          refunded_commission?: number
+          refunded_payout?: number
+          settled_commission?: number | null
+          settled_payout?: number | null
           settlement_id?: string | null
           vendor_funded_discount?: number
           vendor_payout?: number
@@ -1519,6 +1531,173 @@ export type Database = {
           },
         ]
       }
+      refunds: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          failure_reason: string | null
+          gateway_refund_id: string | null
+          id: string
+          order_id: string
+          order_item_id: string
+          processed_at: string | null
+          reason: string
+          restock: boolean
+          return_request_id: string | null
+          returned_quantity: number
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          failure_reason?: string | null
+          gateway_refund_id?: string | null
+          id?: string
+          order_id: string
+          order_item_id: string
+          processed_at?: string | null
+          reason: string
+          restock?: boolean
+          return_request_id?: string | null
+          returned_quantity?: number
+          status?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          failure_reason?: string | null
+          gateway_refund_id?: string | null
+          id?: string
+          order_id?: string
+          order_item_id?: string
+          processed_at?: string | null
+          reason?: string
+          restock?: boolean
+          return_request_id?: string | null
+          returned_quantity?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "refunds_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "refunds_return_request_id_fkey"
+            columns: ["return_request_id"]
+            isOneToOne: false
+            referencedRelation: "return_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      return_requests: {
+        Row: {
+          created_at: string
+          customer_id: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          details: string | null
+          id: string
+          order_id: string
+          order_item_id: string
+          quantity: number
+          reason: string
+          status: string
+          updated_at: string
+          vendor_id: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          details?: string | null
+          id?: string
+          order_id: string
+          order_item_id: string
+          quantity: number
+          reason: string
+          status?: string
+          updated_at?: string
+          vendor_id: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          details?: string | null
+          id?: string
+          order_id?: string
+          order_item_id?: string
+          quantity?: number
+          reason?: string
+          status?: string
+          updated_at?: string
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "return_requests_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_decided_by_fkey"
+            columns: ["decided_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "return_requests_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       reviews: {
         Row: {
           body: string | null
@@ -1824,6 +2003,68 @@ export type Database = {
           },
         ]
       }
+      vendor_adjustments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          order_item_id: string
+          reason: string
+          refund_id: string
+          settlement_id: string | null
+          vendor_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          order_item_id: string
+          reason: string
+          refund_id: string
+          settlement_id?: string | null
+          vendor_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          order_item_id?: string
+          reason?: string
+          refund_id?: string
+          settlement_id?: string | null
+          vendor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vendor_adjustments_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_adjustments_refund_id_fkey"
+            columns: ["refund_id"]
+            isOneToOne: true
+            referencedRelation: "refunds"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_adjustments_settlement_id_fkey"
+            columns: ["settlement_id"]
+            isOneToOne: false
+            referencedRelation: "vendor_settlements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "vendor_adjustments_vendor_id_fkey"
+            columns: ["vendor_id"]
+            isOneToOne: false
+            referencedRelation: "vendors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendor_private: {
         Row: {
           bank_account_last4: string | null
@@ -1891,6 +2132,7 @@ export type Database = {
       }
       vendor_settlements: {
         Row: {
+          adjustments_amount: number
           amount: number
           created_at: string
           created_by: string | null
@@ -1908,6 +2150,7 @@ export type Database = {
           vendor_id: string
         }
         Insert: {
+          adjustments_amount?: number
           amount: number
           created_at?: string
           created_by?: string | null
@@ -1925,6 +2168,7 @@ export type Database = {
           vendor_id: string
         }
         Update: {
+          adjustments_amount?: number
           amount?: number
           created_at?: string
           created_by?: string | null
@@ -2145,13 +2389,33 @@ export type Database = {
         }
         Returns: Json
       }
+      begin_refund: {
+        Args: {
+          p_admin_id: string
+          p_amount: number
+          p_order_item_id: string
+          p_reason: string
+          p_restock: boolean
+          p_return_request_id: string
+          p_returned_qty: number
+        }
+        Returns: Json
+      }
       cancel_order_and_restock: {
         Args: { p_order_id: string; p_reason: string }
+        Returns: Json
+      }
+      cancel_return_request: {
+        Args: { p_customer_id: string; p_id: string }
         Returns: Json
       }
       cancel_stale_unpaid_orders: {
         Args: { p_hours?: number }
         Returns: number
+      }
+      complete_refund: {
+        Args: { p_gateway_refund_id: string; p_refund_id: string }
+        Returns: Json
       }
       confirm_order_payment: {
         Args: {
@@ -2162,11 +2426,34 @@ export type Database = {
         }
         Returns: Json
       }
+      create_return_request: {
+        Args: {
+          p_customer_id: string
+          p_details: string
+          p_order_item_id: string
+          p_quantity: number
+          p_reason: string
+        }
+        Returns: Json
+      }
       create_settlement: {
         Args: { p_admin_id: string; p_vendor_id: string }
         Returns: Json
       }
       current_user_role: { Args: never; Returns: string }
+      decide_return_request: {
+        Args: {
+          p_admin_id: string
+          p_approve: boolean
+          p_id: string
+          p_note: string
+        }
+        Returns: Json
+      }
+      fail_refund: {
+        Args: { p_error: string; p_refund_id: string }
+        Returns: undefined
+      }
       is_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
       is_vendor_owner: { Args: { target_vendor_id: string }; Returns: boolean }
@@ -2193,6 +2480,7 @@ export type Database = {
         Returns: {
           business_name: string
           in_hold: number
+          open_adjustments: number
           open_settlements: number
           payable: number
           payable_items: number
@@ -2207,6 +2495,7 @@ export type Database = {
       }
       purge_stale_guest_carts: { Args: { p_days?: number }; Returns: number }
       release_order_coupon: { Args: { p_order_id: string }; Returns: undefined }
+      reopen_refund: { Args: { p_refund_id: string }; Returns: Json }
       resolve_coupon: {
         Args: { p_code: string; p_user_id: string }
         Returns: Json

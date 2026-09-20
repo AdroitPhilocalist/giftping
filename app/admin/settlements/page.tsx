@@ -18,7 +18,9 @@ export default async function AdminSettlementsPage() {
   ]);
   const holdDays = Number(hold?.value ?? 7);
   const rows = overview ?? [];
-  const totalPayable = rows.reduce((s, r) => s + Number(r.payable), 0);
+  // what a settlement would actually pay = payable lines minus refund deductions still waiting to be netted off
+const netFor = (r: { payable: number; open_adjustments: number }) => Number(r.payable) + Number(r.open_adjustments);
+  const totalPayable = rows.reduce((s, r) => s + Math.max(0, netFor(r)), 0);
 
   return (
     <div className="space-y-8">
@@ -40,11 +42,11 @@ export default async function AdminSettlementsPage() {
               <li key={r.vendor_id} className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>
                   <p className="font-medium text-brand-dark">{r.business_name} {r.status === "suspended" ? <Badge variant="gold">suspended</Badge> : null}</p>
-                  <p className="text-xs text-brand-dark/60">In hold {formatCurrency(Number(r.in_hold))} · paid so far {formatCurrency(Number(r.settled))}{r.open_settlements > 0 ? ` · ${r.open_settlements} awaiting payment` : ""}</p>
+                  <p className="text-xs text-brand-dark/60">In hold {formatCurrency(Number(r.in_hold))} · paid so far {formatCurrency(Number(r.settled))}{r.open_settlements > 0 ? ` · ${r.open_settlements} awaiting payment` : ""}{Number(r.open_adjustments) < 0 ? ` · ${formatCurrency(-Number(r.open_adjustments))} of refunds to deduct` : ""}</p>
                 </div>
                 <div className="flex items-center gap-4">
-                  <div className="text-right"><p className="font-heading text-lg text-brand-dark">{formatCurrency(Number(r.payable))}</p><p className="text-xs text-brand-dark/50">payable · {r.payable_items} {r.payable_items === 1 ? "line" : "lines"}</p></div>
-                  <CreateSettlementButton vendorId={r.vendor_id} name={r.business_name} amountLabel={formatCurrency(Number(r.payable))} disabled={Number(r.payable) <= 0} />
+                  <div className="text-right"><p className="font-heading text-lg text-brand-dark">{formatCurrency(Math.max(0, netFor(r)))}</p><p className="text-xs text-brand-dark/50">payable · {r.payable_items} {r.payable_items === 1 ? "line" : "lines"}</p></div>
+                  <CreateSettlementButton vendorId={r.vendor_id} name={r.business_name} amountLabel={formatCurrency(Math.max(0, netFor(r)))} disabled={netFor(r) <= 0} />
                 </div>
               </li>
             ))}

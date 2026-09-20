@@ -12,15 +12,19 @@ export async function getAdminDashboard(days: 7 | 30 | 90) {
   const since = `${addDays(today, -(days - 1))}T00:00:00+05:30`;
   const staleBefore = new Date(Date.now() - 48 * 3600e3).toISOString();
 
-  const [orders, refunds, pendingVendors, pendingProducts, lowStock, stuckRefunds, staleUnpaid, newCustomers] = await Promise.all([
+  const [orders, cancelRefunds, lineRefunds, pendingReturns, unfinishedRefunds, pendingVendors, pendingProducts, lowStock, stuckRefunds, staleUnpaid, newCustomers] = await Promise.all([
     supabase
       .from("orders")
-      .select("id, total_amount, placed_at, items:order_items ( product_id, product_name, vendor_id, quantity, total_price, discount_amount, vendor:vendors ( business_name ), financials:order_item_financials ( commission_amount ) )")
+      .select("id, total_amount, placed_at, items:order_items ( product_id, product_name, vendor_id, quantity, total_price, discount_amount, refunded_amount, vendor:vendors ( business_name ), financials:order_item_financials ( commission_amount, refunded_commission ) )")
       .in("status", PAID)
       .gte("placed_at", since)
       .order("placed_at", { ascending: false })
       .limit(2000),
-    supabase.from("payments").select("amount").eq("status", "refunded").gte("refunded_at", since),
+    // whole-order refunds (cancellations). A payment flipped to "refunded" by line refunds is counted through the refunds table instead.
+    supabase.from("payments").select("amount").eq("status", "refunded").or("refund_reason.is.null,refund_reason.neq.Fully refunded by line refunds").gte("refunded_at", since),
+    supabase.from("refunds").select("amount").eq("status", "processed").gte("processed_at", since),
+    supabase.from("return_requests").select("id", { count: "exact", head: true }).eq("status", "requested"),
+    supabase.from("refunds").select("id", { count: "exact", head: true }).in("status", ["pending", "failed"]),
     supabase.from("vendors").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("products").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("products").select("id, name, stock_quantity, vendor:vendors ( business_name )").eq("status", "active").lte("stock_quantity", 5).order("stock_quantity").limit(8),
@@ -29,7 +33,7 @@ export async function getAdminDashboard(days: 7 | 30 | 90) {
     supabase.from("orders").select("id", { count: "exact", head: true }).in("status", ["created", "payment_initiated"]).lt("created_at", staleBefore),
     supabase.from("users").select("id", { count: "exact", head: true }).eq("role", "customer").gte("created_at", since),
   ]);
-  for (const r of [orders, refunds]) if (r.error) throw r.error;
+  for (const r of [orders, cancelRefunds, lineRefunds]) if (r.error) throw r.error;
 
   const rows: StatsOrder[] = (orders.data ?? []).map((o) => ({
     id: o.id,
@@ -43,14 +47,17 @@ export async function getAdminDashboard(days: 7 | 30 | 90) {
       quantity: i.quantity,
       total_price: i.total_price,
       discount_amount: i.discount_amount,
-      commission_amount: one(i.financials)?.commission_amount ?? 0,
+      commission_amount: Number(one(i.financials)?.commission_amount ?? 0) - Number(one(i.financials)?.refunded_commission ?? 0),
+      refunded_amount: i.refunded_amount,
     })),
   }));
 
   return {
     stats: summariseOrders(rows, { days, today }),
-    refundedCount: refunds.data?.length ?? 0,
-    refundedAmount: (refunds.data ?? []).reduce((s, p) => s + Number(p.amount), 0),
+    refundedCount: (cancelRefunds.data?.length ?? 0) + (lineRefunds.data?.length ?? 0),
+    refundedAmount: [...(cancelRefunds.data ?? []), ...(lineRefunds.data ?? [])].reduce((s, p) => s + Number(p.amount), 0),
+    pendingReturns: pendingReturns.count ?? 0,
+    unfinishedRefunds: unfinishedRefunds.count ?? 0,
     pendingVendors: pendingVendors.count ?? 0,
     pendingProducts: pendingProducts.count ?? 0,
     lowStock: (lowStock.data ?? []).map((p) => ({ id: p.id, name: p.name, stock: p.stock_quantity, vendor: one(p.vendor)?.business_name ?? "" })),

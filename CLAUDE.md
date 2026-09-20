@@ -149,7 +149,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   (Upstash — fails open/no-ops if not configured, never blocks on a missing dev credential)
 /lib/shop       → wishlist-actions.ts (toggleWishlistAction, a Server Action — not lib/commerce, that's
                   reserved for cart/checkout/commission/coupons, which are a different domain)
-/lib/commerce   → commission.ts (built, tested: resolveCommissionRate = vendor override → category →
+/lib/commerce   → refunds.ts (pure, tested: refundableRemaining / suggestRefundAmount / refundShare / returnWindow / RETURN_REASONS), returns.ts (customer return requests; server-only), commission.ts (built, tested: resolveCommissionRate = vendor override → category →
                   platform_settings default → 10, `!= null` so 0 is a real override; computeCommission).
                   pricing.ts (pure, tested: computeUnitPrice / effectiveStock / maxPurchasable — Stage 6
                   checkout MUST reuse these), cart.ts (server-only: resolve cart, getCartView, add/set/remove,
@@ -165,7 +165,7 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
                   losing it makes stored bank numbers unrecoverable; same value needed in Vercel)
 /lib/vendor     → dispatch.ts (accept order + resumable Shiprocket booking saga), fulfilment-actions.ts, actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
                   actions), product-helpers.ts (syncProductThumbnail, sendBackToReviewIfLive)
-/lib/admin      → actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
+/lib/admin      → refunds.ts + refund-actions.ts (return decisions; begin→gateway→complete refunds, retryable), actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
                   admin client — those tables have no client write policies)
 /lib/catalog    → tags.ts (OCCASION_TAGS, RECIPIENT_TAGS, labelForTag — shared by vendor form + shop filters)
 /lib/notifications → notify.ts (notifyUser: in-app + optional email, preference-gated, NEVER throws — use it for every user-facing message), email-layout.ts +
@@ -420,6 +420,12 @@ files with the editor tool.
   a settled settlement is never voided. Bank numbers are decrypted only in `lib/admin/payouts.ts` `revealBankDetails` (audit-logged). CSV exports must go through `csvCell` (formula-injection safe).
 - **Vendor-editable columns that name external resources** (Shiprocket pickup location) are admin/service-only via the guard trigger — a free-text external identifier is a cross-tenant pointer.
 - A **counter a tenant can edit** (`coupons.used_count`) must be locked by trigger, not just hidden in the UI; `"use server"` files may only export async functions (constants crash at runtime).
+
+### Stage 11 (returns & refunds) — money that comes back
+
+- **Refunds are reserve → gateway → apply.** `begin_refund()` row-locks the order and RESERVES the amount (a pending refund counts against the line), the gateway refund is tagged with our refund id (`notes.gp_refund_id`), then `complete_refund()` applies every consequence atomically. Razorpay has no idempotency key for refunds: before any retry, look the tag up at the gateway (`findRazorpayRefundByTag`) so a lost reply can't refund twice. A line is never refunded above what the customer paid for it.
+- **Vendor/commission effect is cumulative** (`refunded_payout`/`refunded_commission` on `order_item_financials`, originals untouched). A line already in a settlement gets a `vendor_adjustments` debit netted off the next payout (carried forward if larger); statements use the per-line snapshot taken when the settlement was created. Voiding a settlement must drop the debits on its lines (else they're deducted twice) and is refused if one was already netted elsewhere.
+- Anything that stores customer free text (return notes) must be scrubbed in `anonymize_user`; erasure is refused while a return/refund is open.
 
 ## Auth
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeUrl } from "./email-layout";
-import { buildPayoutPaidEmail, buildVendorAccountEmail, buildOrderCancelledEmail, buildOrderConfirmedEmail, buildShipmentEmail, buildVendorNewOrderEmail } from "./templates";
+import { buildOrderCancelledEmail, buildOrderConfirmedEmail, buildPayoutPaidEmail, buildReturnUpdateEmail, buildShipmentEmail, buildVendorAccountEmail, buildVendorNewOrderEmail } from "./templates";
 
 const prefs = "https://giftping-lime.vercel.app/account/notifications";
 const order = { firstName: "Asha", orderNumber: "GP-100028", items: [{ name: "Premium Gift Hamper", quantity: 1, totalLabel: "₹2,499", detail: "Wrapping: Gold" }], totalLabel: "₹2,499", deliverTo: { name: "Asha Nair", line: "12 Marine Drive, Kochi, Kerala — 682031" }, orderUrl: "https://giftping-lime.vercel.app/orders/abc", preferencesUrl: prefs };
@@ -64,5 +64,17 @@ describe("email templates", () => {
     expect(sus.subject).toBe("Your GiftPing boutique has been paused");
     expect(sus.html).not.toContain("<script>");
     expect(buildVendorAccountEmail({ vendorName: "V", kind: "reinstated", reason: null, dashboardUrl: "https://x.test", preferencesUrl: prefs }).subject).toBe("Your GiftPing boutique is live again");
+  });
+  it("return and refund emails: wording per outcome, notes and names escaped", () => {
+    const base = { firstName: "Asha", orderNumber: "GP-7", productName: "<b>Hamper</b>", note: "Pickup on <Monday>", orderUrl: "https://x.test/orders/1", preferencesUrl: prefs };
+    const ok = buildReturnUpdateEmail({ ...base, kind: "approved" });
+    expect(ok.subject).toBe("Return approved for order GP-7");
+    expect(ok.html).not.toContain("<b>Hamper</b>");
+    expect(ok.html).toContain("Pickup on &lt;Monday&gt;");
+    expect(buildReturnUpdateEmail({ ...base, kind: "rejected", note: "Used item" }).html).toContain("approve this return");
+    const refunded = buildReturnUpdateEmail({ ...base, kind: "refunded", amountLabel: "₹450.00", note: null });
+    expect(refunded.subject).toBe("Refund of ₹450.00 on its way");
+    expect(refunded.html).toContain("5–7 working days");
+    expect(refunded.text).toContain("₹450.00 refunded");
   });
 });

@@ -18,6 +18,8 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
 
   const attention = [
     d.stuckRefunds.length > 0 && { tone: "red", text: `${d.stuckRefunds.length} cancelled ${d.stuckRefunds.length === 1 ? "order has" : "orders have"} a payment that was never refunded`, href: `/admin/orders/${d.stuckRefunds[0].id}`, cta: "Fix now" },
+    d.unfinishedRefunds > 0 && { tone: "red", text: `${d.unfinishedRefunds} ${d.unfinishedRefunds === 1 ? "refund hasn't" : "refunds haven't"} gone through`, href: "/admin/returns", cta: "Fix now" },
+    d.pendingReturns > 0 && { tone: "gold", text: `${d.pendingReturns} return ${d.pendingReturns === 1 ? "request" : "requests"} waiting`, href: "/admin/returns", cta: "Review" },
     d.pendingVendors > 0 && { tone: "gold", text: `${d.pendingVendors} vendor ${d.pendingVendors === 1 ? "application" : "applications"} waiting`, href: "/admin/vendors", cta: "Review" },
     d.pendingProducts > 0 && { tone: "gold", text: `${d.pendingProducts} ${d.pendingProducts === 1 ? "product" : "products"} awaiting approval`, href: "/admin/products", cta: "Review" },
     d.staleUnpaid > 0 && { tone: "gold", text: `${d.staleUnpaid} unpaid ${d.staleUnpaid === 1 ? "order is" : "orders are"} over 48 hours old (the daily job cancels them)`, href: "/admin/orders?status=created", cta: "View" },

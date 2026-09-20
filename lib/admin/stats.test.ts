@@ -41,4 +41,12 @@ describe("summariseOrders", () => {
     const items = Array.from({ length: 8 }, (_, i) => item({ product_id: `p${i}`, product_name: `P${i}`, total_price: 100 * (i + 1) }));
     expect(summariseOrders([order("a", "2026-09-20T10:00:00+05:30", 3600, items)], { days: 7, today }).topProducts).toHaveLength(5);
   });
+  it("ranks by revenue net of refunds and counts only the commission kept", () => {
+    const s = summariseOrders([order("a", "2026-09-20T10:00:00+05:30", 0, [
+      item({ product_id: "p1", product_name: "A", vendor_id: "v1", vendor_name: "One", total_price: 1000, refunded_amount: 800, commission_amount: 20 }),
+      item({ product_id: "p2", product_name: "B", vendor_id: "v2", vendor_name: "Two", total_price: 500, commission_amount: 50 }),
+    ])], { days: 3, today });
+    expect(s.topProducts.map((p) => [p.name, p.revenue])).toEqual([["B", 500], ["A", 200]]);
+    expect(s.commission).toBe(70);
+  });
 });

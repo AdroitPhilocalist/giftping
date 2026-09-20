@@ -199,3 +199,49 @@ export function buildVendorAccountEmail(i: VendorAccountInput): BuiltEmail {
   const text = [`Hi ${i.vendorName},`, "", suspended ? `Your boutique has been paused and your products are hidden.${i.reason ? ` Reason: ${i.reason}.` : ""}` : "Your boutique has been reinstated and is visible to shoppers again.", `Dashboard: ${i.dashboardUrl}`].join("\n");
   return { subject: suspended ? "Your GiftPing boutique has been paused" : "Your GiftPing boutique is live again", html, text };
 }
+
+// ---------------------------------------------------------------------------
+// Returns and refunds (customer)
+// ---------------------------------------------------------------------------
+export interface ReturnUpdateInput {
+  kind: "approved" | "rejected" | "refunded";
+  firstName: string;
+  orderNumber: string;
+  productName: string;
+  /** "₹450.00" — only for kind "refunded" */
+  amountLabel?: string;
+  /** the admin's note (approval instructions / the reason for rejecting) */
+  note: string | null;
+  orderUrl: string;
+  preferencesUrl: string;
+}
+
+export function buildReturnUpdateEmail(i: ReturnUpdateInput): BuiltEmail {
+  const product = escapeHtml(i.productName);
+  const copy = {
+    approved: {
+      subject: `Return approved for order ${i.orderNumber}`,
+      heading: "Your return was approved",
+      body: `<p style="margin:0 0 12px;color:#555">We've approved your return of <strong>${product}</strong> from order <strong>${escapeHtml(i.orderNumber)}</strong>. Our team will be in touch to arrange the pickup; your refund follows once we have confirmed it.</p>`,
+    },
+    rejected: {
+      subject: `Update on your return for order ${i.orderNumber}`,
+      heading: "We couldn't approve this return",
+      body: `<p style="margin:0 0 12px;color:#555">We're sorry — we weren't able to approve the return of <strong>${product}</strong> from order <strong>${escapeHtml(i.orderNumber)}</strong>.</p>`,
+    },
+    refunded: {
+      subject: `Refund of ${i.amountLabel ?? "your payment"} on its way`,
+      heading: "Your refund is on its way",
+      body: `<p style="margin:0 0 12px;color:#555"><strong>${escapeHtml(i.amountLabel ?? "")}</strong> for <strong>${product}</strong> (order <strong>${escapeHtml(i.orderNumber)}</strong>) is being refunded to your original payment method. It usually appears within 5–7 working days.</p>`,
+    },
+  }[i.kind];
+  const html = renderEmailFrame({
+    preheader: copy.heading,
+    heading: copy.heading,
+    bodyHtml: `<p style="margin:0 0 8px;color:#555">Hi ${escapeHtml(i.firstName)},</p>${copy.body}${i.note ? `<p style="margin:0 0 12px;color:#555">Note from our team: ${escapeHtml(i.note)}</p>` : ""}<p style="margin:0;color:#777;font-size:13px">Questions? Just reply to this email.</p>`,
+    cta: { label: "View the order", url: i.orderUrl },
+    footerHtml: footer(i.preferencesUrl),
+  });
+  const text = [`Hi ${i.firstName},`, "", copy.heading + " — " + i.productName + " (order " + i.orderNumber + ")" + (i.amountLabel && i.kind === "refunded" ? `: ${i.amountLabel} refunded to your original payment method (usually 5–7 working days).` : "."), i.note ? `Note from our team: ${i.note}` : "", `Order: ${i.orderUrl}`].filter(Boolean).join("\n");
+  return { subject: copy.subject, html, text };
+}

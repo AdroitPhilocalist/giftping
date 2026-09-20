@@ -42,3 +42,19 @@ describe("buildSettlementCsv", () => {
     expect(csv.split("\r\n").length).toBeGreaterThan(8);
   });
 });
+
+describe("buildSettlementCsv with refund adjustments", () => {
+  const csv = buildSettlementCsv({
+    settlementId: "abc", vendorName: "V", status: "pending", paymentReference: null,
+    lines: [{ orderNumber: "GP-1", deliveredOn: "2026-09-10", productName: "Hamper", quantity: 1, customerPaid: 1000, commission: 100, payout: 900 }],
+    adjustments: [{ reason: "Refund on GP-0 — =Bad item", amount: -270 }],
+  });
+  it("lists each deduction and nets it into the total", () => {
+    expect(csv).toContain(",,Refund adjustment: Refund on GP-0 — =Bad item,,,,-270.00");
+    expect(csv).toContain(",,,,,TOTAL PAYOUT,630.00");
+  });
+  it("still total-correct with no adjustments", () => {
+    expect(buildSettlementCsv({ settlementId: "a", vendorName: "V", status: "s", paymentReference: null, lines: [] })).toContain("TOTAL PAYOUT,0.00");
+  });
+});
+

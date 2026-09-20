@@ -23,7 +23,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   const { data: lines } = await supabase
     .from("order_item_financials")
-    .select("commission_amount, vendor_payout, item:order_items ( order_id, product_name, quantity, total_price, discount_amount, order:orders ( order_number ) )")
+    .select("commission_amount, vendor_payout, refunded_commission, refunded_payout, settled_payout, settled_commission, item:order_items ( order_id, product_name, quantity, total_price, discount_amount, refunded_amount, order:orders ( order_number ) )")
     .eq("settlement_id", id);
   const orderIds = Array.from(new Set((lines ?? []).map((l) => one(l.item)?.order_id).filter((x): x is string => !!x)));
   const { data: delivered } = orderIds.length
@@ -32,11 +32,14 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const deliveredByOrder = new Map((delivered ?? []).map((d) => [d.order_id, d.delivered_at]));
   const istDay = (iso: string | null | undefined) => (iso ? new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date(iso)) : "");
 
+  const { data: adjustments } = await supabase.from("vendor_adjustments").select("reason, amount").eq("settlement_id", id).order("created_at");
+
   const csv = buildSettlementCsv({
     settlementId: s.id,
     vendorName: one(s.vendor)?.business_name ?? "",
     status: s.status === "failed" ? "voided" : s.status,
     paymentReference: s.payment_reference,
+    adjustments: (adjustments ?? []).map((a) => ({ reason: a.reason, amount: Number(a.amount) })),
     lines: (lines ?? []).map((l) => {
       const item = one(l.item);
       const order = one(item?.order);
@@ -46,8 +49,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
         productName: item?.product_name ?? "",
         quantity: item?.quantity ?? 0,
         customerPaid: Number(item?.total_price ?? 0) - Number(item?.discount_amount ?? 0),
-        commission: Number(l.commission_amount),
-        payout: Number(l.vendor_payout),
+        // what was settled at the time; refunds recorded later show up as adjustments on the NEXT payout, not here
+        commission: Number(l.settled_commission ?? Number(l.commission_amount) - Number(l.refunded_commission)),
+        payout: Number(l.settled_payout ?? Number(l.vendor_payout) - Number(l.refunded_payout)),
       };
     }),
   });

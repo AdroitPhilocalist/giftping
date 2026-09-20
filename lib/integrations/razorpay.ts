@@ -103,9 +103,22 @@ export function captureRazorpayPayment(paymentId: string, amountPaise: number) {
   });
 }
 
-export function refundRazorpayPayment(paymentId: string, amountPaise: number, reason: string) {
+export function refundRazorpayPayment(paymentId: string, amountPaise: number, reason: string, notes: Record<string, string> = {}) {
   return call<{ id: string; status: string }>(`/v1/payments/${encodeURIComponent(paymentId)}/refund`, {
     method: "POST",
-    body: { amount: amountPaise, speed: "normal", notes: { reason } },
+    body: { amount: amountPaise, speed: "normal", notes: { reason: reason.slice(0, 200), ...notes } },
   });
+}
+
+/**
+ * Razorpay has no idempotency key for refunds, so a timed-out call is ambiguous ("did the money move?"). Every partial refund is tagged with our own
+ * refund id in `notes.gp_refund_id`; before retrying we look for it here, so a retry can never refund the same money twice.
+ */
+export async function findRazorpayRefundByTag(paymentId: string, tag: string): Promise<{ id: string; amount: number } | null> {
+  const page = await call<{ items?: { id: string; amount: number; notes?: Record<string, string> | unknown[] }[] }>(
+    `/v1/payments/${encodeURIComponent(paymentId)}/refunds?count=100`,
+    { method: "GET" },
+  );
+  const hit = (page.items ?? []).find((r) => !Array.isArray(r.notes) && r.notes?.gp_refund_id === tag);
+  return hit ? { id: hit.id, amount: hit.amount } : null;
 }

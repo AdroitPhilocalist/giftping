@@ -16,10 +16,11 @@ export async function createSettlement(args: { vendorId: string; adminId: string
   const admin = createAdminClient();
   const { data, error } = await admin.rpc("create_settlement", { p_vendor_id: args.vendorId, p_admin_id: args.adminId });
   if (error) return { ok: false, error: "Couldn't create the settlement. Nothing was changed." };
-  const r = data as { result: string; settlement_id?: string; amount?: number };
+  const r = data as { result: string; settlement_id?: string; amount?: number; adjustments?: number };
   if (r.result === "nothing_payable") return { ok: false, error: "Nothing is payable to this vendor right now (lines become payable after the hold period)." };
+  if (r.result === "debits_exceed") return { ok: false, error: "Refunds already deducted from this vendor outweigh what's payable now, so nothing is paid out yet — the deduction carries forward to their next payout." };
   if (r.result !== "created") return { ok: false, error: "Vendor not found." };
-  await admin.from("audit_logs").insert({ actor_id: args.adminId, action: "settlement.created", entity_type: "vendor_settlement", entity_id: r.settlement_id!, before_data: null, after_data: { vendor_id: args.vendorId, amount: r.amount } as never });
+  await admin.from("audit_logs").insert({ actor_id: args.adminId, action: "settlement.created", entity_type: "vendor_settlement", entity_id: r.settlement_id!, before_data: null, after_data: { vendor_id: args.vendorId, amount: r.amount, refund_adjustments: r.adjustments ?? 0 } as never });
   return { ok: true, settlementId: r.settlement_id!, amount: Number(r.amount) };
 }
 
@@ -57,6 +58,7 @@ export async function voidSettlement(args: { settlementId: string; note: string;
   const r = (data as { result: string }).result;
   if (r === "already_settled") return { ok: false, error: "This settlement has been paid, so it can't be voided." };
   if (r === "already_voided") return { ok: false, error: "This settlement is already voided." };
+  if (r === "debit_in_other_settlement") return { ok: false, error: "A refund on one of these lines was already deducted in another payout. Void that payout first." };
   if (r !== "voided") return { ok: false, error: "Settlement not found." };
   await admin.from("audit_logs").insert({ actor_id: args.adminId, action: "settlement.voided", entity_type: "vendor_settlement", entity_id: args.settlementId, before_data: null, after_data: { note: args.note.slice(0, 300) } as never });
   return { ok: true };
