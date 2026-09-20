@@ -11,6 +11,9 @@ import {
   refundRazorpayPayment,
 } from "@/lib/integrations/razorpay";
 import { verifyCheckoutSignature } from "@/lib/integrations/razorpay-signature";
+import { appBaseUrl, notifyUser } from "@/lib/notifications/notify";
+import { buildOrderConfirmedEmail, buildVendorNewOrderEmail } from "@/lib/notifications/templates";
+import { formatCurrency } from "@/lib/utils/format";
 
 /**
  * Payment flow, and where the truth lives:
@@ -209,31 +212,71 @@ async function notifyOrderConfirmed(orderId: string) {
   const admin = createAdminClient();
   const { data: order } = await admin
     .from("orders")
-    .select("id, order_number, customer_id, total_amount, items:order_items ( vendor:vendors ( user_id ) )")
+    .select(
+      `id, order_number, customer_id, total_amount, delivery_address,
+       customer:users ( full_name ),
+       items:order_items ( product_name, quantity, total_price, discount_amount, variant_label, vendor_id,
+         vendor:vendors ( business_name, user_id ), financials:order_item_financials ( vendor_payout ) )`,
+    )
     .eq("id", orderId)
     .single();
   if (!order) return;
 
-  const rows = [
-    {
-      user_id: order.customer_id,
-      title: "Order confirmed",
-      message: `Thank you! Order ${order.order_number} is confirmed and on its way to being packed.`,
-      type: "order_confirmed",
-      link_url: `/orders/${order.id}`,
-    },
-  ];
-  const vendorUsers = new Set(order.items.map((i) => i.vendor?.user_id).filter((id): id is string => !!id));
-  for (const userId of vendorUsers) {
-    rows.push({
-      user_id: userId,
-      title: "New order",
-      message: `You have a new paid order (${order.order_number}). Dispatch opens with the delivery stage.`,
+  const base = appBaseUrl();
+  const prefsUrl = `${base}/account/notifications`;
+  const customer = Array.isArray(order.customer) ? order.customer[0] : order.customer;
+  const addr = (order.delivery_address ?? {}) as Record<string, string | null>;
+
+  await notifyUser({
+    userId: order.customer_id,
+    category: "order_updates",
+    type: "order_confirmed",
+    title: "Order confirmed",
+    message: `Thank you! Order ${order.order_number} is confirmed and on its way to being packed.`,
+    linkUrl: `/orders/${order.id}`,
+    email: buildOrderConfirmedEmail({
+      firstName: (customer?.full_name ?? "there").split(" ")[0],
+      orderNumber: order.order_number,
+      items: order.items.map((i) => ({
+        name: i.product_name,
+        quantity: i.quantity,
+        totalLabel: formatCurrency(Number(i.total_price) - Number(i.discount_amount)),
+        detail: i.variant_label,
+      })),
+      totalLabel: formatCurrency(Number(order.total_amount)),
+      deliverTo: {
+        name: addr.recipient_name ?? "",
+        line: [addr.address_line1, addr.city, addr.state].filter(Boolean).join(", ") + (addr.pincode ? ` — ${addr.pincode}` : ""),
+      },
+      orderUrl: `${base}/orders/${order.id}`,
+      preferencesUrl: prefsUrl,
+    }),
+  });
+
+  // one message per vendor (a two-vendor order tells each vendor only about their own lines)
+  const byVendor = new Map<string, typeof order.items>();
+  for (const item of order.items) byVendor.set(item.vendor_id, [...(byVendor.get(item.vendor_id) ?? []), item]);
+  for (const items of byVendor.values()) {
+    const vendor = Array.isArray(items[0].vendor) ? items[0].vendor[0] : items[0].vendor;
+    if (!vendor?.user_id) continue;
+    const earnings = items.reduce((sum, i) => sum + Number((Array.isArray(i.financials) ? i.financials[0] : i.financials)?.vendor_payout ?? 0), 0);
+    await notifyUser({
+      userId: vendor.user_id,
+      category: "vendor_updates",
       type: "vendor_new_order",
-      link_url: "/vendor/orders",
+      title: "New order",
+      message: `You have a new paid order (${order.order_number}). Accept it and book a courier from your dashboard.`,
+      linkUrl: "/vendor/orders",
+      email: buildVendorNewOrderEmail({
+        vendorName: vendor.business_name,
+        orderNumber: order.order_number,
+        items: items.map((i) => ({ name: i.product_name, quantity: i.quantity })),
+        earningsLabel: earnings > 0 ? formatCurrency(earnings) : null,
+        dashboardUrl: `${base}/vendor/orders`,
+        preferencesUrl: prefsUrl,
+      }),
     });
   }
-  await admin.from("notifications").insert(rows);
 }
 
 // ---------------------------------------------------------------------------

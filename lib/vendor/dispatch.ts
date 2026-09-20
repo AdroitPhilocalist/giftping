@@ -1,5 +1,7 @@
 import "server-only";
 import { createAdminClient } from "@/lib/db/admin";
+import { appBaseUrl, notifyUser } from "@/lib/notifications/notify";
+import { buildShipmentEmail } from "@/lib/notifications/templates";
 import {
   ShiprocketError,
   addPickupLocation,
@@ -190,12 +192,26 @@ export async function bookShipment(args: { vendorId: string; orderId: string; pk
       warning = "Courier booked, but the pickup request didn't go through — the courier may still collect it, or you can arrange it from your Shiprocket panel.";
     }
 
-    await admin.from("notifications").insert({
-      user_id: order.customer_id,
+    const base = appBaseUrl();
+    const { data: buyer } = await admin.from("users").select("full_name").eq("id", order.customer_id).single();
+    await notifyUser({
+      userId: order.customer_id,
+      category: "order_updates",
+      type: "shipment_booked",
       title: "Your gift is packed",
       message: `${vendor.business_name} has packed your items for order ${order.order_number}${courierName ? ` — ${courierName}, tracking ${awb}` : ""}.`,
-      type: "shipment_booked",
-      link_url: `/orders/${order.id}`,
+      linkUrl: `/orders/${order.id}`,
+      email: buildShipmentEmail({
+        kind: "booked",
+        firstName: (buyer?.full_name ?? "there").split(" ")[0],
+        orderNumber: order.order_number,
+        vendorName: vendor.business_name,
+        courier: courierName,
+        awb,
+        trackingUrl: trackingUrl(awb),
+        orderUrl: `${base}/orders/${order.id}`,
+        preferencesUrl: `${base}/account/notifications`,
+      }),
     });
 
     return { awb, warning };

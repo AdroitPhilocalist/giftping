@@ -2,6 +2,8 @@ import "server-only";
 import { createAdminClient } from "@/lib/db/admin";
 import { parseTrackingPayload } from "@/lib/integrations/shiprocket-webhook";
 import { SHIPMENT_STATUS_LABEL } from "@/lib/integrations/shiprocket-status";
+import { appBaseUrl, notifyUser } from "@/lib/notifications/notify";
+import { buildShipmentEmail, type ShipmentEmailKind } from "@/lib/notifications/templates";
 
 export interface TrackingOutcome {
   result: string;
@@ -36,33 +38,49 @@ export async function applyTrackingWebhook(body: unknown): Promise<TrackingOutco
   });
   if (error) throw error;
 
-  const r = data as { result: string; order_id?: string; vendor_id?: string; new_status?: string } | null;
+  const r = data as { result: string; order_id?: string; vendor_id?: string; shipment_id?: string; new_status?: string } | null;
   if (!r) throw new Error("apply_shipment_update returned nothing");
   if (r.result !== "updated" || !r.order_id || !r.vendor_id || !r.new_status) return { result: r.result, notified: false };
 
   const template = NOTIFY[r.new_status];
   if (!template) return { result: r.result, notified: false };
 
-  const [{ data: order }, { data: vendor }] = await Promise.all([
-    admin.from("orders").select("order_number, customer_id").eq("id", r.order_id).single(),
+  const [{ data: order }, { data: vendor }, { data: shipment }] = await Promise.all([
+    admin.from("orders").select("order_number, customer_id, customer:users ( full_name )").eq("id", r.order_id).single(),
     admin.from("vendors").select("business_name, user_id").eq("id", r.vendor_id).single(),
+    admin.from("shipments").select("awb_number, courier_name, tracking_url").eq("id", r.shipment_id!).single(),
   ]);
   if (!order || !vendor) return { result: r.result, notified: false };
 
-  await admin.from("notifications").insert({
-    user_id: order.customer_id,
+  const base = appBaseUrl();
+  const customer = Array.isArray(order.customer) ? order.customer[0] : order.customer;
+  await notifyUser({
+    userId: order.customer_id,
+    category: "order_updates",
+    type: "shipment_update",
     title: SHIPMENT_STATUS_LABEL[r.new_status] ?? "Shipment update",
     message: template(vendor.business_name, order.order_number),
-    type: "shipment_update",
-    link_url: `/orders/${r.order_id}`,
+    linkUrl: `/orders/${r.order_id}`,
+    email: buildShipmentEmail({
+      kind: r.new_status as ShipmentEmailKind,
+      firstName: (customer?.full_name ?? "there").split(" ")[0],
+      orderNumber: order.order_number,
+      vendorName: vendor.business_name,
+      courier: shipment?.courier_name,
+      awb: shipment?.awb_number,
+      trackingUrl: shipment?.tracking_url,
+      orderUrl: `${base}/orders/${r.order_id}`,
+      preferencesUrl: `${base}/account/notifications`,
+    }),
   });
   if (r.new_status === "rto_initiated" && vendor.user_id) {
-    await admin.from("notifications").insert({
-      user_id: vendor.user_id,
+    await notifyUser({
+      userId: vendor.user_id,
+      category: "vendor_updates",
+      type: "shipment_rto",
       title: "Shipment returning to you",
       message: `Order ${order.order_number} couldn't be delivered and is coming back to your warehouse.`,
-      type: "shipment_rto",
-      link_url: "/vendor/orders",
+      linkUrl: "/vendor/orders",
     });
   }
   return { result: r.result, notified: true };

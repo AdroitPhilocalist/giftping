@@ -168,7 +168,9 @@ Defined in `app/globals.css` via Tailwind v4's CSS-first `@theme`:
 /lib/admin      → actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
                   admin client — those tables have no client write policies)
 /lib/catalog    → tags.ts (OCCASION_TAGS, RECIPIENT_TAGS, labelForTag — shared by vendor form + shop filters)
-/lib/integrations → razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
+/lib/notifications → notify.ts (notifyUser: in-app + optional email, preference-gated, NEVER throws — use it for every user-facing message), email-layout.ts +
+                  templates.ts (pure, tested, HTML-escaped order/shipment/vendor emails)
+/lib/integrations → resend.ts (fetch client; no-op without a key), razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
                   shiprocket-status.ts / shiprocket-webhook.ts (pure, tested) built; msg91.ts, onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
 /lib/storage    → resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
