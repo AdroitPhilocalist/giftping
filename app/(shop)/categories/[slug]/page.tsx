@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { GiftBoxArt } from "@/components/art/GiftBoxArt";
+import { HeroBackdrop } from "@/components/art/HeroBackdrop";
 import { Robin } from "@/components/art/Robin";
 import { Jaali } from "@/components/ornaments/Jaali";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -11,6 +12,8 @@ import { getVendorsForCategory } from "@/lib/db/vendors";
 import { listProducts, type ProductListFilters } from "@/lib/db/products";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
+import { siteImage } from "@/lib/content/imagery";
+import { getActiveTheme } from "@/lib/theme/active";
 
 export default async function CategoryPage({
   params,
@@ -55,6 +58,8 @@ export default async function CategoryPage({
     return `/categories/${slug}${qs ? `?${qs}` : ""}`;
   }
 
+  const world = siteImage(`world-${slug}`, (await getActiveTheme()).id);
+
   // "Birthday" -> "Birthday World"; "Corporate Gifting" -> accent on the last word; "For Her" stays as it is
   const words = category.name.split(" ");
   const oneWord = words.length === 1;
@@ -63,10 +68,14 @@ export default async function CategoryPage({
 
   return (
     <div>
-      <section className="relative overflow-hidden border-b border-brand-dark/[0.06] bg-brand-accent/70">
-        <Jaali className="opacity-[0.07]" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-6 px-4 py-12 sm:px-6 md:grid-cols-[1fr_auto] lg:px-8 lg:py-16">
-          <div className="rise">
+      <section className="relative isolate overflow-hidden border-b border-brand-dark/[0.06] bg-brand-accent/70">
+        {world ? (
+          <HeroBackdrop image={world} priority />
+        ) : (
+          <Jaali className="opacity-[0.07]" />
+        )}
+        <div className="relative mx-auto grid max-w-7xl items-center gap-6 px-4 py-12 sm:px-6 md:grid-cols-[1fr_auto] lg:px-8 lg:py-20">
+          <div className="rise max-w-xl">
             <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-dark/60">
               <Link href="/categories" className="hover:text-brand-secondary-dark">Occasions</Link> <span className="text-brand-secondary">›</span> {category.name}
             </p>
@@ -75,11 +84,13 @@ export default async function CategoryPage({
             </h1>
             {category.description ? <p className="mt-4 max-w-xl text-base leading-relaxed text-brand-dark/70">{category.description}</p> : null}
           </div>
-          <div className="hidden items-end gap-1 md:flex" aria-hidden="true">
-            <Robin className="float-slow w-24" />
-            <GiftBoxArt tone="green" className="-ml-3 w-24" />
-            <GiftBoxArt tone="copper" className="-ml-6 w-16" />
-          </div>
+          {world ? null : (
+            <div className="hidden items-end gap-1 md:flex" aria-hidden="true">
+              <Robin className="float-slow w-24" />
+              <GiftBoxArt tone="green" className="-ml-3 w-24" />
+              <GiftBoxArt tone="copper" className="-ml-6 w-16" />
+            </div>
+          )}
         </div>
       </section>
 

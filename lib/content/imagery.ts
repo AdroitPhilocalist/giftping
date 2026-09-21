@@ -11,7 +11,10 @@ export type ImageKey =
   | "robin-perched" | "robin-flying-gift" | "robin-on-gift" | "robin-peeking"
   | "logo-gp" | "logo-gp-light"
   | "wrap-green" | "wrap-blush" | "wrap-blue" | "wrap-gold" | "wrap-ivory"
-  | "rel-parents" | "rel-partner" | "rel-friends" | "rel-colleagues" | "rel-kids";
+  | "rel-parents" | "rel-partner" | "rel-friends" | "rel-colleagues" | "rel-kids"
+  | "diary-desk" | "order-hero"
+  | `world-${string}`      // an occasion/category page banner, keyed by the category slug (world-birthday, world-wedding…)
+  | `shopfront-${string}`; // a default boutique front for vendors without their own banner (shopfront-perfume, -jewellery, -florist)
 
 export interface SiteImage {
   src: string;
@@ -25,4 +28,18 @@ const entries = manifest as Record<string, SiteImage>;
 export function siteImage(key: ImageKey, themeId?: string): SiteImage | null {
   if (themeId && themeId !== "native" && entries[`${themeId}/${key}`]) return entries[`${themeId}/${key}`];
   return entries[key] ?? null;
+}
+
+const DEFAULT_SHOPFRONTS = ["shopfront-perfume", "shopfront-jewellery", "shopfront-florist"] as const;
+
+/**
+ * A stand-in boutique front for a vendor who hasn't uploaded a banner: one of the delivered default shopfronts, chosen by a stable hash of the
+ * vendor's slug so a boutique always looks the same. Null when none have been delivered (the caller then draws ShopfrontArt).
+ */
+export function defaultShopfrontImage(seed: string, themeId?: string): SiteImage | null {
+  const available = DEFAULT_SHOPFRONTS.map((key) => siteImage(key, themeId)).filter((img): img is SiteImage => img !== null);
+  if (available.length === 0) return null;
+  let h = 0;
+  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return available[h % available.length];
 }

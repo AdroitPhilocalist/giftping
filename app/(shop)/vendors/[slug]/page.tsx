@@ -1,3 +1,5 @@
+import { defaultShopfrontImage } from "@/lib/content/imagery";
+import { getActiveTheme } from "@/lib/theme/active";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -32,11 +34,15 @@ export default async function VendorStorefrontPage({
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
   ]);
 
+  const defaultFront = vendor.banner_url ? null : defaultShopfrontImage(vendor.slug, (await getActiveTheme()).id);
+
   return (
     <div>
       <div className="relative aspect-[16/7] max-h-80 w-full overflow-hidden bg-gradient-to-b from-brand-primary-dark to-brand-primary sm:aspect-[16/5]">
         {vendor.banner_url ? (
           <Image src={vendor.banner_url} alt={`${vendor.business_name} banner`} fill priority sizes="100vw" className="object-cover" />
+        ) : defaultFront ? (
+          <Image src={defaultFront.src} alt="" fill priority sizes="100vw" className="object-cover" />
         ) : (
           <ShopfrontArt name={vendor.business_name} />
         )}

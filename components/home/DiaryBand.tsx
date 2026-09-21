@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { BellRing } from "lucide-react";
 import { GiftBoxArt } from "@/components/art/GiftBoxArt";
-import { Robin } from "@/components/art/Robin";
+import { Robin, hasRobinArt } from "@/components/art/Robin";
 import { Reveal } from "@/components/motion/Reveal";
 import { Jaali } from "@/components/ornaments/Jaali";
 import { Button } from "@/components/ui/Button";
@@ -15,8 +15,14 @@ export function DiaryBand() {
           <Jaali className="opacity-[0.09]" />
           <div className="relative grid items-center gap-6 px-6 py-8 sm:px-10 md:grid-cols-[auto_1fr_auto] md:py-10">
             <div className="flex items-end gap-2 md:order-none">
-              <Robin className="float-slow w-24 sm:w-28" />
-              <GiftBoxArt tone="green" className="-ml-4 w-20 sm:w-24" />
+              {hasRobinArt("on-gift") ? (
+                <Robin pose="on-gift" className="float-slow w-32 sm:w-36" />
+              ) : (
+                <>
+                  <Robin className="float-slow w-24 sm:w-28" />
+                  <GiftBoxArt tone="green" className="-ml-4 w-20 sm:w-24" />
+                </>
+              )}
             </div>
             <div>
               <h2 className="font-heading text-3xl leading-tight text-brand-dark sm:text-4xl">Never miss an <span className="accent-word">important moment</span> again.</h2>

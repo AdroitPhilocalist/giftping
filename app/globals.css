@@ -150,3 +150,9 @@ h1, h2, h3, .font-heading {
   -webkit-mask-composite: source-in;
   mask-composite: intersect;
 }
+
+/* The diary's writing paper: faint ruled lines drawn from theme tokens, so a festival theme re-tints the "paper" too. */
+.paper {
+  background-color: var(--gp-surface);
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 31px, color-mix(in srgb, var(--gp-copper) 14%, transparent) 31px, color-mix(in srgb, var(--gp-copper) 14%, transparent) 32px);
+}

@@ -3,22 +3,27 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ShopfrontArt } from "@/components/art/ShopfrontArt";
 import { VendorLogo } from "@/components/shop/VendorLogo";
+import { defaultShopfrontImage } from "@/lib/content/imagery";
+import { getActiveTheme } from "@/lib/theme/active";
 
-/** A boutique on Boutique Avenue: its shopfront (the vendor's own banner, or a drawn one), its round logo hanging over the corner, its name and tagline. */
-export function VendorCard({
+/** A boutique on Boutique Avenue: its shopfront (the vendor's own banner, a default shopfront photo, or a drawn one), its round logo hanging over the corner, its name and tagline. */
+export async function VendorCard({
   vendor,
 }: {
   vendor: { business_name: string; slug: string; short_description: string | null; logo_url: string | null; banner_url?: string | null };
 }) {
+  const front = vendor.banner_url ? null : defaultShopfrontImage(vendor.slug, (await getActiveTheme()).id);
   return (
     <Link
       href={`/vendors/${vendor.slug}`}
       className="group block overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift"
     >
       <div className="relative h-36 overflow-hidden bg-gradient-to-b from-brand-primary-dark to-brand-primary">
-        <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-105">
+        <div className="relative h-full w-full transition-transform duration-700 ease-out group-hover:scale-105">
           {vendor.banner_url ? (
             <Image src={vendor.banner_url} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
+          ) : front ? (
+            <Image src={front.src} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
           ) : (
             <ShopfrontArt name={vendor.business_name} />
           )}

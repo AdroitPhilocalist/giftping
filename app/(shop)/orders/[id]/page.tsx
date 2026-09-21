@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { CheckCircle2, Clock, ExternalLink, Truck, XCircle } from "lucide-react";
+import { ExternalLink, Truck } from "lucide-react";
+import { OrderHero } from "@/components/orders/OrderHero";
+import { OrderStepper } from "@/components/orders/OrderStepper";
+import { siteImage } from "@/lib/content/imagery";
+import { getActiveTheme } from "@/lib/theme/active";
+import { describeOrderProgress } from "@/lib/shop/order-progress";
 import { SHIPMENT_STATUS_LABEL } from "@/lib/integrations/shiprocket-status";
 import { PayNowButton } from "@/components/shop/PayNowButton";
 import { CancelReturnButton, RequestReturnButton } from "@/components/shop/ReturnRequestControls";
@@ -50,6 +55,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   if (!order) notFound();
 
   const windowDays = await getReturnWindowDays();
+  const progress = describeOrderProgress(order.status);
   const address = (order.delivery_address ?? {}) as Address;
   const byVendor = new Map<string, { name: string; items: typeof order.items }>();
   for (const item of order.items) {
@@ -59,46 +65,29 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-sm text-brand-dark/60">Order</p>
-          <h1 className="font-heading text-3xl text-brand-dark">{order.order_number}</h1>
-        </div>
-        <Badge variant={order.status === "created" || order.status === "payment_initiated" ? "gold" : "primary"}>{STATUS_LABEL[order.status] ?? order.status}</Badge>
-      </div>
-
-      {order.status === "created" || order.status === "payment_initiated" ? (
-        <div className="mt-6 space-y-4 rounded-2xl border border-brand-secondary/40 bg-brand-accent/60 p-4 text-sm text-brand-dark">
-          <p className="flex gap-3">
-            <Clock className="mt-0.5 h-4 w-4 shrink-0 text-brand-secondary-dark" />
-            <span>Your order is saved and the total is locked in. Complete the payment to confirm it — nothing has been charged yet.</span>
-          </p>
+    <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8">
+      <OrderHero
+        orderNumber={order.order_number}
+        placedOn={new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
+        statusLabel={STATUS_LABEL[order.status] ?? order.status}
+        progress={progress}
+        backdrop={siteImage("order-hero", (await getActiveTheme()).id)}
+      >
+        {order.status === "created" || order.status === "payment_initiated" ? (
           <PayNowButton orderId={order.id} total={Number(order.total_amount)} enabled={isRazorpayConfigured()} />
-        </div>
-      ) : null}
+        ) : null}
+      </OrderHero>
 
-      {["confirmed", "processing"].includes(order.status) ? (
-        <div className="mt-6 flex gap-3 rounded-2xl border border-brand-primary/30 bg-brand-primary/5 p-4 text-sm text-brand-dark">
-          <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand-primary" />
-          <p>Payment received — thank you! Each vendor will now prepare and dispatch their part of your order.</p>
-        </div>
-      ) : null}
-
-      {order.status === "cancelled" || order.status === "refunded" ? (
-        <div className="mt-6 flex gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-900">
-          <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-          <p>
-            This order was cancelled. If any payment was taken it is refunded automatically to the original payment method
-            (usually within 5–7 working days).
-          </p>
+      {progress.completed !== null ? (
+        <div className="mx-auto -mt-5 max-w-3xl rounded-card border border-brand-dark/[0.06] bg-brand-surface px-4 py-5 shadow-lift sm:px-8">
+          <OrderStepper completed={progress.completed} />
         </div>
       ) : null}
 
       {byVendor.size > 0 && ["confirmed", "processing", "partially_shipped", "shipped", "partially_delivered", "delivered"].includes(order.status) ? (
         <section aria-labelledby="delivery-heading" className="mt-8">
-          <h2 id="delivery-heading" className="font-heading text-xl text-brand-dark">
-            Delivery
+          <h2 id="delivery-heading" className="font-heading text-2xl text-brand-dark">
+            Where your gifts are
           </h2>
           <div className="mt-3 space-y-3">
             {Array.from(byVendor.entries()).map(([vendorId, group]) => {
@@ -109,7 +98,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               const deliveredAt = shipment?.status === "delivered" ? sorted.find((e) => e.raw_status === "DELIVERED")?.occurred_at : undefined;
               const events = deliveredAt ? sorted.filter((e) => +new Date(e.occurred_at) <= +new Date(deliveredAt)) : sorted;
               return (
-                <div key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
+                <div key={vendorId} className="rounded-card border border-brand-dark/10 bg-brand-surface shadow-card p-4 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="font-heading text-brand-dark">{group.name}</p>
                     <Badge variant={shipment?.status === "delivered" ? "primary" : "gold"}>
@@ -162,7 +151,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
       <div className="mt-8 grid gap-8 md:grid-cols-[1fr_20rem]">
         <div className="space-y-4">
           {Array.from(byVendor.entries()).map(([vendorId, group]) => (
-            <section key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
+            <section key={vendorId} className="rounded-card border border-brand-dark/10 bg-brand-surface shadow-card p-4">
               <h2 className="border-b border-brand-dark/10 pb-2 font-heading text-sm text-brand-dark">{group.name}</h2>
               <ul className="divide-y divide-brand-dark/10">
                 {group.items.map((item) => {
@@ -223,7 +212,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         </div>
 
         <aside className="space-y-4">
-          <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
+          <section className="rounded-card border border-brand-dark/10 bg-brand-surface shadow-card p-4 text-sm">
             <h2 className="font-heading text-base text-brand-dark">Deliver to</h2>
             <p className="mt-2 font-medium text-brand-dark">{address.recipient_name}</p>
             <p className="text-brand-dark/70">{[address.address_line1, address.address_line2, address.landmark].filter(Boolean).join(", ")}</p>
@@ -234,7 +223,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
             {order.gift_message ? <p className="mt-3 text-xs italic text-brand-dark/60">Gift message: “{order.gift_message}”</p> : null}
           </section>
 
-          <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 text-sm">
+          <section className="rounded-card border border-brand-dark/10 bg-brand-surface shadow-card p-4 text-sm">
             <h2 className="font-heading text-base text-brand-dark">Summary</h2>
             <dl className="mt-3 space-y-2">
               <SummaryRow label="Subtotal" value={formatCurrency(Number(order.subtotal))} />

@@ -29,9 +29,39 @@
     "width": 1672,
     "height": 941
   },
+  "logo-gp-light": {
+    "src": "/images/logo-gp-light.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "logo-gp": {
+    "src": "/images/logo-gp.webp",
+    "width": 1254,
+    "height": 1254
+  },
   "mall-map": {
     "src": "/images/mall-map.webp",
     "width": 1312,
     "height": 1199
+  },
+  "robin-flying-gift": {
+    "src": "/images/robin-flying-gift.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "robin-on-gift": {
+    "src": "/images/robin-on-gift.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "robin-peeking": {
+    "src": "/images/robin-peeking.webp",
+    "width": 1370,
+    "height": 1148
+  },
+  "robin-perched": {
+    "src": "/images/robin-perched.webp",
+    "width": 1254,
+    "height": 1254
   }
 }

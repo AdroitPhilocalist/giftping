@@ -71,7 +71,7 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 - Ornaments are SVG in code (`components/ornaments/`, `currentColor`); entrance motion is `components/motion/Reveal.tsx`; everything respects `prefers-reduced-motion`.
 - Chrome: `components/layout/` — AnnouncementBar, Logo (type-based until the real logo file exists), NavLinks (active underline), MobileMenu (Radix dialog), MobileTabBar, TrustStrip, Footer. Main nav lives in `lib/nav.ts`.
 - Artwork: `lib/content/imagery.ts` (`siteImage(key, themeId)`, manifest written by `npm run images:sync` from `ui-references/batch-1/`); until a file exists each component draws its placeholder from `components/art/` (AtriumScene, MallMapArt, ShopfrontArt, DiaryArt, GiftBoxArt, Robin). The mall's nine places live in `lib/mall.ts` (used by `/mall`). Above-the-fold entrances use the CSS `.rise` class; `Reveal` only hides content below the fold.
-- Mascot: a robin (empty states, "Ask GiftPing AI", decorative cards) — artwork comes from ChatGPT prompts in `docs/design/asset-prompts.md`.
+- Mascot: a robin (empty states, "Ask GiftPing AI", decorative cards) — `<Robin pose="perched|flying-gift|on-gift|peeking">` shows the client's art and falls back to a drawing; the logo (`Logo`) does the same. Slots for occasion banners (`world-<slug>`), default boutique fronts (`shopfront-*`), `diary-desk` and `order-hero` exist too. All artwork comes from ChatGPT prompts in `docs/design/asset-prompts.md`; business facts pages state live in `lib/site.ts` (`legalReviewed` must be flipped only after legal review).
 
 ## Stack decisions (deviations from the SRS, made deliberately — see plan doc for full reasoning)
 

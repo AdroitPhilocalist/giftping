@@ -1,10 +1,22 @@
+import Image from "next/image";
+import { siteImage } from "@/lib/content/imagery";
 import { cn } from "@/lib/utils/cn";
 
+export type RobinPose = "perched" | "flying-gift" | "on-gift" | "peeking";
+
+/** True once the client's illustration of this pose exists (so a caller can drop the drawn gift box it would otherwise sit beside). */
+export const hasRobinArt = (pose: RobinPose) => siteImage(`robin-${pose}`) !== null;
+
 /**
- * The GiftPing robin, drawn in code — a friendly placeholder until the client's illustrated mascot exists (then lib/content/imagery.ts serves the real one).
- * Colours are theme tokens, so the robin's breast follows the accent colour and a festival theme can dress it.
+ * The GiftPing robin. Shows the client's illustrated mascot in the requested pose (robin-perched / -flying-gift / -on-gift / -peeking in lib/content/imagery.ts)
+ * and falls back to a code-drawn robin until that pose is delivered — the drawing's colours are theme tokens, so it follows a festival theme.
+ * Usage: perched = default; flying-gift = something is on its way; on-gift = celebrating; peeking = empty states.
  */
-export function Robin({ className, title = "The GiftPing robin" }: { className?: string; title?: string }) {
+export function Robin({ className, title = "The GiftPing robin", pose = "perched" }: { className?: string; title?: string; pose?: RobinPose }) {
+  const img = siteImage(`robin-${pose}`);
+  if (img) {
+    return <Image src={img.src} alt={title} width={img.width} height={img.height} sizes="240px" className={cn("h-auto w-full", className)} />;
+  }
   return (
     <svg viewBox="0 0 200 190" className={cn("h-auto w-full", className)} role="img" aria-label={title}>
       {/* twig + leaves */}

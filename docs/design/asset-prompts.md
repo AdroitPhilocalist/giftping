@@ -48,6 +48,57 @@ Don't ask ChatGPT for exact pixel sizes — it only makes **square**, **landscap
 
 The homepage, the mall directory page (with numbered clickable hotspots I place over picture 3), the boutique page shell and the cards — all working with tasteful placeholders — so your pictures drop in without changing any code. Picture 1 is the one that changes the feel most; if you can only make one batch first, make **1, 3 and 5**.
 
-## Batch 2 (later, once Batch 1 looks right)
+## Batch 1 — status (updated 21 Sep)
 
-Occasion "worlds" (Birthday, Anniversary, Wedding, Corporate), three default boutique shopfronts (perfume, jewellery, florist) for vendors who haven't uploaded a banner, order-tracking "surprise" hero, diary desk scene, and the festival kits (Christmas first) — each festival is ~6 pictures in one shared style.
+Received and live on the site: `hero-atrium`, `hero-atrium-mobile`, `mall-map`, `card-collections`, `card-boutiques`, `card-diary`, `card-services`.
+Still missing from Batch 1 (the site draws a placeholder until they arrive): `robin-perched`, `robin-flying-gift`, `robin-on-gift`, `robin-peeking`, `logo-gp`, `logo-gp-light`, `wrap-*` (5), `rel-*` (5).
+
+---
+
+# Batch 2 — pages built since Batch 1
+
+Same rules as Batch 1: use the same ChatGPT conversation (the STYLE LINE is already in it), pick landscape/portrait/square as stated, no text or logos in any picture, save as PNG with the file name shown into `ui-references/batch-1/`. **Priority order is the order below** — 1 to 4 change the look of pages people visit most.
+
+**Where each one appears** (so you can judge if it fits): a "world" picture is the right-hand side of an occasion page's header, fading into the cream page on its left — so keep the *left third calm and darker/softer*, with the interesting parts in the middle and right.
+
+**9 · `world-birthday.png`** · **landscape**
+> A joyful, warm birthday celebration scene with no people: a long table with a tiered cake with lit candles, brass-and-copper balloons and blush-pink balloons, wrapped gifts with satin ribbons, confetti, dried flowers, soft golden-hour bokeh lights. The LEFT THIRD of the image is calmer and softer (out of focus, empty warm wall). Wide composition.
+
+**10 · `world-anniversary.png`** · **landscape**
+> A romantic anniversary table for two seen at golden hour: candlelight, two glasses, a bouquet of roses and ranunculus, a small wrapped gift with a satin ribbon, handwritten-card shapes with no writing, fairy lights and soft bokeh, deep green and copper tones. LEFT THIRD calmer and softer. Wide composition.
+
+**11 · `world-wedding.png`** · **landscape**
+> A grand Indian wedding gifting scene with no people: a marigold and rose floral arch, brass urns and diyas, silk saree fabric in deep green and gold, a beautifully wrapped trousseau gift box with a copper ribbon, warm golden light and bokeh. LEFT THIRD calmer and softer. Wide composition.
+
+**12 · `world-corporate-gifting.png`** · **landscape**
+> A refined corporate gifting scene with no people: an executive wooden desk with a premium dark-green gift box with copper ribbon, a leather notebook, a brass pen, a small plant and a warm desk lamp, soft window light, understated and elegant. LEFT THIRD calmer and softer. Wide composition.
+
+**13 · `world-for-her.png`** and **14 · `world-for-him.png`** · **landscape** each
+> (a) A soft, elegant arrangement of gifts for a woman: perfume bottles, a silk scarf, a jewellery box, blush roses and dried flowers on cream marble, warm side light.
+> (b) A refined arrangement of gifts for a man: a leather wallet, a watch, a cologne bottle, a leather-bound notebook and a brass pen on dark polished wood, warm side light.
+> Both: LEFT THIRD calmer and softer.
+
+**15 · `shopfront-perfume.png`, `shopfront-jewellery.png`, `shopfront-florist.png` — default boutique fronts** · **landscape** each · used for boutiques that haven't uploaded their own banner, so they must look good with NO name on them
+> (a) The glowing front of a luxury perfume boutique at dusk: arched glass door and windows, shelves of amber perfume bottles lit from within, brass fittings, dark green walls, a small potted olive tree by the door.
+> (b) The glowing front of a fine jewellery boutique at dusk: arched windows with velvet displays of gold necklaces and rings, warm spotlights, cream marble and brass trim, dark green door.
+> (c) The glowing front of a flower boutique at dusk: buckets and shelves of roses, peonies and dried flowers spilling out onto the pavement, hanging plants, a striped copper-and-green awning (no lettering), warm interior light.
+> All three: no signs with writing; the door centred; the top edge has a little empty space above the roofline.
+
+**16 · `diary-desk.png` — the Personal Gifting Diary header** · **landscape**
+> A beautiful writer's desk at golden hour, seen slightly from above: a cream leather diary open with blank pages and a satin ribbon bookmark, a brass fountain pen, a small bouquet of dried flowers, a vintage brass desk lamp glowing, a cup of tea, a wrapped gift with a copper ribbon at the edge, a window with soft bokeh lights behind. Pages must be blank. LEFT THIRD calmer and softer.
+
+**17 · `order-hero.png` — the order-tracking header** · **landscape**
+> A magical "your gift is on its way" scene with no people: a small wrapped gift with a copper satin ribbon resting on a cream doorstep at dusk, a warm porch lantern glowing, a paper-and-brass delivery scooter or bicycle blurred in the background, fairy lights, gentle bokeh, cosy and anticipatory. LEFT THIRD calmer and softer.
+
+## What each new picture unlocks
+
+| File | Where it appears | Until it arrives |
+|---|---|---|
+| `world-<category>.png` (slugs: birthday, anniversary, wedding, corporate-gifting, for-her, for-him) | header of that occasion page | drawn robin + gift boxes |
+| `shopfront-perfume/jewellery/florist.png` | boutiques with no banner of their own (picked steadily per boutique) | drawn shopfront |
+| `diary-desk.png` | Personal Gifting Diary header | drawn robin + gift |
+| `order-hero.png` | top of every order tracking page | drawn robin + gift |
+
+## Batch 3 (later — festive kit, only when the client asks)
+
+Each festival is ~6 pictures in one shared style, stored under `ui-references/batch-1/<festival-name>/` with the SAME file names as the native set (`hero-atrium.png`, `hero-atrium-mobile.png`, `mall-map.png`, `card-*.png`…). I map them automatically — no code change. Christmas first: the same atrium and map, redone with fir garlands, red-and-gold ribbons, snow at the skylight, a lit tree on the central platform.

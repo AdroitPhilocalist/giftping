@@ -1,0 +1,15 @@
+# Stage 12 (slice 4) — order tracking, diary desk, content pages, robin + logo
+
+## Built
+- **Order tracking** (`app/(shop)/orders/[id]`): a hero that says in one line where the gift is ("Your surprise is on its way"), a five-step progress bar (Placed → Confirmed → Packed → On the way → Delivered), then the existing per-boutique parcel cards and the return/refund controls (unchanged behaviour). The wording and step logic live in `lib/shop/order-progress.ts` (pure, tested); `components/orders/OrderHero.tsx` + `OrderStepper.tsx`. Pay-now sits inside the hero for unpaid orders. Cancelled orders get a calm red banner and no progress bar.
+- **Diary desk** (`app/(shop)/diary`): "Priya's Gifting Diary" header with today's date, "coming up" moments as date leaves on ruled paper (`.paper` class, token-driven), robin-peeking empty state. `lib/diary/format.ts` gained `weekdayName`/`deskDate` (UTC maths, tested).
+- **Content pages** that the footer/nav already linked to but 404'd: About, Contact, Privacy, Terms, Refunds. `lib/site.ts` holds business facts (support email/phone from `NEXT_PUBLIC_SUPPORT_EMAIL/PHONE`, else the page says details are coming — nothing invented). The three legal pages are plain-language drafts written from what the system really does (refund rules match `lib/commerce/refunds.ts`: delivery/gift-wrap only come back on a whole-order cancel before shipping; the return window and charges are read from `platform_settings`). They show a visible "Draft" notice until `SITE.legalReviewed` is set to true — **must be reviewed by the client's advisers before go-live.**
+- **Artwork slots** (all optional, all fall back to drawn art): `world-<category-slug>` (occasion page banner, via `HeroBackdrop`), `shopfront-perfume|jewellery|florist` (default boutique fronts, stable per vendor via `defaultShopfrontImage`), `diary-desk`, `order-hero`. Prompts for all of them are in `docs/design/asset-prompts.md` (Batch 2).
+- **Client artwork now live**: the four robin poses (real transparent PNGs → `Robin` takes a `pose` prop: perched / flying-gift / on-gift / peeking, with `hasRobinArt()` so callers drop the drawn gift box it would sit beside) and the logo (`Logo` uses logo-gp / logo-gp-light, falls back to the type mark).
+- Fixed: `imagery.test.ts` assumed no artwork existed; now independent of what has been delivered. `VendorCard` is an async server component (reads the active theme).
+
+## Verified
+tsc, eslint, vitest (237), `next build`. Browser: About, Refund Policy (draft notice, live return window), homepage with the real robin/logo/cards/footer, category-page backdrop mechanism (with a temporary test image, removed). **NOT verified in a browser: the order-tracking page and diary desk** — they need a signed-in session, and signing in means typing a password, which I don't do; please open them once while signed in as the test customer (an order in any state, and /diary).
+
+## Open questions for the client
+Support email + phone; confirm return window/wording in the Refund Policy (7 days now); whether personalised items are returnable; legal review of Privacy/Terms/Refunds.
