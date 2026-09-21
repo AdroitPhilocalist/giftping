@@ -65,7 +65,7 @@ export function AddressForm({
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-light p-4">
+    <form onSubmit={onSubmit} noValidate className="space-y-4 rounded-card border border-brand-dark/10 bg-brand-light p-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="recipientName">Recipient&apos;s name</Label>

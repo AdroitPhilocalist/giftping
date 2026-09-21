@@ -38,8 +38,8 @@ export function CartLineItem({ line }: { line: CartLine }) {
 
   return (
     <li className={cn("flex gap-4 py-5", isPending && "opacity-60")}>
-      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-brand-dark/10">
-        <ProductImage src={line.imageUrl} alt={line.name} className="h-full w-full" sizes="96px" />
+      <div className="h-24 w-24 shrink-0 overflow-hidden rounded-button border border-brand-dark/10 shadow-sm sm:h-28 sm:w-28">
+        <ProductImage src={line.imageUrl} alt={line.name} className="h-full w-full" sizes="112px" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -84,13 +84,13 @@ export function CartLineItem({ line }: { line: CartLine }) {
 
         <div className="mt-3 flex items-center justify-between">
           {purchasable ? (
-            <div className="flex items-center rounded-full border border-brand-dark/15">
+            <div className="flex items-center rounded-full border border-brand-dark/15 bg-brand-surface">
               <button
                 type="button"
                 aria-label="Decrease quantity"
                 disabled={isPending || line.quantity <= 1}
                 onClick={() => change(line.quantity - 1)}
-                className="px-3 py-1.5 text-brand-dark/70 disabled:opacity-30"
+                className="rounded-full px-3 py-2 text-brand-dark/70 transition-colors hover:text-brand-dark disabled:opacity-30"
               >
                 <Minus className="h-3.5 w-3.5" />
               </button>
@@ -102,7 +102,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
                 aria-label="Increase quantity"
                 disabled={isPending || line.quantity >= line.maxQuantity}
                 onClick={() => change(line.quantity + 1)}
-                className="px-3 py-1.5 text-brand-dark/70 disabled:opacity-30"
+                className="rounded-full px-3 py-2 text-brand-dark/70 transition-colors hover:text-brand-dark disabled:opacity-30"
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>

@@ -1,42 +1,63 @@
 import Link from "next/link";
-import { ShoppingBag, Store } from "lucide-react";
+import { Store } from "lucide-react";
+import { Robin } from "@/components/art/Robin";
+import { BuyAssurances } from "@/components/shop/BuyAssurances";
+import { CheckoutSteps } from "@/components/shop/CheckoutSteps";
+import { FreeDeliveryNudge } from "@/components/shop/FreeDeliveryNudge";
 import { CartLineItem } from "@/components/shop/CartLineItem";
 import { GuestCartMerger } from "@/components/shop/GuestCartMerger";
 import { Button } from "@/components/ui/Button";
 import { getCartView, hasUnmergedGuestCart } from "@/lib/commerce/cart";
+import { getCommerceSettings } from "@/lib/commerce/settings";
+import { getReturnWindowDays } from "@/lib/commerce/returns";
 import { formatCurrency } from "@/lib/utils/format";
 
 export const metadata = { title: "Your Cart — GiftPing" };
 
 export default async function CartPage() {
-  const [cart, needsMerge] = await Promise.all([getCartView(), hasUnmergedGuestCart()]);
+  const [cart, needsMerge, settings, returnDays] = await Promise.all([getCartView(), hasUnmergedGuestCart(), getCommerceSettings(), getReturnWindowDays()]);
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       {needsMerge ? <GuestCartMerger /> : null}
-      <h1 className="font-heading text-3xl text-brand-dark">Your Cart</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-secondary-dark">Your basket</p>
+          <h1 className="mt-2 font-heading text-4xl text-brand-dark">
+            Your <span className="accent-word">Cart</span>
+            {cart.itemCount > 0 ? <span className="ml-3 align-middle text-base font-sans text-brand-dark/50">{cart.itemCount} {cart.itemCount === 1 ? "item" : "items"}</span> : null}
+          </h1>
+        </div>
+        {cart.groups.length > 0 ? <CheckoutSteps current={0} /> : null}
+      </div>
 
       {cart.groups.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-brand-dark/15 p-16 text-center">
-          <ShoppingBag className="h-10 w-10 text-brand-dark/20" />
-          <p className="text-brand-dark/60">Your cart is empty — let&apos;s find someone a gift.</p>
-          <Button asChild>
-            <Link href="/">Explore the Mall</Link>
-          </Button>
+        <div className="mt-10 flex flex-col items-center gap-3 rounded-card border border-brand-secondary/20 bg-gradient-to-b from-brand-accent/60 to-brand-surface p-10 text-center shadow-card sm:p-16">
+          <Robin pose="peeking" className="w-40" title="The GiftPing robin, peeking into an empty cart" />
+          <h2 className="font-heading text-2xl text-brand-dark">Your cart is empty</h2>
+          <p className="max-w-sm text-brand-dark/65">Nothing here yet — let&apos;s find someone a gift they&apos;ll remember.</p>
+          <div className="mt-2 flex flex-wrap justify-center gap-3">
+            <Button size="lg" asChild>
+              <Link href="/mall">Explore the Mall</Link>
+            </Button>
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/categories">Shop by occasion</Link>
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem]">
           <div className="space-y-6">
             {cart.groups.map((group) => (
-              <section key={group.vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-5">
+              <section key={group.vendorId} className="rounded-card border border-brand-dark/[0.06] bg-brand-surface p-5 shadow-card">
                 <header className="flex items-center gap-2 border-b border-brand-dark/10 pb-3">
-                  <Store className="h-4 w-4 text-brand-secondary-dark" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-accent text-brand-secondary-dark"><Store className="h-4 w-4" aria-hidden="true" /></span>
                   {group.vendorSlug ? (
-                    <Link href={`/vendors/${group.vendorSlug}`} className="font-heading text-sm text-brand-dark hover:underline">
+                    <Link href={`/vendors/${group.vendorSlug}`} className="font-heading text-base text-brand-dark hover:underline">
                       {group.vendorName}
                     </Link>
                   ) : (
-                    <span className="font-heading text-sm text-brand-dark/60">{group.vendorName}</span>
+                    <span className="font-heading text-base text-brand-dark/60">{group.vendorName}</span>
                   )}
                 </header>
                 <ul className="divide-y divide-brand-dark/10">
@@ -44,17 +65,20 @@ export default async function CartPage() {
                     <CartLineItem key={line.id} line={line} />
                   ))}
                 </ul>
-                <footer className="flex justify-between border-t border-brand-dark/10 pt-3 text-sm">
-                  <span className="text-brand-dark/60">Subtotal from {group.vendorName}</span>
-                  <span className="font-medium text-brand-dark">{formatCurrency(group.subtotal)}</span>
+                <footer className="space-y-3 border-t border-brand-dark/10 pt-3 text-sm">
+                  <FreeDeliveryNudge subtotal={group.subtotal} threshold={settings.freeDeliveryThreshold} boutique={group.vendorName} />
+                  <div className="flex justify-between">
+                    <span className="text-brand-dark/60">Subtotal from {group.vendorName}</span>
+                    <span className="font-medium text-brand-dark">{formatCurrency(group.subtotal)}</span>
+                  </div>
                 </footer>
               </section>
             ))}
           </div>
 
-          <aside className="h-fit rounded-2xl border border-brand-dark/10 bg-brand-surface p-5 lg:sticky lg:top-32">
-            <h2 className="font-heading text-lg text-brand-dark">Order Summary</h2>
-            <dl className="mt-4 space-y-2 text-sm">
+          <aside className="h-fit space-y-4 rounded-card border border-brand-dark/[0.06] bg-brand-surface p-6 shadow-lift lg:sticky lg:top-32">
+            <h2 className="font-heading text-xl text-brand-dark">Order summary</h2>
+            <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-brand-dark/60">
                   Subtotal ({cart.itemCount} {cart.itemCount === 1 ? "item" : "items"})
@@ -67,22 +91,21 @@ export default async function CartPage() {
               </div>
             </dl>
             {cart.hasIssues ? (
-              <p className="mt-4 rounded-lg bg-red-50 p-3 text-xs text-red-800">
+              <p className="rounded-lg bg-red-50 p-3 text-xs text-red-800">
                 Some items need your attention before you can check out.
               </p>
             ) : null}
             {cart.hasIssues ? (
-              <Button className="mt-5 w-full" disabled>
+              <Button size="lg" className="w-full" disabled>
                 Proceed to checkout
               </Button>
             ) : (
-              <Button className="mt-5 w-full" asChild>
+              <Button size="lg" className="w-full" asChild>
                 <Link href="/checkout">Proceed to checkout</Link>
               </Button>
             )}
-            <p className="mt-2 text-center text-xs text-brand-dark/50">
-              Final prices are confirmed at checkout.
-            </p>
+            <p className="text-center text-xs text-brand-dark/50">Delivery and coupons are worked out at checkout; final prices are always confirmed by us.</p>
+            <BuyAssurances returnDays={returnDays} />
           </aside>
         </div>
       )}

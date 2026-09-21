@@ -63,5 +63,15 @@
     "src": "/images/robin-perched.webp",
     "width": 1254,
     "height": 1254
+  },
+  "wrap-blush": {
+    "src": "/images/wrap-blush.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "wrap-green": {
+    "src": "/images/wrap-green.webp",
+    "width": 1254,
+    "height": 1254
   }
 }

@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Gift, Tag, X } from "lucide-react";
 import { AddressBook } from "@/components/shop/AddressBook";
+import { BuyAssurances } from "@/components/shop/BuyAssurances";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
@@ -34,6 +35,7 @@ export function CheckoutForm({
   quote,
   giftWrapCharge,
   freeDeliveryThreshold,
+  returnDays,
   idempotencyKey,
   blocked,
   itemsSlot,
@@ -42,6 +44,7 @@ export function CheckoutForm({
   quote: CheckoutQuoteView;
   giftWrapCharge: number;
   freeDeliveryThreshold: number;
+  returnDays: number;
   idempotencyKey: string;
   blocked: string | null;
   itemsSlot: ReactNode;
@@ -122,8 +125,8 @@ export function CheckoutForm({
     <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_24rem]">
       <div className="space-y-8">
         <section aria-labelledby="delivery-heading">
-          <h2 id="delivery-heading" className="font-heading text-xl text-brand-dark">
-            1. Delivery address
+          <h2 id="delivery-heading" className="flex items-center gap-3 font-heading text-2xl text-brand-dark">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-secondary font-sans text-sm font-semibold text-brand-on-secondary">1</span>Delivery address
           </h2>
           <div className="mt-3">
             <AddressBook addresses={addresses} selectedId={selectedId} onSelect={setSelectedId} />
@@ -141,11 +144,11 @@ export function CheckoutForm({
         </section>
 
         <section aria-labelledby="gift-heading">
-          <h2 id="gift-heading" className="font-heading text-xl text-brand-dark">
-            2. Make it a gift
+          <h2 id="gift-heading" className="flex items-center gap-3 font-heading text-2xl text-brand-dark">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-secondary font-sans text-sm font-semibold text-brand-on-secondary">2</span>Make it a gift
           </h2>
-          <div className="mt-3 space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
-            <label className="flex items-start gap-3 text-sm">
+          <div className="mt-4 space-y-5 rounded-card border border-brand-secondary/25 bg-brand-accent/40 p-5">
+            <label className={`flex cursor-pointer items-start gap-3 rounded-button border bg-brand-surface p-4 text-sm transition-all duration-300 ${giftWrap ? "border-brand-secondary shadow-card" : "border-brand-dark/10 hover:border-brand-secondary/50"}`}>
               <input
                 type="checkbox"
                 checked={giftWrap}
@@ -161,9 +164,12 @@ export function CheckoutForm({
               </span>
             </label>
             <div>
-              <label htmlFor="giftMessage" className="mb-1 block text-sm font-medium text-brand-dark">
-                Gift message (optional)
-              </label>
+              <div className="mb-1 flex items-end justify-between">
+                <label htmlFor="giftMessage" className="text-sm font-medium text-brand-dark">
+                  Gift message (optional)
+                </label>
+                <span className="text-xs text-brand-dark/50" aria-live="polite">{giftMessage.length}/250</span>
+              </div>
               <Textarea
                 id="giftMessage"
                 maxLength={250}
@@ -176,18 +182,18 @@ export function CheckoutForm({
         </section>
 
         <section aria-labelledby="items-heading">
-          <h2 id="items-heading" className="font-heading text-xl text-brand-dark">
-            3. Review items
+          <h2 id="items-heading" className="flex items-center gap-3 font-heading text-2xl text-brand-dark">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-secondary font-sans text-sm font-semibold text-brand-on-secondary">3</span>Review items
           </h2>
           <div className="mt-3">{itemsSlot}</div>
         </section>
       </div>
 
-      <aside className="h-fit space-y-4 rounded-2xl border border-brand-dark/10 bg-brand-surface p-5 lg:sticky lg:top-32">
-        <h2 className="font-heading text-lg text-brand-dark">Order Summary</h2>
+      <aside className="h-fit space-y-4 rounded-card border border-brand-dark/[0.06] bg-brand-surface p-6 shadow-lift lg:sticky lg:top-32">
+        <h2 className="font-heading text-xl text-brand-dark">Order summary</h2>
 
         {quote.couponCode ? (
-          <div className="flex items-center justify-between rounded-lg bg-brand-primary/5 px-3 py-2 text-sm">
+          <div className="flex items-center justify-between rounded-button bg-brand-primary/5 px-3 py-2 text-sm">
             <span className="flex items-center gap-2 text-brand-primary">
               <Tag className="h-4 w-4" />
               <span className="font-medium">{quote.couponCode}</span>
@@ -235,10 +241,11 @@ export function CheckoutForm({
         {error ? <p className="rounded-lg bg-red-50 p-3 text-xs text-red-800">{error}</p> : null}
         {!selectedId && !blocked ? <p className="text-xs text-brand-dark/60">Add a delivery address to continue.</p> : null}
 
-        <Button className="w-full" disabled={!canPlace} onClick={placeOrder}>
+        <Button size="lg" className="w-full" disabled={!canPlace} onClick={placeOrder}>
           {isPending ? "Placing your order…" : "Continue to payment"}
         </Button>
-        <p className="text-center text-xs text-brand-dark/50">Final amounts are confirmed by us when you place the order.</p>
+        <p className="text-center text-xs text-brand-dark/50">You won&apos;t be charged yet — you pay on the next step, and final amounts are confirmed by us.</p>
+        <BuyAssurances returnDays={returnDays} />
       </aside>
     </div>
   );

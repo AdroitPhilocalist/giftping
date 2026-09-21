@@ -3,9 +3,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Store } from "lucide-react";
 import { CheckoutForm } from "@/components/shop/CheckoutForm";
+import { CheckoutSteps } from "@/components/shop/CheckoutSteps";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { getServerUser } from "@/lib/auth/session";
 import { loadCheckoutSnapshot, quoteFor } from "@/lib/commerce/checkout";
+import { getReturnWindowDays } from "@/lib/commerce/returns";
 import { getAddresses } from "@/lib/db/addresses";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -15,7 +17,7 @@ export default async function CheckoutPage() {
   const user = await getServerUser();
   if (!user) redirect("/sign-in?redirectTo=/checkout"); // proxy.ts normally gets there first
 
-  const [snapshot, addresses] = await Promise.all([loadCheckoutSnapshot(user.id), getAddresses(user.id)]);
+  const [snapshot, addresses, returnDays] = await Promise.all([loadCheckoutSnapshot(user.id), getAddresses(user.id), getReturnWindowDays()]);
   if (!snapshot) redirect("/cart");
 
   const quote = quoteFor(snapshot, false);
@@ -36,10 +38,10 @@ export default async function CheckoutPage() {
   const items = (
     <div className="space-y-4">
       {Array.from(groups.entries()).map(([vendorId, group]) => (
-        <div key={vendorId} className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
+        <div key={vendorId} className="rounded-card border border-brand-dark/[0.06] bg-brand-surface p-4 shadow-card">
           <div className="flex items-center justify-between border-b border-brand-dark/10 pb-2 text-sm">
             <span className="flex items-center gap-2 font-heading text-brand-dark">
-              <Store className="h-4 w-4 text-brand-secondary-dark" />
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-accent text-brand-secondary-dark"><Store className="h-3.5 w-3.5" aria-hidden="true" /></span>
               {group.vendorName}
             </span>
             <span className="text-xs text-brand-dark/60">
@@ -52,7 +54,7 @@ export default async function CheckoutPage() {
               const { recipientName, giftMessage, occasion } = line.personalization;
               return (
                 <li key={line.key} className="flex gap-3 py-3 text-sm">
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-dark/10">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-button border border-brand-dark/10">
                     <ProductImage src={line.imageUrl} alt={line.name} className="h-full w-full" sizes="64px" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -83,8 +85,14 @@ export default async function CheckoutPage() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <h1 className="font-heading text-3xl text-brand-dark">Checkout</h1>
+    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-secondary-dark">Almost there</p>
+          <h1 className="mt-2 font-heading text-4xl text-brand-dark">Check<span className="accent-word">out</span></h1>
+        </div>
+        <CheckoutSteps current={1} />
+      </div>
       <CheckoutForm
         addresses={addresses}
         quote={{
@@ -100,6 +108,7 @@ export default async function CheckoutPage() {
         giftWrapCharge={snapshot.settings.giftWrapCharge}
         freeDeliveryThreshold={snapshot.settings.freeDeliveryThreshold}
         idempotencyKey={randomUUID()}
+        returnDays={returnDays}
         blocked={blocked ?? quote.couponError}
         itemsSlot={items}
       />
