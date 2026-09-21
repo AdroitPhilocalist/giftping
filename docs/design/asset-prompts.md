@@ -10,34 +10,38 @@
 
 > Style for every image in this project: a warm, premium, cinematic gifting-mall aesthetic. Golden-hour amber and honey lighting, deep forest green, brushed brass and copper accents, cream and ivory marble, soft bokeh fairy lights, fresh flowers (roses, ranunculus, dried florals), satin ribbons. Refined, luxurious, emotional, photorealistic, shallow depth of field, gentle film grain. Subtle Indian craftsmanship where it fits naturally (brass diyas, jaali lattice screens, marigold accents). ABSOLUTELY NO text, letters, numbers, logos, signs with writing, or watermarks anywhere in any image. No people's faces unless I say so.
 
+## About sizes
+
+Don't ask ChatGPT for exact pixel sizes — it only makes **square**, **landscape** or **portrait** (about 1024–1536px on the long side) and ignores custom numbers. Just say which shape. I crop, resize and optimise everything myself. Bigger is fine; the file name matters more than the size.
+
 ## The pictures
 
-**1 · `hero-atrium.png` — homepage hero (most important)** · 21:9 wide (3200×1370) · goes behind the headline
+**1 · `hero-atrium.png` — homepage hero (most important)** · **landscape** · goes behind the headline (I crop it a little wider than 3:2, so keep the important parts — skylight, hanging gifts, the platform — in the middle and leave extra room at the top and bottom edges)
 > A grand, warm-lit luxury gifting mall atrium seen from the ground floor entrance: a circular glass skylight ceiling, two floors of curved balconies with hanging green plants and thousands of tiny warm fairy lights, large gift boxes wrapped in copper satin ribbons hanging from the ceiling at different heights, a central round marble platform piled with beautifully wrapped gifts and flowers, boutique shopfronts with glowing amber windows on both sides, polished cream marble floor with warm reflections. The LEFT THIRD of the image must be calmer and darker (soft shadow, fewer details) because a headline will sit there. Wide cinematic composition.
 
-**2 · `hero-atrium-mobile.png` — same scene for phones** · 4:5 portrait (1200×1500)
+**2 · `hero-atrium-mobile.png` — same scene for phones** · **portrait**
 > The same warm-lit gifting mall atrium as a tall portrait composition: hanging gift boxes and glowing skylight in the top half, the central platform of gifts and flowers in the middle, soft darkness at the bottom where text will sit.
 
-**3 · `mall-map.png` — the mall directory illustration** · 1:1 (2400×2400) on a plain cream background
+**3 · `mall-map.png` — the mall directory illustration** · **square** · on a plain cream background
 > An isometric, top-down miniature illustration of a luxury gifting mall floor plan, like a beautiful architectural model: a rounded rectangular building cut open to show the inside, nine distinct zones — a grand entrance with wide stairs at the bottom (a round medallion on the floor), eight shop interiors arranged around a ring-shaped promenade (each with warm amber lighting and a different display: hampers, flowers, jewellery, handmade crafts, books, chocolates, experiences, a birthday party room), and in the centre a circular garden with trees around a round fountain. Cream and ivory walls, warm wooden floors, small trees, glowing shop lights. Soft shadows, clean edges, cream background. No numbers and no text anywhere — I will add markers myself.
 
-**4 · `card-collections.png`, `card-boutiques.png`, `card-diary.png`, `card-services.png` — four homepage cards** · 4:3 (1200×900) each
+**4 · `card-collections.png`, `card-boutiques.png`, `card-diary.png`, `card-services.png` — four homepage cards** · **landscape** each
 > (a) A dark green gift box with a wide copper satin ribbon on a warm wooden surface, dried flowers around it, warm side light.
 > (b) The interior of a luxury boutique: dark wood shelves lit from within, displaying candles, perfumes and small gifts, amber glow, seen from the doorway.
 > (c) An open cream-coloured leather diary with a brass pen and a sprig of dried flowers on a wooden desk, warm morning light, pages blank.
 > (d) Hands gently tying a satin ribbon on a kraft-wrapped gift with a dried flower sprig tucked into the bow, warm light, close-up.
 
-**5 · `robin-perched.png` — the mascot** · transparent background · 1:1 (1600×1600)
+**5 · `robin-perched.png` — the mascot** · **square** · transparent background if it can, otherwise a plain flat white background
 > A friendly, elegant illustration of a European robin (orange-red breast) perched on a small green sprig, gentle watercolour-meets-digital style with soft shading, warm and charming, facing slightly to the left. Transparent background (or plain white so I can cut it out).
 > Then ask for the same robin in 3 more poses, each as its own image: `robin-flying-gift.png` (flying with a tiny wrapped gift in its beak), `robin-on-gift.png` (sitting on top of a green gift box with a copper ribbon), `robin-peeking.png` (peeking over the edge, curious).
 
-**6 · `logo-gp.png` — monogram** · transparent · 1:1 (2000×2000)
+**6 · `logo-gp.png` — monogram** · **square** · transparent background if it can, otherwise plain flat white
 > A refined monogram logo: the letters "G" and "p" intertwined in an elegant high-contrast serif, deep forest green with the "p" in copper, a small robin perched on top of the G. Flat vector-style, clean, transparent background. Also make a version in cream/white for dark backgrounds: `logo-gp-light.png`.
 
-**7 · `wrap-green.png`, `wrap-blush.png`, `wrap-blue.png`, `wrap-gold.png`, `wrap-ivory.png` — wrapping-style swatches** · transparent · 1:1 (800×800) each
+**7 · `wrap-green.png`, `wrap-blush.png`, `wrap-blue.png`, `wrap-gold.png`, `wrap-ivory.png` — wrapping-style swatches** · **square** each · transparent background if it can, otherwise plain flat white
 > A single gift box with a satin ribbon bow, front view, soft studio shadow, transparent background. Five colourways: classic forest green box with copper ribbon; blush pink box with rose-gold ribbon; royal blue box with gold ribbon; premium gold box with cream ribbon; ivory box with sage-green ribbon.
 
-**8 · `rel-parents.png`, `rel-partner.png`, `rel-friends.png`, `rel-colleagues.png`, `rel-kids.png` — "Shop by relationship"** · 1:1 (900×900) · *faces allowed for these*
+**8 · `rel-parents.png`, `rel-partner.png`, `rel-friends.png`, `rel-colleagues.png`, `rel-kids.png` — "Shop by relationship"** · **square** · *faces allowed for these*
 > Warm, candid, golden-hour portraits of Indian people, natural and joyful, not stock-photo stiff: (a) an elderly couple smiling together; (b) a young couple laughing, the woman in a saree; (c) four young women friends laughing together; (d) two colleagues in smart-casual clothes sharing a coffee and a small gift; (e) a small child hugging a large teddy bear.
 
 ## What I'll build meanwhile
