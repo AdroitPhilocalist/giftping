@@ -40,13 +40,13 @@ export function MallDirectory({ image }: { image: { src: string; width: number; 
   const current = MALL_ZONES.find((z) => z.id === active);
 
   return (
-    <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)_minmax(0,1fr)] lg:gap-6">
+    <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-6">
       {/* the map */}
       <div className="order-first lg:order-none lg:col-start-2">
-        <div className="relative mx-auto w-full max-w-[34rem]">
+        <div className="relative mx-auto w-full max-w-[38rem]">
           <div className={cn("relative", image ? "" : "aspect-[600/640]")}>
             {image ? (
-              <Image src={image.src} alt="Illustrated floor plan of the GiftPing mall" width={image.width} height={image.height} priority sizes="(min-width: 1024px) 40vw, 90vw" className="h-auto w-full" />
+              <Image src={image.src} alt="Illustrated floor plan of the GiftPing mall" width={image.width} height={image.height} priority sizes="(min-width: 1024px) 40vw, 90vw" className="soft-edges h-auto w-full" />
             ) : (
               <MallMapArt activeId={active} className="absolute inset-0 h-full w-full" />
             )}

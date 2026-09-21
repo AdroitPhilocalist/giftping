@@ -2,7 +2,9 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, Zap } from "lucide-react";
+import { Cake, Gift, Heart, HeartHandshake, Minus, Plus, ShoppingBag, Sparkles, Zap } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { DeliveryChecker } from "@/components/shop/DeliveryChecker";
 import { Button } from "@/components/ui/Button";
 import { Textarea, Input, Label } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
@@ -21,6 +23,7 @@ export interface ProductVariant {
   is_active: boolean;
 }
 
+const OCCASION_ICONS: Record<string, LucideIcon> = { Birthday: Cake, Anniversary: Heart, "Thank You": HeartHandshake, Other: Sparkles };
 
 export function ProductBuyBox({
   productId,
@@ -97,20 +100,27 @@ export function ProductBuyBox({
     });
   }
 
+  const discountPercent = salePrice !== null && salePrice < basePrice ? Math.round(((basePrice - salePrice) / basePrice) * 100) : 0;
+
   return (
-    <div className="space-y-5">
-      <div className="flex items-baseline gap-2">
-        <span className="font-heading text-3xl text-brand-dark">{formatCurrency(activePrice)}</span>
-        {salePrice !== null && salePrice < basePrice ? (
-          <span className="text-brand-dark/40 line-through">{formatCurrency(basePrice + priceAdjustment)}</span>
+    <div className="space-y-6">
+      <div>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <span className="font-heading text-4xl text-brand-dark">{formatCurrency(activePrice)}</span>
+          {discountPercent > 0 ? (
+            <>
+              <span className="text-lg text-brand-dark/40 line-through">{formatCurrency(basePrice + priceAdjustment)}</span>
+              <span className="rounded-full bg-brand-secondary px-2.5 py-0.5 text-xs font-semibold text-brand-on-secondary">{discountPercent}% off</span>
+            </>
+          ) : null}
+        </div>
+        <p className="mt-1 text-xs text-brand-dark/50">Inclusive of all taxes</p>
+        {!inStock ? (
+          <p className="mt-2 text-sm font-medium text-red-600">Out of stock</p>
+        ) : availableStock <= 5 ? (
+          <p className="mt-2 text-sm font-medium text-brand-secondary-dark">Only {availableStock} left</p>
         ) : null}
       </div>
-
-      {!inStock ? (
-        <p className="text-sm font-medium text-red-600">Out of Stock</p>
-      ) : availableStock <= 5 ? (
-        <p className="text-sm font-medium text-brand-secondary-dark">Only {availableStock} left</p>
-      ) : null}
 
       {variantGroups.map(([name, options]) => (
         <div key={name}>
@@ -121,11 +131,12 @@ export function ProductBuyBox({
                 key={option.id}
                 type="button"
                 onClick={() => setSelected((prev) => ({ ...prev, [name]: option.id }))}
+                aria-pressed={selected[name] === option.id}
                 className={cn(
-                  "rounded-full border px-4 py-2 text-sm transition-colors",
+                  "rounded-full border px-4 py-2 text-sm transition-all duration-300",
                   selected[name] === option.id
-                    ? "border-brand-primary bg-brand-primary text-brand-light"
-                    : "border-brand-dark/15 text-brand-dark hover:border-brand-primary/40",
+                    ? "border-brand-primary bg-brand-primary text-brand-on-primary shadow-card"
+                    : "border-brand-dark/15 bg-brand-surface text-brand-dark hover:border-brand-primary/40",
                 )}
               >
                 {option.value}
@@ -135,87 +146,78 @@ export function ProductBuyBox({
         </div>
       ))}
 
-      <div className="rounded-2xl border border-brand-dark/10 p-4">
-        <h3 className="font-heading text-sm text-brand-dark">Personalise Your Gift</h3>
-        <div className="mt-3 space-y-3">
+      <section className="rounded-card border border-brand-secondary/25 bg-brand-accent/40 p-5" aria-labelledby="personalise-heading">
+        <h3 id="personalise-heading" className="flex items-center gap-2 font-heading text-lg text-brand-dark">
+          <Gift className="h-5 w-5 text-brand-secondary" aria-hidden="true" /> Personalise your gift
+        </h3>
+        <p className="mt-0.5 text-xs text-brand-dark/60">Optional — a name and a note make it feel handpicked.</p>
+        <div className="mt-4 space-y-4">
           <div>
-            <Label htmlFor="recipientName">Recipient&apos;s Name</Label>
-            <Input
-              id="recipientName"
-              placeholder="Enter name"
-              maxLength={60}
-              value={recipientName}
-              onChange={(e) => setRecipientName(e.target.value)}
-            />
+            <Label htmlFor="recipientName">Recipient&apos;s name</Label>
+            <Input id="recipientName" placeholder="Who is it for?" maxLength={60} value={recipientName} onChange={(e) => setRecipientName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="giftMessage">Add a Personal Note</Label>
-            <Textarea
-              id="giftMessage"
-              placeholder="Write your message here..."
-              maxLength={150}
-              value={giftMessage}
-              onChange={(e) => setGiftMessage(e.target.value)}
-            />
+            <div className="flex items-end justify-between">
+              <Label htmlFor="giftMessage">A personal note</Label>
+              <span className="mb-1.5 text-xs text-brand-dark/50" aria-live="polite">{giftMessage.length}/150</span>
+            </div>
+            <Textarea id="giftMessage" placeholder="Write something from the heart…" maxLength={150} value={giftMessage} onChange={(e) => setGiftMessage(e.target.value)} />
           </div>
           <div>
             <Label>Occasion</Label>
             <div className="flex flex-wrap gap-2">
-              {OCCASIONS.map((o) => (
-                <button
-                  key={o}
-                  type="button"
-                  onClick={() => setOccasion((current) => (current === o ? "" : o))}
-                  className={cn(
-                    "rounded-full border px-3 py-1.5 text-xs transition-colors",
-                    occasion === o
-                      ? "border-brand-primary bg-brand-primary text-brand-light"
-                      : "border-brand-dark/15 text-brand-dark hover:border-brand-primary/40",
-                  )}
-                >
-                  {o}
-                </button>
-              ))}
+              {OCCASIONS.map((o) => {
+                const Icon = OCCASION_ICONS[o] ?? Sparkles;
+                const on = occasion === o;
+                return (
+                  <button
+                    key={o}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setOccasion((current) => (current === o ? "" : o))}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-2 text-xs font-medium transition-all duration-300",
+                      on ? "border-brand-primary bg-brand-primary text-brand-on-primary shadow-card" : "border-brand-dark/15 bg-brand-surface text-brand-dark hover:border-brand-primary/40",
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {o}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       <div className="flex items-center gap-3">
-        <div className="flex items-center rounded-full border border-brand-dark/15">
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-            className="px-3 py-2 text-brand-dark/70"
-            aria-label="Decrease quantity"
-          >
-            −
+        <div className="flex items-center rounded-full border border-brand-dark/15 bg-brand-surface">
+          <button type="button" onClick={() => setQuantity((q) => Math.max(1, q - 1))} disabled={quantity <= 1} className="rounded-full p-3 text-brand-dark/70 transition-colors hover:text-brand-dark disabled:opacity-30" aria-label="Decrease quantity">
+            <Minus className="h-4 w-4" />
           </button>
-          <span className="w-6 text-center text-sm">{Math.min(quantity, maxQuantity)}</span>
-          <button
-            type="button"
-            onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))}
-            className="px-3 py-2 text-brand-dark/70"
-            aria-label="Increase quantity"
-          >
-            +
+          <span className="w-8 text-center text-sm font-medium" aria-live="polite">{Math.min(quantity, maxQuantity)}</span>
+          <button type="button" onClick={() => setQuantity((q) => Math.min(maxQuantity, q + 1))} disabled={quantity >= maxQuantity} className="rounded-full p-3 text-brand-dark/70 transition-colors hover:text-brand-dark disabled:opacity-30" aria-label="Increase quantity">
+            <Plus className="h-4 w-4" />
           </button>
         </div>
-        <Button className="flex-1" disabled={!inStock || isPending} onClick={() => addToCart()}>
+        <Button className="flex-1" size="lg" disabled={!inStock || isPending} onClick={() => addToCart()}>
           <ShoppingBag className="h-4 w-4" />
-          Add to Cart
+          Add to cart
         </Button>
       </div>
       <Button
-        variant="secondary"
+        variant="gold"
+        size="lg"
         className="w-full"
         disabled={!inStock || isPending}
-        // Checkout arrives in Stage 6; until then "Buy Now" adds the item and opens the cart.
+        // "Buy now" adds the item and opens the cart, where checkout starts.
         onClick={() => addToCart(() => router.push("/cart"))}
       >
         <Zap className="h-4 w-4" />
-        Buy Now
+        Buy now
       </Button>
+
+      <DeliveryChecker productId={productId} />
     </div>
   );
 }

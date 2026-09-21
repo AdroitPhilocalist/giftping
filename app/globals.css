@@ -124,6 +124,8 @@ h1, h2, h3, .font-heading {
 }
 .rise { animation: gp-rise 0.8s var(--gp-ease) both; animation-delay: var(--rise-delay, 0ms); }
 
+@keyframes gp-fade { from { opacity: 0; } to { opacity: 1; } }
+
 /* A slow "breathing" float for hanging gifts, the robin, decorative elements */
 @keyframes gp-float {
   0%, 100% { transform: translateY(0) rotate(var(--float-rotate, 0deg)); }
@@ -139,4 +141,12 @@ h1, h2, h3, .font-heading {
     scroll-behavior: auto !important;
   }
   .reveal { opacity: 1; transform: none; }
+}
+
+/* Illustrations delivered on their own cream backdrop: fade the outer few percent so the picture melts into the page instead of showing a box edge. */
+.soft-edges {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent), linear-gradient(to bottom, transparent, black 4%, black 96%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 4%, black 96%, transparent), linear-gradient(to bottom, transparent, black 4%, black 96%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
 }

@@ -32,7 +32,7 @@ export async function DiscoverCards() {
               <Link href={card.href} className="group block h-full overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift">
                 <div className="relative h-44">
                   <div className={`absolute inset-0 overflow-hidden ${card.art === "boutiques" && !img ? "bg-gradient-to-b from-brand-primary-dark to-brand-primary" : "bg-brand-accent"}`}>
-                  <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-105">
+                  <div className="relative h-full w-full transition-transform duration-700 ease-out group-hover:scale-105">
                     {img ? (
                       <Image src={img.src} alt="" fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover" />
                     ) : card.art === "boutiques" ? (

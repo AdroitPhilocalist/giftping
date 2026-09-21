@@ -1,1 +1,37 @@
-{}
+{
+  "card-boutiques": {
+    "src": "/images/card-boutiques.webp",
+    "width": 1536,
+    "height": 1024
+  },
+  "card-collections": {
+    "src": "/images/card-collections.webp",
+    "width": 1536,
+    "height": 1024
+  },
+  "card-diary": {
+    "src": "/images/card-diary.webp",
+    "width": 1536,
+    "height": 1024
+  },
+  "card-services": {
+    "src": "/images/card-services.webp",
+    "width": 1536,
+    "height": 1024
+  },
+  "hero-atrium-mobile": {
+    "src": "/images/hero-atrium-mobile.webp",
+    "width": 1024,
+    "height": 1536
+  },
+  "hero-atrium": {
+    "src": "/images/hero-atrium.webp",
+    "width": 1672,
+    "height": 941
+  },
+  "mall-map": {
+    "src": "/images/mall-map.webp",
+    "width": 1312,
+    "height": 1199
+  }
+}

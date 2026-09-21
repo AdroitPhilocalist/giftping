@@ -41,15 +41,15 @@ export const PLAN_POSITIONS: Record<string, Point> = {
   atrium: { x: 50, y: 50 },
 };
 
-/** % of the client's isometric illustration (measured from the approved reference; tune if the final artwork differs) */
+/** % of the client's isometric illustration (measured from the delivered mall-map.png, 1312×1199 — re-measure if the artwork is regenerated) */
 export const IMAGE_POSITIONS: Record<string, Point> = {
-  entrance: { x: 50, y: 87 },
-  birthday: { x: 26, y: 65 },
-  wedding: { x: 74, y: 65 },
-  anniversary: { x: 22, y: 43 },
-  boutiques: { x: 50, y: 8 },
-  "for-her": { x: 77, y: 21 },
-  "for-him": { x: 88, y: 37 },
-  corporate: { x: 22, y: 21 },
-  atrium: { x: 50, y: 44 },
+  entrance: { x: 48, y: 77 },
+  birthday: { x: 21, y: 18 },
+  wedding: { x: 83, y: 49 },
+  anniversary: { x: 21, y: 74 },
+  boutiques: { x: 48, y: 13 },
+  "for-her": { x: 15, y: 52 },
+  "for-him": { x: 78, y: 72 },
+  corporate: { x: 76, y: 17 },
+  atrium: { x: 48, y: 43 },
 };

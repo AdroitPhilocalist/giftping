@@ -27,12 +27,18 @@ export async function HomeHero() {
       <section className="relative isolate">
         <div className="relative h-72 overflow-hidden [mask-image:linear-gradient(to_bottom,black_62%,transparent_100%)] sm:h-96 lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[70%] lg:[mask-image:linear-gradient(to_right,transparent_0%,black_38%)]" aria-hidden={hero ? undefined : true}>
           {hero ? (
-            <picture>
+            <picture className="absolute inset-0 block">
               {heroMobile ? <source media="(max-width: 1023px)" srcSet={heroMobile.src} /> : null}
               <Image src={hero.src} alt="A warmly lit gifting mall atrium with hanging gift boxes" fill priority sizes="(min-width: 1024px) 68vw, 100vw" className="object-cover object-center" />
             </picture>
           ) : (
-            <AtriumScene className="absolute inset-0 h-full w-full" />
+            <>
+              {/* only the phone picture exists so far: show it on phones, and the drawn atrium on wide screens */}
+              {heroMobile ? (
+                <Image src={heroMobile.src} alt="A warmly lit gifting mall atrium with hanging gift boxes" fill priority sizes="100vw" className="object-cover object-center lg:hidden" />
+              ) : null}
+              <AtriumScene className={`absolute inset-0 h-full w-full ${heroMobile ? "hidden lg:block" : ""}`} />
+            </>
           )}
         </div>
 
