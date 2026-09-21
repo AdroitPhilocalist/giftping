@@ -1,22 +1,37 @@
+import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
+import { ShopfrontArt } from "@/components/art/ShopfrontArt";
 import { VendorLogo } from "@/components/shop/VendorLogo";
 
+/** A boutique on Boutique Avenue: its shopfront (the vendor's own banner, or a drawn one), its round logo hanging over the corner, its name and tagline. */
 export function VendorCard({
   vendor,
 }: {
-  vendor: { business_name: string; slug: string; short_description: string | null; logo_url: string | null };
+  vendor: { business_name: string; slug: string; short_description: string | null; logo_url: string | null; banner_url?: string | null };
 }) {
   return (
     <Link
       href={`/vendors/${vendor.slug}`}
-      className="flex items-center gap-3 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4 transition-shadow hover:shadow-md"
+      className="group block overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift"
     >
-      <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-12 w-12" />
-      <div className="min-w-0">
-        <p className="truncate font-heading text-sm text-brand-dark">{vendor.business_name}</p>
-        {vendor.short_description ? (
-          <p className="truncate text-xs text-brand-dark/60">{vendor.short_description}</p>
-        ) : null}
+      <div className="relative h-36 overflow-hidden bg-gradient-to-b from-brand-primary-dark to-brand-primary">
+        <div className="h-full w-full transition-transform duration-700 ease-out group-hover:scale-105">
+          {vendor.banner_url ? (
+            <Image src={vendor.banner_url} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
+          ) : (
+            <ShopfrontArt name={vendor.business_name} />
+          )}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-brand-primary-dark/60 to-transparent" />
+      </div>
+      <div className="relative px-5 pb-5 pt-9">
+        <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-14 w-14" className="absolute -top-7 left-5 bg-brand-surface shadow-card ring-4 ring-brand-surface" />
+        <h3 className="font-heading text-xl text-brand-dark">{vendor.business_name}</h3>
+        {vendor.short_description ? <p className="mt-1 line-clamp-2 text-sm text-brand-dark/65">{vendor.short_description}</p> : null}
+        <p className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-secondary-dark">
+          Visit boutique <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
+        </p>
       </div>
     </Link>
   );

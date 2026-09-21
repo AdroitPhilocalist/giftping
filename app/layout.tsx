@@ -45,10 +45,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${newsreader.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
-        {/* entrance animations start hidden; without JS they must not stay that way */}
-        <noscript>
-          <style>{".reveal{opacity:1!important;transform:none!important}"}</style>
-        </noscript>
         <TooltipProvider>
           <Navbar announcement={theme.announcement} />
           <main className="flex-1">{children}</main>

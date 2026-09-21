@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
+    "images:sync": "tsx scripts/sync-images.ts",
     "db:types": "supabase gen types typescript --linked > lib/db/types.ts",
     "test": "vitest run"
   },

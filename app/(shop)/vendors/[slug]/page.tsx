@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Star } from "lucide-react";
+import { ShopfrontArt } from "@/components/art/ShopfrontArt";
 import { VendorLogo } from "@/components/shop/VendorLogo";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Pagination } from "@/components/shop/Pagination";
@@ -33,11 +34,14 @@ export default async function VendorStorefrontPage({
 
   return (
     <div>
-      {vendor.banner_url ? (
-        <div className="relative aspect-[16/6] max-h-72 w-full overflow-hidden bg-brand-accent sm:aspect-[16/5]">
+      <div className="relative aspect-[16/7] max-h-80 w-full overflow-hidden bg-gradient-to-b from-brand-primary-dark to-brand-primary sm:aspect-[16/5]">
+        {vendor.banner_url ? (
           <Image src={vendor.banner_url} alt={`${vendor.business_name} banner`} fill priority sizes="100vw" className="object-cover" />
-        </div>
-      ) : null}
+        ) : (
+          <ShopfrontArt name={vendor.business_name} />
+        )}
+        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-brand-light to-transparent" />
+      </div>
       <div className="border-b border-brand-dark/10 bg-brand-accent/40 py-10">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <p className="text-xs uppercase tracking-widest text-brand-dark/50">

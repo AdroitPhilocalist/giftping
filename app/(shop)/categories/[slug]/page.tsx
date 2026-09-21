@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { GiftBoxArt } from "@/components/art/GiftBoxArt";
+import { Robin } from "@/components/art/Robin";
+import { Jaali } from "@/components/ornaments/Jaali";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductFilters } from "@/components/shop/ProductFilters";
 import { Pagination } from "@/components/shop/Pagination";
@@ -52,21 +55,35 @@ export default async function CategoryPage({
     return `/categories/${slug}${qs ? `?${qs}` : ""}`;
   }
 
-  return (
-    <div
-      className="border-b border-brand-dark/10 py-10"
-      style={{ backgroundColor: category.theme_color ? `${category.theme_color}0d` : undefined }}
-    >
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="text-xs uppercase tracking-widest text-brand-dark/50">
-          <Link href="/categories" className="hover:underline">
-            Occasions
-          </Link>{" "}
-          / {category.name}
-        </p>
-        <h1 className="mt-2 font-heading text-3xl text-brand-dark sm:text-4xl">{category.name}</h1>
-        {category.description ? <p className="mt-2 max-w-2xl text-brand-dark/60">{category.description}</p> : null}
+  // "Birthday" -> "Birthday World"; "Corporate Gifting" -> accent on the last word; "For Her" stays as it is
+  const words = category.name.split(" ");
+  const oneWord = words.length === 1;
+  const lead = oneWord ? category.name : words.slice(0, -1).join(" ");
+  const tail = oneWord ? "World" : words[words.length - 1];
 
+  return (
+    <div>
+      <section className="relative overflow-hidden border-b border-brand-dark/[0.06] bg-brand-accent/70">
+        <Jaali className="opacity-[0.07]" />
+        <div className="relative mx-auto grid max-w-7xl items-center gap-6 px-4 py-12 sm:px-6 md:grid-cols-[1fr_auto] lg:px-8 lg:py-16">
+          <div className="rise">
+            <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-dark/60">
+              <Link href="/categories" className="hover:text-brand-secondary-dark">Occasions</Link> <span className="text-brand-secondary">›</span> {category.name}
+            </p>
+            <h1 className="mt-3 font-heading text-4xl leading-tight text-brand-dark sm:text-5xl lg:text-6xl">
+              {lead} <span className="accent-word">{tail}</span>
+            </h1>
+            {category.description ? <p className="mt-4 max-w-xl text-base leading-relaxed text-brand-dark/70">{category.description}</p> : null}
+          </div>
+          <div className="hidden items-end gap-1 md:flex" aria-hidden="true">
+            <Robin className="float-slow w-24" />
+            <GiftBoxArt tone="green" className="-ml-3 w-24" />
+            <GiftBoxArt tone="copper" className="-ml-6 w-16" />
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
             <ProductFilters

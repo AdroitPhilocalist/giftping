@@ -1,6 +1,8 @@
 import Image from "next/image";
-import { Gift } from "lucide-react";
+import { GiftBoxArt, type BoxTone } from "@/components/art/GiftBoxArt";
 import { cn } from "@/lib/utils/cn";
+
+const TONES: BoxTone[] = ["green", "copper", "peach", "ivory"];
 
 export function ProductImage({
   src,
@@ -18,12 +20,9 @@ export function ProductImage({
   if (!src) {
     return (
       <div
-        className={cn(
-          "flex items-center justify-center bg-gradient-to-br from-brand-accent to-brand-secondary/20",
-          className,
-        )}
+        className={cn("flex items-center justify-center bg-gradient-to-br from-brand-accent via-brand-surface to-brand-accent", className)}
       >
-        <Gift className="h-1/4 w-1/4 text-brand-secondary-dark/50" strokeWidth={1.25} />
+        <GiftBoxArt tone={TONES[alt.length % TONES.length]} className="w-[42%] opacity-90" />
       </div>
     );
   }

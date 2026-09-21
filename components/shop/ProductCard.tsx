@@ -33,13 +33,13 @@ export function ProductCard({
     : 0;
 
   return (
-    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-brand-dark/10 bg-brand-surface transition-shadow hover:shadow-lg hover:shadow-brand-dark/5">
+    <div className="group relative flex flex-col overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-lift">
       <Link href={`/products/${product.slug}`} className="block">
         <div className="relative">
           <ProductImage
             src={product.thumbnail_url}
             alt={product.name}
-            className="aspect-square w-full transition-transform duration-300 group-hover:scale-[1.03]"
+            className="aspect-[5/6] w-full transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
           {hasDiscount ? (
             <Badge variant="gold" className="absolute left-3 top-3">
@@ -56,11 +56,11 @@ export function ProductCard({
       />
 
       <div className="flex flex-1 flex-col gap-1.5 p-4">
-        <span className="text-xs font-medium text-brand-secondary-dark">
+        <span className="text-[11px] font-medium uppercase tracking-[0.14em] text-brand-secondary-dark">
           {product.is_in_house ? "GiftPing Originals" : product.vendor?.business_name}
         </span>
         <Link href={`/products/${product.slug}`}>
-          <h3 className="line-clamp-2 font-heading text-base text-brand-dark hover:text-brand-primary">
+          <h3 className="line-clamp-2 font-heading text-lg leading-snug text-brand-dark transition-colors hover:text-brand-secondary-dark">
             {product.name}
           </h3>
         </Link>
@@ -72,7 +72,7 @@ export function ProductCard({
           </div>
         ) : null}
         <div className="mt-auto flex items-baseline gap-2 pt-1">
-          <span className="font-heading text-lg text-brand-dark">
+          <span className="font-heading text-xl text-brand-dark">
             {formatCurrency(hasDiscount ? product.sale_price! : product.base_price)}
           </span>
           {hasDiscount ? (
