@@ -1,8 +1,11 @@
 import { z } from "zod";
+import { WRAP_STYLE_IDS } from "../commerce/wrap-styles";
 
 export const placeOrderSchema = z.object({
   addressId: z.string().uuid("Choose a delivery address"),
   giftWrap: z.boolean().default(false),
+  // only meaningful when giftWrap is on; validated against the fixed list so nothing else can be stored
+  wrapStyle: z.enum(WRAP_STYLE_IDS).optional(),
   giftMessage: z
     .string()
     .trim()

@@ -7,7 +7,7 @@ export const metadata = { title: "Contact — GiftPing", description: "Get help 
 
 export default function ContactPage() {
   const cards = [
-    { icon: PackageSearch, title: "Where is my order?", text: "Every order has its own page with a live progress bar and courier tracking.", href: "/account", cta: "Go to my account" },
+    { icon: PackageSearch, title: "Where is my order?", text: "Every order has its own page with a live progress bar and courier tracking.", href: "/orders", cta: "See my orders" },
     { icon: RotateCcw, title: "Return or refund", text: "Ask for a return from the order page, and read how refunds work.", href: "/refunds", cta: "Read the refund policy" },
   ];
   return (

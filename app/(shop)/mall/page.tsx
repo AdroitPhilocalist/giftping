@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
 import { Robin } from "@/components/art/Robin";
@@ -15,8 +16,15 @@ export const metadata = {
   description: "Explore the GiftPing mall: Birthday World, Wedding Pavilion, Boutique Avenue and more — every place a doorway to thoughtful gifting.",
 };
 
+/** A destination's picture: the occasion "world" banner for its category (world-birthday…), or world-<zone id> for places that aren't a category (world-boutiques). */
+function zoneArt(id: string, href: string, themeId: string) {
+  const slug = href.startsWith("/categories/") ? href.slice("/categories/".length) : id;
+  return siteImage(`world-${slug}`, themeId);
+}
+
 export default async function MallPage() {
   const theme = await getActiveTheme();
+  const themeId = theme.id;
   const image = siteImage("mall-map", theme.id);
   const featured = MALL_ZONES.filter((z) => ["birthday", "boutiques", "wedding", "for-her"].includes(z.id));
 
@@ -56,7 +64,14 @@ export default async function MallPage() {
           {featured.map((z, i) => (
             <Reveal key={z.id} delay={i * 90}>
               <Link href={z.href} className="group relative block overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-primary p-6 pb-7 text-brand-on-primary shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift">
-                <Jaali className="opacity-[0.1]" />
+                {zoneArt(z.id, z.href, themeId) ? (
+                  <>
+                    <Image src={zoneArt(z.id, z.href, themeId)!.src} alt="" fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+                    <span className="absolute inset-0 bg-gradient-to-t from-brand-primary-dark/90 via-brand-primary-dark/45 to-brand-primary-dark/10" aria-hidden="true" />
+                  </>
+                ) : (
+                  <Jaali className="opacity-[0.1]" />
+                )}
                 <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-brand-secondary font-heading text-lg text-brand-on-secondary">{z.n}</span>
                 <h3 className="relative mt-16 font-heading text-2xl">{z.title}</h3>
                 <p className="relative mt-1 text-sm text-brand-on-primary/70">{z.sub}</p>

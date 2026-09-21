@@ -3,6 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { DiaryBand } from "@/components/home/DiaryBand";
 import { DiscoverCards } from "@/components/home/DiscoverCards";
 import { HomeHero } from "@/components/home/HomeHero";
+import { RelationshipCards } from "@/components/home/RelationshipCards";
 import { SectionHeading } from "@/components/home/SectionHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
@@ -36,6 +37,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ a
       <HomeHero />
       <HeroBanners banners={banners} />
       <DiscoverCards />
+      <RelationshipCards />
 
       {trending.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

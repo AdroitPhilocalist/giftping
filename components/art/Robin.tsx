@@ -12,10 +12,10 @@ export const hasRobinArt = (pose: RobinPose) => siteImage(`robin-${pose}`) !== n
  * and falls back to a code-drawn robin until that pose is delivered — the drawing's colours are theme tokens, so it follows a festival theme.
  * Usage: perched = default; flying-gift = something is on its way; on-gift = celebrating; peeking = empty states.
  */
-export function Robin({ className, title = "The GiftPing robin", pose = "perched" }: { className?: string; title?: string; pose?: RobinPose }) {
+export function Robin({ className, title = "The GiftPing robin", pose = "perched", priority = false }: { className?: string; title?: string; pose?: RobinPose; priority?: boolean }) {
   const img = siteImage(`robin-${pose}`);
   if (img) {
-    return <Image src={img.src} alt={title} width={img.width} height={img.height} sizes="240px" className={cn("h-auto w-full", className)} />;
+    return <Image src={img.src} alt={title} width={img.width} height={img.height} sizes="240px" priority={priority} className={cn("h-auto w-full", className)} />;
   }
   return (
     <svg viewBox="0 0 200 190" className={cn("h-auto w-full", className)} role="img" aria-label={title}>

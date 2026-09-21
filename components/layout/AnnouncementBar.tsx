@@ -15,7 +15,7 @@ export function AnnouncementBar({ message }: { message: string }) {
           <span className="hidden sm:inline">{message}</span>
         </p>
         <nav aria-label="Help" className="hidden w-48 items-center justify-end gap-2 whitespace-nowrap text-brand-on-primary/80 sm:flex">
-          <Link href="/account" className="hover:text-brand-on-primary">Track Order</Link>
+          <Link href="/orders" className="hover:text-brand-on-primary">Track Order</Link>
           <span aria-hidden="true" className="opacity-40">|</span>
           <Link href="/contact" className="hover:text-brand-on-primary">Help &amp; Support</Link>
         </nav>

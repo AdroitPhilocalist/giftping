@@ -1072,6 +1072,7 @@ export type Database = {
           gift_message: string | null
           gift_wrap_charge: number
           gift_wrap_selected: boolean
+          gift_wrap_style: string | null
           gst_amount: number
           id: string
           idempotency_key: string | null
@@ -1095,6 +1096,7 @@ export type Database = {
           gift_message?: string | null
           gift_wrap_charge?: number
           gift_wrap_selected?: boolean
+          gift_wrap_style?: string | null
           gst_amount?: number
           id?: string
           idempotency_key?: string | null
@@ -1118,6 +1120,7 @@ export type Database = {
           gift_message?: string | null
           gift_wrap_charge?: number
           gift_wrap_selected?: boolean
+          gift_wrap_style?: string | null
           gst_amount?: number
           id?: string
           idempotency_key?: string | null

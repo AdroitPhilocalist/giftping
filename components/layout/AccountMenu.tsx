@@ -27,6 +27,9 @@ export function AccountMenu({ user }: { user: SessionUser }) {
           <Link href="/account">My Account</Link>
         </DropdownItem>
         <DropdownItem asChild>
+          <Link href="/orders">My Orders</Link>
+        </DropdownItem>
+        <DropdownItem asChild>
           <Link href="/diary">My Diary</Link>
         </DropdownItem>
         {user.role === "vendor" ? (

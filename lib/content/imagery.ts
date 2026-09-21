@@ -12,7 +12,7 @@ export type ImageKey =
   | "logo-gp" | "logo-gp-light"
   | "wrap-green" | "wrap-blush" | "wrap-blue" | "wrap-gold" | "wrap-ivory"
   | "rel-parents" | "rel-partner" | "rel-friends" | "rel-colleagues" | "rel-kids"
-  | "diary-desk" | "order-hero"
+  | "diary-desk" | "order-hero" | "auth-welcome"
   | `world-${string}`      // an occasion/category page banner, keyed by the category slug (world-birthday, world-wedding…)
   | `shopfront-${string}`; // a default boutique front for vendors without their own banner (shopfront-perfume, -jewellery, -florist)
 

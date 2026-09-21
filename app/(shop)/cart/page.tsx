@@ -33,7 +33,7 @@ export default async function CartPage() {
 
       {cart.groups.length === 0 ? (
         <div className="mt-10 flex flex-col items-center gap-3 rounded-card border border-brand-secondary/20 bg-gradient-to-b from-brand-accent/60 to-brand-surface p-10 text-center shadow-card sm:p-16">
-          <Robin pose="peeking" className="w-40" title="The GiftPing robin, peeking into an empty cart" />
+          <Robin pose="peeking" priority className="w-40" title="The GiftPing robin, peeking into an empty cart" />
           <h2 className="font-heading text-2xl text-brand-dark">Your cart is empty</h2>
           <p className="max-w-sm text-brand-dark/65">Nothing here yet — let&apos;s find someone a gift they&apos;ll remember.</p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">

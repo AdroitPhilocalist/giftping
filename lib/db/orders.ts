@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/db/server";
 
 const ORDER_SELECT = `
-  id, order_number, status, created_at, placed_at, delivery_address, gift_message, gift_wrap_selected, gift_wrap_charge,
+  id, order_number, status, created_at, placed_at, delivery_address, gift_message, gift_wrap_selected, gift_wrap_style, gift_wrap_charge,
   subtotal, discount_amount, delivery_charge, gst_amount, total_amount, coupon_code,
   items:order_items (
     id, product_id, vendor_id, product_name, product_image, variant_label, personalization, quantity,
@@ -28,4 +28,23 @@ export async function getMyOrder(orderId: string, userId: string) {
     .maybeSingle();
   if (error) throw error;
   return data;
+}
+
+const ORDER_LIST_SELECT = `
+  id, order_number, status, created_at, total_amount,
+  items:order_items ( id, product_name, product_image, quantity )
+`;
+
+/** The shopper's orders, newest first, with just enough per order for a list card. RLS + the explicit customer filter: only their own. */
+export async function listMyOrders(userId: string, page = 1, pageSize = 8) {
+  const supabase = await createClient();
+  const from = (page - 1) * pageSize;
+  const { data, error, count } = await supabase
+    .from("orders")
+    .select(ORDER_LIST_SELECT, { count: "exact" })
+    .eq("customer_id", userId)
+    .order("created_at", { ascending: false })
+    .range(from, from + pageSize - 1);
+  if (error) throw error;
+  return { orders: data ?? [], total: count ?? 0, totalPages: Math.max(1, Math.ceil((count ?? 0) / pageSize)) };
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { ExternalLink, Truck } from "lucide-react";
@@ -5,6 +6,8 @@ import { OrderHero } from "@/components/orders/OrderHero";
 import { OrderStepper } from "@/components/orders/OrderStepper";
 import { siteImage } from "@/lib/content/imagery";
 import { getActiveTheme } from "@/lib/theme/active";
+import { wrapStyleLabel } from "@/lib/commerce/wrap-styles";
+import { ORDER_STATUS_LABEL } from "@/lib/shop/order-labels";
 import { describeOrderProgress } from "@/lib/shop/order-progress";
 import { SHIPMENT_STATUS_LABEL } from "@/lib/integrations/shiprocket-status";
 import { PayNowButton } from "@/components/shop/PayNowButton";
@@ -20,19 +23,6 @@ import { formatCurrency } from "@/lib/utils/format";
 
 export const metadata = { title: "Your Order — GiftPing" };
 
-const STATUS_LABEL: Record<string, string> = {
-  created: "Awaiting payment",
-  payment_initiated: "Payment in progress",
-  payment_verified: "Payment received",
-  confirmed: "Confirmed",
-  processing: "Being prepared",
-  partially_shipped: "Partly shipped",
-  shipped: "Shipped",
-  partially_delivered: "Partly delivered",
-  delivered: "Delivered",
-  cancelled: "Cancelled",
-  refunded: "Refunded",
-};
 
 interface Address {
   recipient_name?: string;
@@ -66,10 +56,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8">
+      <Link href="/orders" className="mb-4 inline-block text-sm text-brand-dark/60 hover:text-brand-dark hover:underline">← All orders</Link>
       <OrderHero
         orderNumber={order.order_number}
         placedOn={new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
-        statusLabel={STATUS_LABEL[order.status] ?? order.status}
+        statusLabel={ORDER_STATUS_LABEL[order.status] ?? order.status}
         progress={progress}
         backdrop={siteImage("order-hero", (await getActiveTheme()).id)}
       >
@@ -231,7 +222,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                 <SummaryRow label={`Coupon ${order.coupon_code ?? ""}`.trim()} value={`− ${formatCurrency(Number(order.discount_amount))}`} />
               ) : null}
               <SummaryRow label="Delivery" value={Number(order.delivery_charge) === 0 ? "Free" : formatCurrency(Number(order.delivery_charge))} />
-              {order.gift_wrap_selected ? <SummaryRow label="Gift wrapping" value={formatCurrency(Number(order.gift_wrap_charge))} /> : null}
+              {order.gift_wrap_selected ? <SummaryRow label={`Gift wrapping${wrapStyleLabel(order.gift_wrap_style) ? ` · ${wrapStyleLabel(order.gift_wrap_style)}` : ""}`} value={formatCurrency(Number(order.gift_wrap_charge))} /> : null}
               <div className="flex justify-between border-t border-brand-dark/10 pt-3 font-heading text-lg text-brand-dark">
                 <dt>Total</dt>
                 <dd>{formatCurrency(Number(order.total_amount))}</dd>

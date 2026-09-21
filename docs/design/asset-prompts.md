@@ -48,10 +48,9 @@ Don't ask ChatGPT for exact pixel sizes — it only makes **square**, **landscap
 
 The homepage, the mall directory page (with numbered clickable hotspots I place over picture 3), the boutique page shell and the cards — all working with tasteful placeholders — so your pictures drop in without changing any code. Picture 1 is the one that changes the feel most; if you can only make one batch first, make **1, 3 and 5**.
 
-## Batch 1 — status (updated 21 Sep)
+## Batch 1 — status (updated 21 Sep): COMPLETE
 
-Received and live on the site: `hero-atrium`, `hero-atrium-mobile`, `mall-map`, `card-collections`, `card-boutiques`, `card-diary`, `card-services`.
-Still missing from Batch 1 (the site draws a placeholder until they arrive): `robin-perched`, `robin-flying-gift`, `robin-on-gift`, `robin-peeking`, `logo-gp`, `logo-gp-light`, `wrap-*` (5), `rel-*` (5).
+All delivered and live: hero (desktop + mobile), mall map, four cards, the four robin poses, both logos, five wrap swatches (now the wrapping-style picker at checkout) and five relationship portraits (now "Shop by relationship" on the homepage and the `/gifts-for/<who>` pages).
 
 ---
 
@@ -90,6 +89,14 @@ Same rules as Batch 1: use the same ChatGPT conversation (the STYLE LINE is alre
 **17 · `order-hero.png` — the order-tracking header** · **landscape**
 > A magical "your gift is on its way" scene with no people: a small wrapped gift with a copper satin ribbon resting on a cream doorstep at dusk, a warm porch lantern glowing, a paper-and-brass delivery scooter or bicycle blurred in the background, fairy lights, gentle bokeh, cosy and anticipatory. LEFT THIRD calmer and softer.
 
+**18 · `world-boutiques.png` and `world-atrium.png` — the two mall destinations that aren't occasions** · **landscape** each · the /mall "Handpicked Experiences" cards use these
+> (a) A charming covered promenade of boutiques ("Boutique Avenue") at dusk with no people: cobbled cream stone, glowing shop windows with warm amber light, hanging lanterns and fairy lights, potted olive trees and flowers at each door, awnings in green and copper with no lettering.
+> (b) The grand central gift atrium seen from the ground: a round marble platform piled high with beautifully wrapped gifts and flowers under a glass skylight, hanging gift boxes on ribbons, warm golden light. (Different angle from the homepage hero — closer to the platform.)
+> Both: no text; keep the important part in the middle, it will be cropped to a tall-ish card.
+
+**19 · `auth-welcome.png` — the sign-in / sign-up side picture** · **portrait**
+> A tall, cinematic, welcoming scene: a beautiful arched mall entrance doorway glowing warm amber at dusk, a small wrapped gift with a copper ribbon and a sprig of dried flowers on the doorstep, fairy lights framing the arch, deep green walls, a hint of the atrium beyond. No people, no text. The bottom third is calmer and darker (text will sit there).
+
 ## What each new picture unlocks
 
 | File | Where it appears | Until it arrives |
@@ -98,6 +105,8 @@ Same rules as Batch 1: use the same ChatGPT conversation (the STYLE LINE is alre
 | `shopfront-perfume/jewellery/florist.png` | boutiques with no banner of their own (picked steadily per boutique) | drawn shopfront |
 | `diary-desk.png` | Personal Gifting Diary header | drawn robin + gift |
 | `order-hero.png` | top of every order tracking page | drawn robin + gift |
+| `world-boutiques.png`, `world-atrium.png`, plus the occasion worlds | the "Handpicked Experiences" cards on /mall | plain green card with a lattice pattern |
+| `auth-welcome.png` | left panel of sign-in / sign-up on wide screens | the plain centred form |
 
 ## Batch 3 (later — festive kit, only when the client asks)
 

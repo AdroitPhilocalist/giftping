@@ -1,3 +1,4 @@
+import { WRAP_STYLES, wrapStyleLabel } from "@/lib/commerce/wrap-styles";
 import { Gift } from "lucide-react";
 import { OrderFulfilment } from "@/components/vendor/OrderFulfilment";
 import { Badge } from "@/components/ui/Badge";
@@ -77,7 +78,7 @@ export default async function VendorOrdersPage() {
                       <p className="flex items-center gap-1 text-xs uppercase tracking-wide text-brand-secondary-dark">
                         <Gift className="h-3 w-3" /> Gift
                       </p>
-                      {order.giftWrap ? <p className="text-brand-dark">Gift-wrap this parcel.</p> : null}
+                      {order.giftWrap ? <p className="text-brand-dark">Gift-wrap this parcel{wrapStyleLabel(order.giftWrapStyle) ? ` in ${wrapStyleLabel(order.giftWrapStyle)} (${WRAP_STYLES.find((w) => w.id === order.giftWrapStyle)?.detail?.toLowerCase()})` : ""}.</p> : null}
                       {order.giftMessage ? <p className="italic text-brand-dark/80">Card: “{order.giftMessage}”</p> : null}
                     </div>
                   ) : null}

@@ -32,7 +32,7 @@ export async function getAdminOrder(orderId: string) {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      `id, order_number, status, subtotal, discount_amount, delivery_charge, gift_wrap_charge, gst_amount, total_amount, coupon_code, gift_message,
+      `id, order_number, status, subtotal, discount_amount, delivery_charge, gift_wrap_charge, gift_wrap_style, gst_amount, total_amount, coupon_code, gift_message,
        delivery_address, notes, placed_at, created_at,
        customer:users ( full_name, email ),
        items:order_items ( id, product_name, variant_label, quantity, unit_price, total_price, discount_amount, fulfilment_status, refunded_amount, returned_quantity,

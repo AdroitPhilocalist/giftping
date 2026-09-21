@@ -1,5 +1,6 @@
 "use server";
 
+import { createAdminClient } from "@/lib/db/admin";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { checkoutRateLimit, checkRateLimit, deliveryRateLimit } from "@/lib/auth/rate-limit";
@@ -99,6 +100,12 @@ export async function placeOrderAction(raw: PlaceOrderInput): Promise<CheckoutAc
     idempotencyKey: input.idempotencyKey,
   });
   if (!outcome.ok) return { error: outcome.error };
+
+  // The wrap colourway is cosmetic (the fee is flat), so it's written after the atomic order insert; a failure here must not lose the order.
+  if (input.giftWrap && input.wrapStyle) {
+    const { error } = await createAdminClient().from("orders").update({ gift_wrap_style: input.wrapStyle }).eq("id", outcome.orderId).eq("customer_id", user.id);
+    if (error) console.error("gift_wrap_style not saved", error.message);
+  }
 
   revalidatePath("/", "layout");
   return { orderId: outcome.orderId };

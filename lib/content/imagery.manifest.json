@@ -44,6 +44,31 @@
     "width": 1312,
     "height": 1199
   },
+  "rel-colleagues": {
+    "src": "/images/rel-colleagues.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "rel-friends": {
+    "src": "/images/rel-friends.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "rel-kids": {
+    "src": "/images/rel-kids.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "rel-parents": {
+    "src": "/images/rel-parents.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "rel-partner": {
+    "src": "/images/rel-partner.webp",
+    "width": 1254,
+    "height": 1254
+  },
   "robin-flying-gift": {
     "src": "/images/robin-flying-gift.webp",
     "width": 1254,
@@ -64,13 +89,28 @@
     "width": 1254,
     "height": 1254
   },
+  "wrap-blue": {
+    "src": "/images/wrap-blue.webp",
+    "width": 1254,
+    "height": 1254
+  },
   "wrap-blush": {
     "src": "/images/wrap-blush.webp",
     "width": 1254,
     "height": 1254
   },
+  "wrap-gold": {
+    "src": "/images/wrap-gold.webp",
+    "width": 1254,
+    "height": 1254
+  },
   "wrap-green": {
     "src": "/images/wrap-green.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "wrap-ivory": {
+    "src": "/images/wrap-ivory.webp",
     "width": 1254,
     "height": 1254
   }

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useTransition, type ReactNode } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Gift, Tag, X } from "lucide-react";
+import { Check, Gift, Tag, X } from "lucide-react";
 import { AddressBook } from "@/components/shop/AddressBook";
 import { BuyAssurances } from "@/components/shop/BuyAssurances";
 import { Button } from "@/components/ui/Button";
@@ -10,8 +11,11 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
 import { applyCouponAction, checkDeliveryAction, placeOrderAction, removeCouponAction } from "@/lib/commerce/checkout-actions";
 import type { VendorDelivery } from "@/lib/commerce/delivery";
+import { DEFAULT_WRAP_STYLE, WRAP_STYLES, wrapStyleLabel, type WrapStyleId } from "@/lib/commerce/wrap-styles";
+import { siteImage } from "@/lib/content/imagery";
 import type { SavedAddress } from "@/lib/db/addresses";
 import { formatCurrency } from "@/lib/utils/format";
+import { cn } from "@/lib/utils/cn";
 
 export interface CheckoutQuoteView {
   subtotal: number;
@@ -54,6 +58,7 @@ export function CheckoutForm({
     (addresses.find((a) => a.is_default) ?? addresses[0])?.id,
   );
   const [giftWrap, setGiftWrap] = useState(false);
+  const [wrapStyle, setWrapStyle] = useState<WrapStyleId>(DEFAULT_WRAP_STYLE);
   const [giftMessage, setGiftMessage] = useState("");
   const [couponInput, setCouponInput] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -112,7 +117,7 @@ export function CheckoutForm({
     if (!selectedId) return;
     setError(null);
     startTransition(async () => {
-      const result = await placeOrderAction({ addressId: selectedId, giftWrap, giftMessage, idempotencyKey });
+      const result = await placeOrderAction({ addressId: selectedId, giftWrap, wrapStyle: giftWrap ? wrapStyle : undefined, giftMessage, idempotencyKey });
       if (result.error || !result.orderId) {
         setError(result.error ?? "We couldn't place your order. Please try again.");
         return;
@@ -163,6 +168,28 @@ export function CheckoutForm({
                 <span className="text-brand-dark/60">Each vendor wraps their own items before dispatch.</span>
               </span>
             </label>
+            {giftWrap ? (
+              <fieldset className="rounded-button border border-brand-dark/10 bg-brand-surface p-4">
+                <legend className="px-1 text-sm font-medium text-brand-dark">Choose your wrapping</legend>
+                <div className="mt-2 grid grid-cols-5 gap-2 sm:gap-3">
+                  {WRAP_STYLES.map((w) => {
+                    const img = siteImage(w.imageKey);
+                    const on = wrapStyle === w.id;
+                    return (
+                      <label key={w.id} className={cn("group relative flex cursor-pointer flex-col items-center gap-1 rounded-button border p-1.5 text-center transition-all duration-300", on ? "border-brand-secondary bg-brand-accent/60 shadow-card" : "border-transparent hover:border-brand-dark/15")}>
+                        <input type="radio" name="wrapStyle" value={w.id} checked={on} onChange={() => setWrapStyle(w.id)} className="peer sr-only" />
+                        <span className="relative block aspect-square w-full overflow-hidden rounded-button peer-focus-visible:ring-2 peer-focus-visible:ring-brand-secondary">
+                          {img ? <Image src={img.src} alt="" fill sizes="96px" className="object-contain transition-transform duration-500 group-hover:scale-105" /> : <Gift className="m-auto h-full w-1/2 text-brand-secondary" aria-hidden="true" />}
+                        </span>
+                        <span className="text-[11px] leading-tight text-brand-dark/80 sm:text-xs">{w.label}</span>
+                        {on ? <span className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-secondary text-brand-on-secondary"><Check className="h-3 w-3" aria-hidden="true" /></span> : null}
+                      </label>
+                    );
+                  })}
+                </div>
+                <p className="mt-3 text-xs text-brand-dark/60">{WRAP_STYLES.find((w) => w.id === wrapStyle)?.detail}. The wrapping fee is the same for every style.</p>
+              </fieldset>
+            ) : null}
             <div>
               <div className="mb-1 flex items-end justify-between">
                 <label htmlFor="giftMessage" className="text-sm font-medium text-brand-dark">
@@ -229,7 +256,7 @@ export function CheckoutForm({
           <Row label={`Subtotal (${quote.itemCount} ${quote.itemCount === 1 ? "item" : "items"})`} value={formatCurrency(quote.subtotal)} />
           {quote.discount > 0 ? <Row label="Coupon discount" value={`− ${formatCurrency(quote.discount)}`} accent /> : null}
           <Row label="Delivery" value={quote.delivery === 0 ? "Free" : formatCurrency(quote.delivery)} />
-          {giftWrap ? <Row label="Gift wrapping" value={formatCurrency(giftWrapCharge)} /> : null}
+          {giftWrap ? <Row label={`Gift wrapping · ${wrapStyleLabel(wrapStyle) ?? ""}`.replace(/ · $/, "")} value={formatCurrency(giftWrapCharge)} /> : null}
           <div className="flex justify-between border-t border-brand-dark/10 pt-3 font-heading text-lg text-brand-dark">
             <dt>Total</dt>
             <dd>{formatCurrency(total)}</dd>

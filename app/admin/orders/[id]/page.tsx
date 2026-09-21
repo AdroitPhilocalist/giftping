@@ -1,3 +1,4 @@
+import { wrapStyleLabel } from "@/lib/commerce/wrap-styles";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -83,7 +84,7 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
           })}
         </ul>
         <dl className="mt-3 space-y-1 border-t border-brand-dark/10 pt-3 text-sm">
-          {[["Subtotal", order.subtotal], ["Discount" + (order.coupon_code ? ` (${order.coupon_code})` : ""), -Number(order.discount_amount)], ["Delivery", order.delivery_charge], ["Gift wrap", order.gift_wrap_charge]].map(([l, v]) => Number(v) !== 0 ? (
+          {[["Subtotal", order.subtotal], ["Discount" + (order.coupon_code ? ` (${order.coupon_code})` : ""), -Number(order.discount_amount)], ["Delivery", order.delivery_charge], [`Gift wrap${wrapStyleLabel(order.gift_wrap_style) ? ` (${wrapStyleLabel(order.gift_wrap_style)})` : ""}`, order.gift_wrap_charge]].map(([l, v]) => Number(v) !== 0 ? (
             <div key={String(l)} className="flex justify-between"><dt className="text-brand-dark/60">{l}</dt><dd>{formatCurrency(Number(v))}</dd></div>
           ) : null)}
           <div className="flex justify-between font-medium"><dt>Total</dt><dd>{formatCurrency(Number(order.total_amount))}</dd></div>
