@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { MAX_LINE_QUANTITY } from "@/lib/commerce/pricing";
+import { PERSONALIZATION_OCCASIONS } from "@/lib/commerce/personalization";
 
-export const PERSONALIZATION_OCCASIONS = ["Birthday", "Anniversary", "Thank You", "Other"] as const;
+export { PERSONALIZATION_OCCASIONS };
 
 const optionalText = (max: number) =>
   z

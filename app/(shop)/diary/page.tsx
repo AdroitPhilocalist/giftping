@@ -26,13 +26,13 @@ export const metadata = { title: "My Gifting Diary — GiftPing" };
 
 export default async function DiaryPage() {
   const user = await requireRole("customer", "vendor", "admin");
-  const rows = await getDiaryRows(user.id);
+  // rows/pool/theme don't depend on each other — fetch together.
+  const [rows, pool, theme] = await Promise.all([getDiaryRows(user.id), loadCandidatePool(await createClient()), getActiveTheme()]);
   const today = localDateIn(rows.timezone);
   const view = buildDiaryView({ contacts: rows.contacts, events: rows.events, gifts: rows.gifts, today });
   const score = computeGiftingScore(view.scoreInput);
-  const desk = siteImage("diary-desk", (await getActiveTheme()).id);
+  const desk = siteImage("diary-desk", theme.id);
 
-  const pool = await loadCandidatePool(await createClient());
   const giftedBy = new Map<string, Set<string>>();
   for (const g of rows.gifts) if (g.contact_id && g.product_id) giftedBy.set(g.contact_id, (giftedBy.get(g.contact_id) ?? new Set()).add(g.product_id));
 

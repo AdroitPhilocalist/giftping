@@ -27,7 +27,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
       <AnnouncementBar message={announcement} />
       <header className="sticky top-0 z-40 border-b border-brand-dark/[0.06] bg-brand-light/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
-          <Logo className="shrink-0 xl:mr-6 2xl:mr-10" />
+          <Logo className="shrink-0 xl:mr-6 2xl:mr-10" priority />
           <NavLinks />
 
           <div className="flex items-center gap-1 sm:gap-1.5">

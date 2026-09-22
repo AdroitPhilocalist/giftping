@@ -33,10 +33,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  // user doesn't depend on the product — fetch it alongside instead of after.
+  const [product, user] = await Promise.all([getProductBySlug(slug), getServerUser()]);
   if (!product) notFound();
 
-  const user = await getServerUser();
   const [related, { reviews, total: reviewTotal }, wishlistIds, settings, returnDays] = await Promise.all([
     getRelatedProducts(product.id, product.category_id),
     getProductReviews(product.id),

@@ -10,7 +10,7 @@ import { Textarea, Input, Label } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
 import { addToCartAction } from "@/lib/commerce/cart-actions";
 import { effectiveStock, maxPurchasable } from "@/lib/commerce/pricing";
-import { PERSONALIZATION_OCCASIONS as OCCASIONS } from "@/lib/validation/cart.schema";
+import { PERSONALIZATION_OCCASIONS as OCCASIONS } from "@/lib/commerce/personalization";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
 

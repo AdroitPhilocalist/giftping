@@ -25,16 +25,16 @@ export default async function VendorStorefrontPage({
   const sp = await searchParams;
   const page = Number(sp.page ?? "1") || 1;
 
-  const vendor = await getVendorBySlug(slug);
+  // None of these three depend on each other — fetch together instead of one-after-another.
+  const [vendor, user, theme] = await Promise.all([getVendorBySlug(slug), getServerUser(), getActiveTheme()]);
   if (!vendor) notFound();
 
-  const user = await getServerUser();
   const [{ products, total, totalPages }, wishlistIds] = await Promise.all([
     listProducts({ vendorSlug: slug, page, sort: "popularity" }),
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
   ]);
 
-  const defaultFront = vendor.banner_url ? null : defaultShopfrontImage(vendor.slug, (await getActiveTheme()).id);
+  const defaultFront = vendor.banner_url ? null : defaultShopfrontImage(vendor.slug, theme.id);
 
   return (
     <div>

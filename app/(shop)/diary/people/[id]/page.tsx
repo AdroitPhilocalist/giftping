@@ -23,7 +23,8 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
   if (!z.string().uuid().safeParse(id).success) notFound();
 
   const user = await requireRole("customer", "vendor", "admin");
-  const rows = await getDiaryRows(user.id);
+  // rows and pool don't depend on each other — fetch together.
+  const [rows, pool] = await Promise.all([getDiaryRows(user.id), loadCandidatePool(await createClient())]);
   const contact = rows.contacts.find((c) => c.id === id);
   if (!contact) notFound(); // RLS means another user's id is simply not in `rows`
 
@@ -33,7 +34,6 @@ export default async function PersonPage({ params }: { params: Promise<{ id: str
   const view = buildDiaryView({ contacts: [contact], events, gifts, today });
   const next = view.nextByContact.get(id);
 
-  const pool = await loadCandidatePool(await createClient());
   const ideas = suggestGifts({
     person: { relationship: contact.relationship, interests: contact.interests, giftPreferences: contact.gift_preferences },
     context: { eventType: next?.event.event_type ?? null, budgetMax: contact.budget_max === null ? null : Number(contact.budget_max) },

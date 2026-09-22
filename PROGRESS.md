@@ -9,7 +9,7 @@ static project conventions that don't change session to session._
 > **Deployment:** https://giftping-lime.vercel.app (Vercel, auto-deploys from `master`). Webhooks: `/api/webhooks/razorpay`, `/api/webhooks/courier-tracking`. Daily cron: `/api/cron/diary-reminders`.
 
 **Stage 9 — Personal Gifting Diary + daily cron** ✅ built and verified locally. **Stage 10 — email + web push built** (`notifyUser()` = in-app + email + push, preference-gated; real Resend in test mode; real OneSignal wired). **Web push verified for real on the deployed site (Safari, 2026-09-20)**: subscribed via Account → Notification settings, OneSignal showed an enabled SafariPush linked to the user's id, a direct push and the production diary cron's push were both received, and a second cron run sent nothing (exactly-once). Not yet tried in Chrome/Brave (Brave needs "Use Google services for push messaging" turned on). Remaining: Supabase auth SMTP (needs a domain). **Stage 7 (payments) is now fully verified with a real Razorpay test payment**
-(real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 12 in progress — slice 1 (design foundation + theming) and slice 2 (homepage, `/mall` directory, placeholder art, `npm run images:sync`) done, see `docs/progress/2026-09-21-stage-12-*.md`**; **slice 3 (product page + delivery checker + first real artwork: hero, map, cards) done, see `docs/progress/2026-09-21-stage-12-product-page.md`**; **slice 4 (order tracking, diary desk, About/Contact/Privacy/Terms/Refunds, real robin + logo wired) done, see `docs/progress/2026-09-21-stage-12-tracking-diary-pages.md`**; **slice 5 (cart + checkout polish) done, see `docs/progress/2026-09-21-stage-12-cart-checkout.md`**; **slice 6 (wrap-style choice, My orders, shop by relationship, account hub, 404) done, see `docs/progress/2026-09-21-stage-12-orders-wraps-relationships.md`; ALL Batch 1 artwork delivered and wired**; **slice 7 (theme scheduling + admin preview, `/admin/themes`) done, see `docs/progress/2026-09-22-stage-12-theme-scheduling.md` — no festival theme built yet, waiting on the client to ask**; next: remaining artwork (Batch 2 prompts in `docs/design/asset-prompts.md`), performance pass; Stage 13 go-live.
+(real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 12 in progress — slice 1 (design foundation + theming) and slice 2 (homepage, `/mall` directory, placeholder art, `npm run images:sync`) done, see `docs/progress/2026-09-21-stage-12-*.md`**; **slice 3 (product page + delivery checker + first real artwork: hero, map, cards) done, see `docs/progress/2026-09-21-stage-12-product-page.md`**; **slice 4 (order tracking, diary desk, About/Contact/Privacy/Terms/Refunds, real robin + logo wired) done, see `docs/progress/2026-09-21-stage-12-tracking-diary-pages.md`**; **slice 5 (cart + checkout polish) done, see `docs/progress/2026-09-21-stage-12-cart-checkout.md`**; **slice 6 (wrap-style choice, My orders, shop by relationship, account hub, 404) done, see `docs/progress/2026-09-21-stage-12-orders-wraps-relationships.md`; ALL Batch 1 artwork delivered and wired**; **slice 7 (theme scheduling + admin preview, `/admin/themes`) done, see `docs/progress/2026-09-22-stage-12-theme-scheduling.md` — no festival theme built yet, waiting on the client to ask**; **slice 8 (performance pass) done, see `docs/progress/2026-09-22-stage-12-performance-pass.md` — memoized `getActiveTheme()`/`getProductBySlug()` (were re-querying up to 8x per homepage request), parallelized several page-level query waterfalls, fixed two real image-preload bugs (Logo, HomeHero/auth panel), removed zod from the product-page bundle, added AVIF**; next: remaining artwork (Batch 2 prompts in `docs/design/asset-prompts.md`); Stage 13 go-live.
 
 ## Stage 11 in progress
 
@@ -29,18 +29,17 @@ Full detail: `docs/progress/2026-09-20-stage-9-diary.md`, and the "Real-account 
 
 ## Next Up
 
-Stages 0–11 are complete. Stage 12 (visual & motion polish) is in progress — slices 1–7 done (design
+Stages 0–11 are complete. Stage 12 (visual & motion polish) is in progress — slices 1–8 done (design
 foundation/theming, homepage + mall, product page, order tracking + diary desk + content pages, cart/
-checkout, wrap styles + My Orders + shop-by-relationship, theme scheduling — see the dated logs in
-`/docs/progress/`). Remaining before Stage 13:
+checkout, wrap styles + My Orders + shop-by-relationship, theme scheduling, a performance pass — see the
+dated logs in `/docs/progress/`). Remaining before Stage 13:
 
 1. Whatever artwork the client generates next from Batch 2 of `docs/design/asset-prompts.md` (occasion
    banners, default boutique fronts, diary desk, order-tracking header, mall destinations, auth panel) —
    `npm run images:sync` wires each one automatically, no code change needed.
-2. A performance pass (image sizes, loading, Lighthouse) once most artwork is in.
-3. Any festival theme the client asks for (Christmas first) — the scheduling mechanism (`/admin/themes`)
+2. Any festival theme the client asks for (Christmas first) — the scheduling mechanism (`/admin/themes`)
    is built and waiting; adding a theme is the 4-step recipe in `docs/design/DESIGN_DIRECTION.md`.
-4. Then **Stage 13 — go-live**: production Supabase project + backups, rotate every pasted secret, delete
+3. Then **Stage 13 — go-live**: production Supabase project + backups, rotate every pasted secret, delete
    test accounts/seed images, legal review of Privacy/Terms/Refunds (`lib/site.ts` `legalReviewed`), live
    Razorpay KYC, verified email domain + Supabase auth SMTP through Resend.
 

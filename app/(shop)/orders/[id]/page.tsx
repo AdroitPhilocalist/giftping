@@ -41,10 +41,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
   const user = await getServerUser();
   if (!user) notFound(); // proxy.ts redirects signed-out visitors first
-  const order = await getMyOrder(id, user.id);
+
+  // windowDays/theme don't depend on the order itself — fetch alongside it, not after it.
+  const [order, windowDays, theme] = await Promise.all([getMyOrder(id, user.id), getReturnWindowDays(), getActiveTheme()]);
   if (!order) notFound();
 
-  const windowDays = await getReturnWindowDays();
   const progress = describeOrderProgress(order.status);
   const address = (order.delivery_address ?? {}) as Address;
   const byVendor = new Map<string, { name: string; items: typeof order.items }>();
@@ -62,7 +63,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
         placedOn={new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" })}
         statusLabel={ORDER_STATUS_LABEL[order.status] ?? order.status}
         progress={progress}
-        backdrop={siteImage("order-hero", (await getActiveTheme()).id)}
+        backdrop={siteImage("order-hero", theme.id)}
       >
         {order.status === "created" || order.status === "payment_initiated" ? (
           <PayNowButton orderId={order.id} total={Number(order.total_amount)} enabled={isRazorpayConfigured()} />

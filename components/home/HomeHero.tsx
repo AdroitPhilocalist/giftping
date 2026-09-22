@@ -29,7 +29,10 @@ export async function HomeHero() {
           {hero ? (
             <picture className="absolute inset-0 block">
               {heroMobile ? <source media="(max-width: 1023px)" srcSet={heroMobile.src} /> : null}
-              <Image src={hero.src} alt="A warmly lit gifting mall atrium with hanging gift boxes" fill priority sizes="(min-width: 1024px) 68vw, 100vw" className="object-cover object-center" />
+              {/* sizes' mobile branch is deliberately near-zero, not the real 100vw: below 1024px the <source> above always wins, so this <img> never actually
+                  renders there — but Next still preloads it at `priority`, and a real mobile-width sizes value would waste bandwidth preloading a picture
+                  nobody sees, racing the real heroMobile fetch for the same priority slot. */}
+              <Image src={hero.src} alt="A warmly lit gifting mall atrium with hanging gift boxes" fill priority sizes="(min-width: 1024px) 68vw, 10px" className="object-cover object-center" />
             </picture>
           ) : (
             <>

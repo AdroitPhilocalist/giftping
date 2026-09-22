@@ -25,7 +25,8 @@ export default async function CategoryPage({
   const { slug } = await params;
   const sp = await searchParams;
 
-  const category = await getCategoryBySlug(slug);
+  // category gates the page, but user/theme don't depend on it — fetch all three together.
+  const [category, user, theme] = await Promise.all([getCategoryBySlug(slug), getServerUser(), getActiveTheme()]);
   if (!category) notFound();
 
   const page = Number(sp.page ?? "1") || 1;
@@ -39,7 +40,6 @@ export default async function CategoryPage({
     page,
   };
 
-  const user = await getServerUser();
   const [{ products, total, totalPages }, vendors, wishlistIds] = await Promise.all([
     listProducts(filters),
     getVendorsForCategory(category.id),
@@ -58,7 +58,7 @@ export default async function CategoryPage({
     return `/categories/${slug}${qs ? `?${qs}` : ""}`;
   }
 
-  const world = siteImage(`world-${slug}`, (await getActiveTheme()).id);
+  const world = siteImage(`world-${slug}`, theme.id);
 
   // "Birthday" -> "Birthday World"; "Corporate Gifting" -> accent on the last word; "For Her" stays as it is
   const words = category.name.split(" ");

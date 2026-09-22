@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/db/server";
 
 const PRODUCT_CARD_SELECT = `
@@ -85,7 +86,9 @@ export async function listProducts(filters: ProductListFilters = {}) {
   };
 }
 
-export async function getProductBySlug(slug: string) {
+// cache(): the product page's generateMetadata() and the page component both need the same product — without
+// memoizing, the whole query (with its joins) would run twice per request.
+export const getProductBySlug = cache(async function getProductBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
@@ -104,7 +107,7 @@ export async function getProductBySlug(slug: string) {
 
   if (error) throw error;
   return data;
-}
+});
 
 export async function getRelatedProducts(productId: string, categoryId: string | null, limit = 4) {
   const supabase = await createClient();
