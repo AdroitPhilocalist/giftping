@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Store } from "lucide-react";
+import { BasketArt } from "@/components/art/BasketArt";
 import { Robin } from "@/components/art/Robin";
 import { BuyAssurances } from "@/components/shop/BuyAssurances";
 import { CheckoutSteps } from "@/components/shop/CheckoutSteps";
@@ -21,21 +22,27 @@ export default async function CartPage() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
       {needsMerge ? <GuestCartMerger /> : null}
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-secondary-dark">Your basket</p>
-          <h1 className="mt-2 font-heading text-4xl text-brand-dark">
-            Your <span className="accent-word">Cart</span>
-            {cart.itemCount > 0 ? <span className="ml-3 align-middle text-base font-sans text-brand-dark/50">{cart.itemCount} {cart.itemCount === 1 ? "item" : "items"}</span> : null}
-          </h1>
+        <div className="flex items-center gap-3">
+          <BasketArt full={cart.groups.length > 0} className="w-14 shrink-0 sm:w-16" />
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-secondary-dark">Your basket</p>
+            <h1 className="mt-1 font-heading text-4xl text-brand-dark">
+              Your <span className="accent-word">Cart</span>
+              {cart.itemCount > 0 ? <span className="ml-3 align-middle text-base font-sans text-brand-dark/50">{cart.itemCount} {cart.itemCount === 1 ? "item" : "items"}</span> : null}
+            </h1>
+          </div>
         </div>
         {cart.groups.length > 0 ? <CheckoutSteps current={0} /> : null}
       </div>
 
       {cart.groups.length === 0 ? (
         <div className="mt-10 flex flex-col items-center gap-3 rounded-card border border-brand-secondary/20 bg-gradient-to-b from-brand-accent/60 to-brand-surface p-10 text-center shadow-card sm:p-16">
-          <Robin pose="peeking" priority className="w-40" title="The GiftPing robin, peeking into an empty cart" />
-          <h2 className="font-heading text-2xl text-brand-dark">Your cart is empty</h2>
-          <p className="max-w-sm text-brand-dark/65">Nothing here yet — let&apos;s find someone a gift they&apos;ll remember.</p>
+          <div className="relative w-40">
+            <BasketArt full={false} title="An empty gifting basket" />
+            <Robin pose="peeking" priority className="absolute -top-8 left-1/2 w-16 -translate-x-1/2 sm:-top-10 sm:w-20" title="The GiftPing robin, peeking into an empty basket" />
+          </div>
+          <h2 className="font-heading text-2xl text-brand-dark">Your basket is empty</h2>
+          <p className="max-w-sm text-brand-dark/65">Nothing planted in it yet — let&apos;s find someone a gift they&apos;ll remember.</p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
             <Button size="lg" asChild>
               <Link href="/mall">Explore the Mall</Link>
@@ -49,7 +56,7 @@ export default async function CartPage() {
         <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_22rem]">
           <div className="space-y-6">
             {cart.groups.map((group) => (
-              <section key={group.vendorId} className="rounded-card border border-brand-dark/[0.06] bg-brand-surface p-5 shadow-card">
+              <section key={group.vendorId} className="basket-weave rounded-card border border-brand-dark/[0.06] p-5 shadow-card">
                 <header className="flex items-center gap-2 border-b border-brand-dark/10 pb-3">
                   <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-accent text-brand-secondary-dark"><Store className="h-4 w-4" aria-hidden="true" /></span>
                   {group.vendorSlug ? (

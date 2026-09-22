@@ -6,6 +6,7 @@ import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { toast } from "@/components/ui/Toast";
 import { confirmPaymentAction, startPaymentAction } from "@/lib/commerce/payment-actions";
+import { PAYMENT_CONFIRMED_EVENT } from "@/components/orders/OrderCelebration";
 import { formatCurrency } from "@/lib/utils/format";
 
 interface RazorpaySuccess {
@@ -103,6 +104,7 @@ export function PayNowButton({ orderId, total, enabled }: { orderId: string; tot
           }
           if (result.status === "pending") return; // polling continues until the webhook/callback lands
           setConfirming(false);
+          window.dispatchEvent(new CustomEvent(PAYMENT_CONFIRMED_EVENT));
           router.refresh();
         },
         modal: { ondismiss: () => toast("Payment window closed — you haven't been charged.") },

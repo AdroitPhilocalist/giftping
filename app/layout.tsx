@@ -8,6 +8,9 @@ import { getServerUser } from "@/lib/auth/session";
 import { headers } from "next/headers";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import { ThemePreviewStrip } from "@/components/admin/ThemePreviewStrip";
+import { CartFlyLayer } from "@/components/motion/CartFlyLayer";
+import { RobinCursor } from "@/components/motion/RobinCursor";
+import { siteImage } from "@/lib/content/imagery";
 import { getActiveTheme } from "@/lib/theme/active";
 import { getThemePreviewOverride } from "@/lib/theme/preview";
 import { resolveTheme } from "@/lib/theme/themes";
@@ -55,6 +58,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Toaster />
           {user && oneSignalAppId && pushSdkAllowed ? <OneSignalIdentity appId={oneSignalAppId} userId={user.id} /> : null}
           {previewId ? <ThemePreviewStrip label={resolveTheme(previewId).label} /> : null}
+          <RobinCursor markSrc={siteImage("robin-perched", theme.id)?.src ?? null} />
+          <CartFlyLayer />
         </TooltipProvider>
       </body>
     </html>

@@ -25,7 +25,7 @@ export function MobileTabBar({ cartCount, wishlistCount }: { cartCount: number; 
           return (
             <li key={label}>
               <Link href={href} aria-current={current ? "page" : undefined} className={cn("relative flex flex-col items-center gap-0.5 py-2 text-[11px] transition-colors", current ? "font-medium text-brand-secondary-dark" : "text-brand-dark/60")}>
-                <span className="relative">
+                <span className="relative" id={label === "Cart" ? "gp-cart-icon-mobile" : undefined}>
                   <Icon className="h-5 w-5" aria-hidden="true" />
                   {count > 0 ? <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-secondary px-1 text-[10px] font-semibold text-brand-on-secondary">{count > 9 ? "9+" : count}</span> : null}
                 </span>

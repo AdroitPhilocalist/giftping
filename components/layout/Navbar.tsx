@@ -47,7 +47,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{wishlistCount}</span> : null}
             </Link>
-            <Link href="/cart" aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"} className={iconButton}>
+            <Link id="gp-cart-icon" href="/cart" aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"} className={iconButton}>
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{cartCount > 99 ? "99+" : cartCount}</span> : null}
             </Link>

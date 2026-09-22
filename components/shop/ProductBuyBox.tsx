@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Cake, Gift, Heart, HeartHandshake, Minus, Plus, ShoppingBag, Sparkles, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { DeliveryChecker } from "@/components/shop/DeliveryChecker";
+import { ADD_TO_CART_FLY_EVENT } from "@/components/motion/CartFlyLayer";
 import { Button } from "@/components/ui/Button";
 import { Textarea, Input, Label } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
@@ -73,7 +74,7 @@ export function ProductBuyBox({
   const inStock = availableStock > 0;
   const maxQuantity = Math.max(1, maxPurchasable(availableStock));
 
-  function addToCart(afterAdd?: () => void) {
+  function addToCart(afterAdd?: () => void, flyFrom?: { x: number; y: number }) {
     startTransition(async () => {
       const result = await addToCartAction({
         productId,
@@ -89,6 +90,8 @@ export function ProductBuyBox({
         toast.error(result.error);
         return;
       }
+      // Let the robin do its "into the basket" moment before anything else reacts — see CartFlyLayer.
+      if (flyFrom) window.dispatchEvent(new CustomEvent(ADD_TO_CART_FLY_EVENT, { detail: flyFrom }));
       if (afterAdd) {
         afterAdd();
         return;
@@ -200,7 +203,15 @@ export function ProductBuyBox({
             <Plus className="h-4 w-4" />
           </button>
         </div>
-        <Button className="flex-1" size="lg" disabled={!inStock || isPending} onClick={() => addToCart()}>
+        <Button
+          className="flex-1"
+          size="lg"
+          disabled={!inStock || isPending}
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            addToCart(undefined, { x: r.left + r.width / 2, y: r.top + r.height / 2 });
+          }}
+        >
           <ShoppingBag className="h-4 w-4" />
           Add to cart
         </Button>

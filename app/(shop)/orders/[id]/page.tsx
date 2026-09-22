@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { ExternalLink, Truck } from "lucide-react";
+import { OrderCelebration } from "@/components/orders/OrderCelebration";
 import { OrderHero } from "@/components/orders/OrderHero";
 import { OrderStepper } from "@/components/orders/OrderStepper";
 import { siteImage } from "@/lib/content/imagery";
@@ -57,6 +58,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:py-10 sm:px-6 lg:px-8">
+      <OrderCelebration />
       <Link href="/orders" className="mb-4 inline-block text-sm text-brand-dark/60 hover:text-brand-dark hover:underline">← All orders</Link>
       <OrderHero
         orderNumber={order.order_number}
