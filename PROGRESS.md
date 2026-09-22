@@ -9,7 +9,7 @@ static project conventions that don't change session to session._
 > **Deployment:** https://giftping-lime.vercel.app (Vercel, auto-deploys from `master`). Webhooks: `/api/webhooks/razorpay`, `/api/webhooks/courier-tracking`. Daily cron: `/api/cron/diary-reminders`.
 
 **Stage 9 — Personal Gifting Diary + daily cron** ✅ built and verified locally. **Stage 10 — email + web push built** (`notifyUser()` = in-app + email + push, preference-gated; real Resend in test mode; real OneSignal wired). **Web push verified for real on the deployed site (Safari, 2026-09-20)**: subscribed via Account → Notification settings, OneSignal showed an enabled SafariPush linked to the user's id, a direct push and the production diary cron's push were both received, and a second cron run sent nothing (exactly-once). Not yet tried in Chrome/Brave (Brave needs "Use Google services for push messaging" turned on). Remaining: Supabase auth SMTP (needs a domain). **Stage 7 (payments) is now fully verified with a real Razorpay test payment**
-(real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 12 in progress — slice 1 (design foundation + theming) and slice 2 (homepage, `/mall` directory, placeholder art, `npm run images:sync`) done, see `docs/progress/2026-09-21-stage-12-*.md`**; **slice 3 (product page + delivery checker + first real artwork: hero, map, cards) done, see `docs/progress/2026-09-21-stage-12-product-page.md`**; **slice 4 (order tracking, diary desk, About/Contact/Privacy/Terms/Refunds, real robin + logo wired) done, see `docs/progress/2026-09-21-stage-12-tracking-diary-pages.md`**; **slice 5 (cart + checkout polish) done, see `docs/progress/2026-09-21-stage-12-cart-checkout.md`**; **slice 6 (wrap-style choice, My orders, shop by relationship, account hub, 404) done, see `docs/progress/2026-09-21-stage-12-orders-wraps-relationships.md`; ALL Batch 1 artwork delivered and wired**; next: theme scheduling + admin preview, remaining artwork (Batch 2 prompts in `docs/design/asset-prompts.md`), performance pass; Stage 13 go-live.
+(real webhooks confirmed the order once, replays were no-ops, stock/cart/notifications correct). Next: **Stage 12 in progress — slice 1 (design foundation + theming) and slice 2 (homepage, `/mall` directory, placeholder art, `npm run images:sync`) done, see `docs/progress/2026-09-21-stage-12-*.md`**; **slice 3 (product page + delivery checker + first real artwork: hero, map, cards) done, see `docs/progress/2026-09-21-stage-12-product-page.md`**; **slice 4 (order tracking, diary desk, About/Contact/Privacy/Terms/Refunds, real robin + logo wired) done, see `docs/progress/2026-09-21-stage-12-tracking-diary-pages.md`**; **slice 5 (cart + checkout polish) done, see `docs/progress/2026-09-21-stage-12-cart-checkout.md`**; **slice 6 (wrap-style choice, My orders, shop by relationship, account hub, 404) done, see `docs/progress/2026-09-21-stage-12-orders-wraps-relationships.md`; ALL Batch 1 artwork delivered and wired**; **slice 7 (theme scheduling + admin preview, `/admin/themes`) done, see `docs/progress/2026-09-22-stage-12-theme-scheduling.md` — no festival theme built yet, waiting on the client to ask**; next: remaining artwork (Batch 2 prompts in `docs/design/asset-prompts.md`), performance pass; Stage 13 go-live.
 
 ## Stage 11 in progress
 
@@ -29,14 +29,20 @@ Full detail: `docs/progress/2026-09-20-stage-9-diary.md`, and the "Real-account 
 
 ## Next Up
 
-1. **Developer (unblocks real verification):** add to Vercel and redeploy — `CRON_SECRET` (any long random string; the value in `.env.local` is only for local), `NEXT_PUBLIC_RAZORPAY_KEY_ID`,
-   `RAZORPAY_SECRET_KEY`, `SHIPROCKET_EMAIL`, `SHIPROCKET_PASSWORD`, `VENDOR_BANK_ENCRYPTION_KEY`, `NEXT_PUBLIC_APP_URL`. Resend key + a verified domain for real reminder emails.
-   Shiprocket: recharge wallet (~₹500) + create/verify a pickup address, then tell me its name. Rotate the Shiprocket password and use a separate webhook token.
-2. **Stage 10 (remaining)**: ~~OneSignal web push~~ (built; awaiting a real-browser subscribe test on the deployed site) (client SDK, subscription flow, `push` channel in the reminder cron), order/shipment emails via Resend, notification preferences per channel,
-   verified-domain email + Supabase auth SMTP through Resend (fixes the auth-email rate limit).
-3. **Stage 11 — Admin suite**: dashboard/analytics, vendor mgmt (incl. commission override, support phone capture), product moderation, order oversight + cancellations/refunds/returns, coupons UI,
-   homepage banners, user mgmt, DPDP deletion, vendor settlements (data is in `order_item_financials`), vendor logo/banner + CSV upload.
-4. Stage 12 visual/motion polish to match `ui-references/`; Stage 13 go-live (prod Supabase project + backups, rotate all pasted secrets, delete test accounts/seed images, legal pages, live Razorpay KYC).
+Stages 0–11 are complete. Stage 12 (visual & motion polish) is in progress — slices 1–7 done (design
+foundation/theming, homepage + mall, product page, order tracking + diary desk + content pages, cart/
+checkout, wrap styles + My Orders + shop-by-relationship, theme scheduling — see the dated logs in
+`/docs/progress/`). Remaining before Stage 13:
+
+1. Whatever artwork the client generates next from Batch 2 of `docs/design/asset-prompts.md` (occasion
+   banners, default boutique fronts, diary desk, order-tracking header, mall destinations, auth panel) —
+   `npm run images:sync` wires each one automatically, no code change needed.
+2. A performance pass (image sizes, loading, Lighthouse) once most artwork is in.
+3. Any festival theme the client asks for (Christmas first) — the scheduling mechanism (`/admin/themes`)
+   is built and waiting; adding a theme is the 4-step recipe in `docs/design/DESIGN_DIRECTION.md`.
+4. Then **Stage 13 — go-live**: production Supabase project + backups, rotate every pasted secret, delete
+   test accounts/seed images, legal review of Privacy/Terms/Refunds (`lib/site.ts` `legalReviewed`), live
+   Razorpay KYC, verified email domain + Supabase auth SMTP through Resend.
 
 ## Open Questions / Blocked On
 
@@ -44,6 +50,12 @@ Full detail: `docs/progress/2026-09-20-stage-9-diary.md`, and the "Real-account 
 - Razorpay Route (auto vendor split) vs manual settlement — client decision.
 - The Shiprocket webhook token equals the account password (advised to change).
 - `VENDOR_BANK_ENCRYPTION_KEY` lives only in `.env.local` + must be set in Vercel; losing it makes stored bank details unrecoverable.
+- **Please click through once, signed in as the test admin** (things I can't verify myself — see the
+  dated Stage 12 logs for exactly what's unchecked): `/admin/themes` (preview a demo theme, confirm the
+  whole site restyles and the floating "Stop" strip works), `/checkout` end to end, and one real order
+  placed with a gift-wrap style selected (confirm it shows correctly on the boutique's and admin's order
+  screens).
+- Support email/phone for the Contact page (`NEXT_PUBLIC_SUPPORT_EMAIL`/`_PHONE`) — currently blank.
 
 ## Credentials Status
 

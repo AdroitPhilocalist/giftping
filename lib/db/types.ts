@@ -1973,6 +1973,39 @@ export type Database = {
           },
         ]
       }
+      site_themes: {
+        Row: {
+          created_at: string
+          ends_at: string | null
+          id: string
+          is_active: boolean
+          note: string | null
+          starts_at: string | null
+          theme_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          starts_at?: string | null
+          theme_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean
+          note?: string | null
+          starts_at?: string | null
+          theme_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           anonymized_at: string | null

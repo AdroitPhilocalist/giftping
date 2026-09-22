@@ -7,7 +7,10 @@ import { OneSignalIdentity } from "@/components/shop/OneSignalIdentity";
 import { getServerUser } from "@/lib/auth/session";
 import { headers } from "next/headers";
 import { TooltipProvider } from "@/components/ui/Tooltip";
+import { ThemePreviewStrip } from "@/components/admin/ThemePreviewStrip";
 import { getActiveTheme } from "@/lib/theme/active";
+import { getThemePreviewOverride } from "@/lib/theme/preview";
+import { resolveTheme } from "@/lib/theme/themes";
 import "./globals.css";
 
 // Display serif (headlines; the italic carries the emotional accent words) and a warm geometric sans for everything else.
@@ -33,7 +36,7 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await getServerUser();
-  const theme = await getActiveTheme();
+  const [theme, previewId] = await Promise.all([getActiveTheme(), getThemePreviewOverride()]);
   const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
   // OneSignal's SDK refuses to run anywhere but the site address configured in its dashboard, so on localhost it only throws console errors.
   const host = ((await headers()).get("host") ?? "").split(":")[0];
@@ -51,6 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Footer />
           <Toaster />
           {user && oneSignalAppId && pushSdkAllowed ? <OneSignalIdentity appId={oneSignalAppId} userId={user.id} /> : null}
+          {previewId ? <ThemePreviewStrip label={resolveTheme(previewId).label} /> : null}
         </TooltipProvider>
       </body>
     </html>

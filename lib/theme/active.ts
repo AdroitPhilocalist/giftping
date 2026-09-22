@@ -1,10 +1,17 @@
 import "server-only";
+import { getScheduledThemeId } from "@/lib/db/themes";
+import { getThemePreviewOverride } from "@/lib/theme/preview";
 import { DEFAULT_THEME_ID, resolveTheme, type ThemeDef } from "@/lib/theme/themes";
 
 /**
- * Which theme is showing right now. Today: always the native look. The next slice adds (1) an admin-only preview and (2) scheduled themes
- * (start/end dates, like banners) read from the database — both resolve to a theme id here, so nothing else in the app has to know.
+ * Which theme is showing right now, in priority order:
+ *   1. an admin's own preview (this browser only — see lib/theme/preview.ts)
+ *   2. the scheduled festival theme, if one is live right now (lib/db/themes.ts + /admin/themes)
+ *   3. the native default
  */
 export async function getActiveTheme(): Promise<ThemeDef> {
-  return resolveTheme(DEFAULT_THEME_ID);
+  const preview = await getThemePreviewOverride();
+  if (preview) return resolveTheme(preview);
+  const scheduled = await getScheduledThemeId();
+  return resolveTheme(scheduled ?? DEFAULT_THEME_ID);
 }
