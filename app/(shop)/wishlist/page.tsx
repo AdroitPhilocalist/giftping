@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { Robin } from "@/components/art/Robin";
 import { requireRole } from "@/lib/auth/session";
 import { getWishlistProducts } from "@/lib/db/wishlists";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -15,8 +15,8 @@ export default async function WishlistPage() {
       <h1 className="font-heading text-3xl text-brand-dark">My Wishlist</h1>
 
       {products.length === 0 ? (
-        <div className="mt-10 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-brand-dark/15 p-16 text-center">
-          <Heart className="h-10 w-10 text-brand-dark/20" />
+        <div className="mt-10 flex flex-col items-center gap-3 rounded-card border border-dashed border-brand-dark/15 p-16 text-center">
+          <Robin pose="heart" className="w-32" />
           <p className="text-brand-dark/60">Nothing saved yet — tap the heart on any gift to keep it here.</p>
           <Button asChild>
             <Link href="/">Explore the Mall</Link>

@@ -164,11 +164,14 @@ html.gp-robin-cursor,
 html.gp-robin-cursor * {
   cursor: none;
 }
-html.gp-robin-cursor input,
+/* Where a native cursor genuinely helps (typing, picking from a list) the robin steps aside and the system cursor takes over — see RobinCursor's data-hidden. */
+html.gp-robin-cursor input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="range"], [type="file"], [type="color"]),
 html.gp-robin-cursor textarea,
-html.gp-robin-cursor select,
 html.gp-robin-cursor [contenteditable="true"] {
   cursor: text;
+}
+html.gp-robin-cursor select {
+  cursor: default;
 }
 .gp-robin-cursor-mark {
   position: fixed;
@@ -179,11 +182,21 @@ html.gp-robin-cursor [contenteditable="true"] {
   width: 34px;
   height: 34px;
   transform: translate(-100px, -100px);
-  transition: transform 0.09s linear, scale 0.18s var(--gp-ease);
+  transition: transform 0.09s linear, opacity 0.15s ease;
   will-change: transform;
 }
-.gp-robin-cursor-mark[data-interactive="true"] { scale: 1.22; }
-.gp-robin-cursor-mark[data-pressed="true"] { scale: 0.8; }
+.gp-robin-cursor-mark[data-hidden="true"] { opacity: 0; }
+/* Scale and flip live on an INNER element on purpose. The `scale` property is applied on the OUTER side of `transform: translate()`, so putting it on the
+   element that is being translated multiplies the translation too — the robin drifted away from the pointer in proportion to how far from the top-left
+   corner it was, which is exactly what happened over buttons and fields (the "interactive" state scaled it up). */
+.gp-robin-cursor-inner {
+  width: 100%;
+  height: 100%;
+  transform: scaleX(var(--gp-cursor-flip, 1));
+  transition: scale 0.18s var(--gp-ease);
+}
+.gp-robin-cursor-mark[data-interactive="true"] .gp-robin-cursor-inner { scale: 1.22; }
+.gp-robin-cursor-mark[data-pressed="true"] .gp-robin-cursor-inner { scale: 0.8; }
 
 /* Payment confirmed (components/orders/OrderCelebration.tsx): the robin pops in, a few copper sparks — the
    same diamond as OrnamentDivider, not generic confetti — burst outward, then everything fades. */

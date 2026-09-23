@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BellRing, HeartHandshake, Store } from "lucide-react";
 import { GiftBoxArt } from "@/components/art/GiftBoxArt";
@@ -5,6 +6,7 @@ import { Robin } from "@/components/art/Robin";
 import { DiaryBand } from "@/components/home/DiaryBand";
 import { SectionHeading } from "@/components/home/SectionHeading";
 import { Reveal } from "@/components/motion/Reveal";
+import { siteImage } from "@/lib/content/imagery";
 import { PageHero } from "@/components/pages/PageHero";
 import { Button } from "@/components/ui/Button";
 
@@ -17,9 +19,9 @@ const PILLARS = [
 ];
 
 const STEPS = [
-  { n: "1", title: "Wander in", text: "Browse the mall by occasion, by boutique, or by who you’re shopping for." },
-  { n: "2", title: "Make it yours", text: "Personalise it, add gift wrap, and check delivery to their pincode." },
-  { n: "3", title: "We follow it home", text: "Each boutique ships its own part, and you can watch every parcel on its way." },
+  { n: "1", key: "step-browse", title: "Wander in", text: "Browse the mall by occasion, by boutique, or by who you’re shopping for." },
+  { n: "2", key: "step-personalise", title: "Make it yours", text: "Personalise it, add gift wrap, and check delivery to their pincode." },
+  { n: "3", key: "step-deliver", title: "We follow it home", text: "Each boutique ships its own part, and you can watch every parcel on its way." },
 ];
 
 export default function AboutPage() {
@@ -67,6 +69,10 @@ export default function AboutPage() {
         <ol className="mt-10 grid gap-8 md:grid-cols-3">
           {STEPS.map((s) => (
             <li key={s.n} className="text-center">
+              {(() => {
+                const art = siteImage(s.key as "step-browse" | "step-personalise" | "step-deliver");
+                return art ? <Image src={art.src} alt="" width={art.width} height={art.height} sizes="(min-width: 768px) 30vw, 90vw" className="mx-auto mb-5 aspect-[4/3] w-full max-w-xs rounded-card object-cover shadow-card" /> : null;
+              })()}
               <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-brand-secondary font-heading text-lg text-brand-on-secondary">{s.n}</span>
               <h3 className="mt-4 font-heading text-lg text-brand-dark">{s.title}</h3>
               <p className="mt-1.5 text-sm leading-relaxed text-brand-dark/70">{s.text}</p>

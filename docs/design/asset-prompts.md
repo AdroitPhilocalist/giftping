@@ -97,6 +97,20 @@ Same rules as Batch 1: use the same ChatGPT conversation (the STYLE LINE is alre
 **19 · `auth-welcome.png` — the sign-in / sign-up side picture** · **portrait**
 > A tall, cinematic, welcoming scene: a beautiful arched mall entrance doorway glowing warm amber at dusk, a small wrapped gift with a copper ribbon and a sprig of dried flowers on the doorstep, fairy lights framing the arch, deep green walls, a hint of the atrium beyond. No people, no text. The bottom third is calmer and darker (text will sit there).
 
+## Batch 2 — status (23 Sep): DELIVERED AND WIRED, four need a redo
+
+All 17 Batch 2 files are live (occasion worlds, boutique fronts, diary desk, order header, mall interiors, sign-in panel). Reviewed one by one:
+
+| File | Verdict |
+|---|---|
+| `world-anniversary`, `world-wedding`, `world-atrium`, `world-boutiques`, `diary-desk`, `order-hero`, `auth-welcome`, `shopfront-perfume/jewellery/florist` | Great — keep. |
+| `world-for-her` | **Regenerate.** Real brand names are visible ("Miss Dior", "Chanel Gabrielle", "Chanel" on the box) plus slogans on books and a candle. Using those on a commercial site is a trademark risk. |
+| `world-for-him` | **Regenerate.** "Bleu de Chanel" on the bottle, a monogram on the wallet, and slogans on books, a mug and a poster. |
+| `world-corporate-gifting` | Regenerate if you can: readable slogans everywhere ("Good Ideas Build Brighter Tomorrows", "Big Ideas Brighter People", book spines). Not a legal risk, just off-brand. |
+| `world-birthday` | Regenerate if you can: a neon "Happy Birthday", "Good People Brighter Days" on the cake and a framed card. Charming, but it says words we didn't write. |
+
+**Add this to the prompt for those four** (ChatGPT keeps inventing text unless told firmly): *"Absolutely no readable text, letters, numbers, slogans, brand names, logos or monograms anywhere — book spines, mugs, posters, cards, tags, labels, bottles and packaging must be completely blank or unmarked. Generic unbranded perfume bottles only."*
+
 ## What each new picture unlocks
 
 | File | Where it appears | Until it arrives |
@@ -108,6 +122,37 @@ Same rules as Batch 1: use the same ChatGPT conversation (the STYLE LINE is alre
 | `world-boutiques.png`, `world-atrium.png`, plus the occasion worlds | the "Handpicked Experiences" cards on /mall | plain green card with a lattice pattern |
 | `auth-welcome.png` | left panel of sign-in / sign-up on wide screens | the plain centred form |
 
-## Batch 3 (later — festive kit, only when the client asks)
+## Batch 3 — what would make the site feel even more like a place (each one has a slot already wired)
 
-Each festival is ~6 pictures in one shared style, stored under `ui-references/batch-1/<festival-name>/` with the SAME file names as the native set (`hero-atrium.png`, `hero-atrium-mobile.png`, `mall-map.png`, `card-*.png`…). I map them automatically — no code change. Christmas first: the same atrium and map, redone with fir garlands, red-and-gold ribbons, snow at the skylight, a lit tree on the central platform.
+The best additions so far (the mall map, the world banners) work because they are **pictures the page is built around**, not decoration. More of the same, in order of impact:
+
+**A · Robin sticker pack — 7 more poses** · **square** · transparent background · same robin, same watercolour style as the first four
+`robin-waving`, `robin-heart`, `robin-search`, `robin-bell`, `robin-celebrating`, `robin-reading`, `robin-sleeping`
+> (waving) the robin waving one wing, cheerful, welcoming. (heart) holding a small copper heart in its beak. (search) peering through a small brass magnifying glass. (bell) perched on a small brass hand-bell, mid-ring, with tiny motion lines. (celebrating) wings up with a few gold confetti pieces and a tiny party hat. (reading) perched on an open blank diary with a small pen. (sleeping) curled up asleep on a folded cream cloth, eyes closed, a tiny "z" made of dots — no letters.
+Where they go: `heart` = empty wishlist, `search` = search page and "nothing found", `bell` = empty notifications, `celebrating` = the payment-confirmed moment, `reading` = the diary's empty state, `waving` and `sleeping` are reserved for the sign-in welcome and the 404. Until each exists the site uses the perched robin.
+
+**B · Four more occasion worlds** · **landscape** · same rules as the other worlds (left third calm, no text, no people)
+`world-housewarming.png`, `world-thank-you.png`, `world-festivals.png`, `world-kids-baby.png` — these four categories now exist with demo products, so their pages currently draw the placeholder.
+> (housewarming) a bright new-home entrance: an olive tree, a brass lamp, a candle and a wrapped gift on a stone step, warm sunset light. (thank-you) a sunlit kitchen table with a bouquet of seasonal flowers, a tea set and a small wrapped gift with a blank kraft tag. (festivals) a Diwali evening: rows of brass diyas, marigold garlands, a brass thali of sweets and a wrapped gift box, golden bokeh lights. (kids-baby) a soft nursery corner: a wooden crate of plush toys, storybooks, a small wrapped gift, pastel balloons, warm morning light.
+
+**C · Diary stickers — one per occasion** · **square** · transparent background · flat, hand-painted style, about the size of a stamp
+`sticker-birthday`, `sticker-anniversary`, `sticker-wedding`, `sticker-housewarming`, `sticker-graduation`, `sticker-festival`, `sticker-thank-you`, `sticker-other`
+> A small hand-painted sticker in the GiftPing palette (forest green, copper, blush, cream): (birthday) a slice of cake with a candle; (anniversary) two interlocked rings with a rose; (wedding) a marigold garland arch; (housewarming) a little house with a lit window; (graduation) a scroll tied with a ribbon; (festival) a brass diya; (thank-you) a tied bouquet; (other) a wrapped gift with a bow. No text.
+They replace the small cake icon on every "coming up" date card in the diary.
+
+**D · "How it works" illustrations — 3** · **landscape** · in the same isometric miniature style as the mall map, on a cream background
+`step-browse`, `step-personalise`, `step-deliver`
+> (browse) an isometric miniature of the mall's promenade with glowing shopfronts and no people. (personalise) an isometric desk: a gift box open, a handwritten card, ribbon and a small copper pen. (deliver) an isometric street scene: a green scooter with a gift box on the back riding to a front door, a trail of dotted light.
+Where they go: the three steps on the About page (already wired).
+
+**E · Real product photography (the biggest realism win for the demo)** · **square** · save as `<product-slug>.png` in `ui-references/products/` (a new folder) — `npm run seed:images` picks them up as that product's main photo
+The demo catalogue (57 products) currently uses crops of your artwork as stand-in photos. If you want real ones, these are the most-seen products; ask for "a studio product photograph on a cream marble surface, soft warm side light, shallow depth of field, no text, logos or branding":
+`emerald-and-copper-celebration-hamper` · `signature-gift-box-forest-green` · `journal-and-brass-pen-set` · `amber-glow-candle-and-diffuser-set` · `bone-china-tea-cup-and-saucer` · `velvet-jewellery-box-pendant-set` · `floral-silk-scarf` · `royal-zari-trousseau-box` · `brass-kumkum-thali-set` · `kuthu-vilakku-brass-lamp` · `rose-and-ranunculus-bouquet` · `peony-rose-bouquet` · `belgian-truffle-gift-box-24` · `festive-mithai-and-dry-fruits-box` · `executive-leather-notebook` · `monogrammed-leather-wallet` · `executive-watch-gift-box` · `kundan-bridal-necklace-set` · `storybook-and-plush-gift-box` · `olive-tree-planter`
+(describe each in the prompt by its name and short description in `scripts/seed-demo.ts`.)
+
+## Ideas that need a little building first (say the word and I'll start)
+
+- **A courier scooter that rides along the order progress bar** — the delivery illustration above, animated to the parcel's real position. Needs one picture: `courier-scooter.png` (side view, transparent background, a green scooter with a gift box on the back).
+- **E-gift cards** — four card designs (`giftcard-birthday`, `-anniversary`, `-festive`, `-thank-you`, landscape, no text) sold as a product and emailed to the recipient. It is a real feature (a balance ledger, a redeem-at-checkout code), not just pictures — worth raising with the client because gift cards are a big share of gifting sales.
+- **Shop-the-look** — tag products on a world picture (hover the candle in the wedding banner to see it). Uses pictures you already have.
+- **Festival kits** — Diwali and Christmas versions of the hero, mall map and cards (the theme switch is already built). Each festival is ~6 pictures under `ui-references/batch-1/<festival>/` with the same file names as the native set.

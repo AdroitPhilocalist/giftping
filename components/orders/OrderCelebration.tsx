@@ -47,7 +47,7 @@ export function OrderCelebration() {
   return (
     <div className="pointer-events-none fixed inset-0 z-[70] flex items-center justify-center" aria-hidden="true">
       <div className="gp-celebrate-mark" data-leaving={phase === "out"}>
-        {hasRobinArt("on-gift") ? <Robin pose="on-gift" className="w-36 drop-shadow-[0_12px_30px_rgb(28_25_22_/_0.25)] sm:w-48" /> : <Robin className="w-28 drop-shadow-[0_12px_30px_rgb(28_25_22_/_0.25)] sm:w-36" />}
+        {hasRobinArt("celebrating") || hasRobinArt("on-gift") ? <Robin pose={hasRobinArt("celebrating") ? "celebrating" : "on-gift"} className="w-36 drop-shadow-[0_12px_30px_rgb(28_25_22_/_0.25)] sm:w-48" /> : <Robin className="w-28 drop-shadow-[0_12px_30px_rgb(28_25_22_/_0.25)] sm:w-36" />}
         {SPARKS.map((s, i) => (
           <svg key={i} viewBox="0 0 14 14" className="gp-celebrate-spark absolute left-1/2 top-1/2 -ml-2 -mt-2 h-4 w-4 text-brand-secondary" style={{ "--spark-x": `${s.dx}px`, "--spark-y": `${s.dy}px`, "--spark-delay": `${s.delay}s` } as React.CSSProperties}>
             <path d="M7 0l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" fill="currentColor" />

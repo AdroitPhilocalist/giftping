@@ -1,3 +1,4 @@
+import { Robin } from "@/components/art/Robin";
 import { SearchBar } from "@/components/shop/SearchBar";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { searchProducts } from "@/lib/search";
@@ -24,11 +25,16 @@ export default async function SearchPage({
 
       <div className="mt-8">
         {!query ? (
-          <p className="text-center text-brand-dark/50">Search for gifts, occasions, or people.</p>
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <Robin pose="search" className="w-32" />
+            <p className="text-brand-dark/60">Search for gifts, occasions, or people.</p>
+          </div>
         ) : results.length === 0 ? (
-          <p className="text-center text-brand-dark/50">
-            No results for &ldquo;{query}&rdquo;. Try a different search term.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <Robin pose="search" className="w-36" />
+            <h2 className="font-heading text-2xl text-brand-dark">Nothing found for &ldquo;{query}&rdquo;</h2>
+            <p className="max-w-sm text-brand-dark/60">Try a different word — an occasion, a person, or something they love.</p>
+          </div>
         ) : (
           <>
             <p className="mb-4 text-sm text-brand-dark/60">

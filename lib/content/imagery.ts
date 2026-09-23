@@ -9,6 +9,8 @@ export type ImageKey =
   | "hero-atrium" | "hero-atrium-mobile" | "mall-map"
   | "card-collections" | "card-boutiques" | "card-diary" | "card-services"
   | "robin-perched" | "robin-flying-gift" | "robin-on-gift" | "robin-peeking"
+  | "robin-waving" | "robin-heart" | "robin-search" | "robin-bell" | "robin-celebrating" | "robin-reading" | "robin-sleeping"
+  | `zone-${string}` | `sticker-${string}` | "step-browse" | "step-personalise" | "step-deliver"
   | "logo-gp" | "logo-gp-light"
   | "wrap-green" | "wrap-blush" | "wrap-blue" | "wrap-gold" | "wrap-ivory"
   | "rel-parents" | "rel-partner" | "rel-friends" | "rel-colleagues" | "rel-kids"

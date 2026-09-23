@@ -10,13 +10,15 @@ import { cn } from "@/lib/utils/cn";
 
 const ICONS: Record<ZoneIcon, typeof Gift> = { door: DoorOpen, cake: Cake, gem: Gem, heart: Heart, store: Store, flower: Flower2, watch: Watch, briefcase: Briefcase, gift: Gift };
 const TOUR_STEP_MS = 2600;
+const DEFAULT_PREVIEW = "atrium";
 
 /**
  * The interactive floor plan. Numbered markers are real links (keyboard-focusable, announced by screen readers); the list beside the map mirrors them, and hovering
  * or focusing either lights up both. "Take a Tour" walks through the places one by one and stops the moment the visitor touches anything.
  * `image` is the client's illustrated map once it exists; until then the drawn plan is used and both share the same nine places.
+ * `previews` maps a place to a picture of its "interior" (the occasion world images); hovering a place cross-fades to it under the map.
  */
-export function MallDirectory({ image }: { image: { src: string; width: number; height: number } | null }) {
+export function MallDirectory({ image, previews }: { image: { src: string; width: number; height: number } | null; previews: Record<string, string> }) {
   const [active, setActive] = useState<string | null>(null);
   const [touring, setTouring] = useState(false);
   const positions = image ? IMAGE_POSITIONS : PLAN_POSITIONS;
@@ -85,6 +87,16 @@ export function MallDirectory({ image }: { image: { src: string; width: number; 
               {touring ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />} {touring ? "Pause the tour" : "Take a Tour"}
             </button>
           </div>
+          {Object.keys(previews).length > 0 ? (
+            <div className="relative mt-4 aspect-[16/9] overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-accent shadow-card" aria-hidden="true">
+              {Object.entries(previews).map(([id, src]) => (
+                <Image key={id} src={src} alt="" fill sizes="(min-width: 1024px) 34vw, 90vw" className={cn("object-cover transition-opacity duration-700", (active ?? DEFAULT_PREVIEW) === id ? "opacity-100" : "opacity-0")} />
+              ))}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-primary-dark/80 to-transparent px-4 pb-3 pt-10">
+                <p className="font-heading text-lg text-white">{(current ?? MALL_ZONES.find((z) => z.id === DEFAULT_PREVIEW))?.title}</p> {/* theme-safe: text on a photo scrim */}
+              </div>
+            </div>
+          ) : null}
           <p className="mt-3 min-h-10 text-center text-sm text-brand-dark/65" aria-live="polite">
             {current ? <><strong className="font-heading text-base text-brand-dark">{current.title}</strong> — {current.sub}</> : "Hover a number, or take the tour."}
           </p>

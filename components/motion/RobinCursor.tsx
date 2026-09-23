@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+// fields where the system cursor (I-beam / arrow) is the better cue: the robin fades out and the native cursor takes over
+const NATIVE_CURSOR_SELECTOR = 'input:not([type="checkbox"], [type="radio"], [type="button"], [type="submit"], [type="reset"], [type="range"], [type="file"], [type="color"]), textarea, select, [contenteditable="true"]';
 const INTERACTIVE_SELECTOR = 'a, button, [role="button"], summary, input, select, textarea, label, [tabindex]:not([tabindex="-1"])';
 
 /**
@@ -14,7 +16,7 @@ const INTERACTIVE_SELECTOR = 'a, button, [role="button"], summary, input, select
  *   - never on touch/coarse pointers (there's no mouse to replace) — checked via matchMedia, not device
  *     sniffing, so it also behaves correctly if the same laptop is used with a touchscreen and a mouse.
  *   - never when the visitor asked for reduced motion — a *following* cursor is inherently motion.
- *   - the native cursor is restored over every text-entry field (globals.css), so it's always clear where
+ *   - over text fields and dropdowns the robin fades out and the native cursor takes over, so it's always clear where
  *     typing will land.
  *   - it grows slightly over anything clickable, so it still gives the affordance a normal pointer:pointer
  *     cursor would have — losing "this is clickable" is the usual complaint about custom cursors.
@@ -40,9 +42,10 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
         el.style.setProperty("--gp-cursor-flip", e.clientX < lastX ? "-1" : "1");
       }
       lastX = e.clientX;
-      el.style.transform = `translate(${e.clientX - 17}px, ${e.clientY - 17}px) scaleX(var(--gp-cursor-flip, 1))`;
-      const target = (e.target as Element | null)?.closest(INTERACTIVE_SELECTOR);
-      el.dataset.interactive = target ? "true" : "false";
+      el.style.transform = `translate(${e.clientX - 17}px, ${e.clientY - 17}px)`;
+      const source = e.target as Element | null;
+      el.dataset.interactive = source?.closest(INTERACTIVE_SELECTOR) ? "true" : "false";
+      el.dataset.hidden = source?.closest(NATIVE_CURSOR_SELECTOR) ? "true" : "false";
     }
     function onDown() {
       if (el) el.dataset.pressed = "true";
@@ -69,6 +72,7 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
 
   return (
     <div ref={ref} className="gp-robin-cursor-mark" aria-hidden="true">
+      <div className="gp-robin-cursor-inner">
       {markSrc ? (
         // eslint-disable-next-line @next/next/no-img-element -- an imperatively-transformed cursor mark; next/image's wrapper div would fight the transform
         <img src={markSrc} alt="" width={34} height={34} className="h-full w-full object-contain drop-shadow-[0_3px_6px_rgb(28_25_22_/_0.25)]" />
@@ -82,6 +86,7 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
           <path d="M2 14.5l-3.2 1.1 3.2 1.1z" fill="var(--gp-ink)" opacity="0.85" transform="translate(4 0)" />
         </svg>
       )}
+      </div>
     </div>
   );
 }

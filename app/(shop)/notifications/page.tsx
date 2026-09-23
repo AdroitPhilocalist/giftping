@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Robin } from "@/components/art/Robin";
 import { MarkAllReadButton } from "@/components/shop/MarkAllReadButton";
 import { NotificationItem } from "@/components/shop/NotificationItem";
 import { requireRole } from "@/lib/auth/session";
@@ -19,8 +19,8 @@ export default async function NotificationsPage() {
         {unread > 0 ? <MarkAllReadButton /> : null}
       </div>
       {items.length === 0 ? (
-        <div className="mt-8 flex flex-col items-center gap-2 rounded-2xl border border-dashed border-brand-dark/15 p-14 text-center">
-          <Bell className="h-9 w-9 text-brand-dark/20" />
+        <div className="mt-8 flex flex-col items-center gap-2 rounded-card border border-dashed border-brand-dark/15 p-14 text-center">
+          <Robin pose="bell" className="w-28" />
           <p className="text-sm text-brand-dark/60">Nothing yet — order updates and diary reminders will appear here.</p>
         </div>
       ) : (

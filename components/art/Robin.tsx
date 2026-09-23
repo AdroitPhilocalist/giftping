@@ -2,7 +2,7 @@ import Image from "next/image";
 import { siteImage } from "@/lib/content/imagery";
 import { cn } from "@/lib/utils/cn";
 
-export type RobinPose = "perched" | "flying-gift" | "on-gift" | "peeking";
+export type RobinPose = "perched" | "flying-gift" | "on-gift" | "peeking" | "waving" | "heart" | "search" | "bell" | "celebrating" | "reading" | "sleeping";
 
 /** True once the client's illustration of this pose exists (so a caller can drop the drawn gift box it would otherwise sit beside). */
 export const hasRobinArt = (pose: RobinPose) => siteImage(`robin-${pose}`) !== null;
@@ -13,7 +13,8 @@ export const hasRobinArt = (pose: RobinPose) => siteImage(`robin-${pose}`) !== n
  * Usage: perched = default; flying-gift = something is on its way; on-gift = celebrating; peeking = empty states.
  */
 export function Robin({ className, title = "The GiftPing robin", pose = "perched", priority = false }: { className?: string; title?: string; pose?: RobinPose; priority?: boolean }) {
-  const img = siteImage(`robin-${pose}`);
+  // a pose that has not been delivered yet falls back to the perched robin (real art) before falling back to the drawing
+  const img = siteImage(`robin-${pose}`) ?? siteImage("robin-perched");
   if (img) {
     return <Image src={img.src} alt={title} width={img.width} height={img.height} sizes="240px" priority={priority} className={cn("h-auto w-full", className)} />;
   }

@@ -26,7 +26,13 @@ export default async function MallPage() {
   const theme = await getActiveTheme();
   const themeId = theme.id;
   const image = siteImage("mall-map", theme.id);
-  const featured = MALL_ZONES.filter((z) => ["birthday", "boutiques", "wedding", "for-her"].includes(z.id));
+  // hovering a place shows its "interior": the occasion world picture (or world-<id> for places that are not a category)
+  const previews: Record<string, string> = {};
+  for (const z of MALL_ZONES) {
+    const art = zoneArt(z.id, z.href, themeId) ?? (z.id === "entrance" ? siteImage("hero-atrium", themeId) : null);
+    if (art) previews[z.id] = art.src;
+  }
+  const featured = MALL_ZONES.filter((z) => ["birthday", "boutiques", "wedding", "atrium"].includes(z.id));
 
   return (
     <div className="relative overflow-hidden">
@@ -46,7 +52,7 @@ export default async function MallPage() {
             </div>
           </Reveal>
         </div>
-        <MallDirectory image={image} />
+        <MallDirectory image={image} previews={previews} />
         <Reveal className="mt-10 hidden items-end gap-3 lg:absolute lg:bottom-8 lg:left-8 lg:mt-0 lg:flex">
           <Robin className="float-slow w-20" />
           <div className="mb-2 max-w-[13rem] rounded-card border border-brand-dark/[0.06] bg-brand-surface p-3 text-sm shadow-card">

@@ -1,7 +1,8 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Cake, Gift, ShieldCheck } from "lucide-react";
 import { HeroBackdrop } from "@/components/art/HeroBackdrop";
-import { Robin } from "@/components/art/Robin";
+import { Robin, hasRobinArt } from "@/components/art/Robin";
 import { GiftBoxArt } from "@/components/art/GiftBoxArt";
 import { Jaali } from "@/components/ornaments/Jaali";
 import { ContactDialog, GiftDialog } from "@/components/diary/DiaryForms";
@@ -74,7 +75,7 @@ export default async function DiaryPage() {
 
       {rows.contacts.length === 0 ? (
         <div className="paper mt-8 flex flex-col items-center gap-3 rounded-card border border-brand-secondary/25 p-10 text-center shadow-card sm:p-14">
-          <Robin pose="peeking" className="w-32" />
+          <Robin pose={hasRobinArt("reading") ? "reading" : "peeking"} className="w-32" />
           <h2 className="font-heading text-xl text-brand-dark">Never miss a moment that matters</h2>
           <p className="max-w-md text-sm text-brand-dark/60">
             Add the people you love and their important dates. We&apos;ll remind you a week ahead — and again three days before — with gift ideas picked just for them.
@@ -102,7 +103,10 @@ export default async function DiaryPage() {
                         <div>
                           <Link href={`/diary/people/${m.contact.id}`} className="font-heading text-lg text-brand-dark hover:underline">{m.contact.name}</Link>
                           <p className="flex items-center gap-1.5 text-xs text-brand-dark/60">
-                            <Cake className="h-3.5 w-3.5 text-brand-secondary" aria-hidden="true" />
+                            {(() => {
+                              const sticker = siteImage(`sticker-${m.event.event_type}`, theme.id);
+                              return sticker ? <Image src={sticker.src} alt="" width={40} height={40} className="h-5 w-5 object-contain" /> : <Cake className="h-3.5 w-3.5 text-brand-secondary" aria-hidden="true" />;
+                            })()}
                             {m.event.title ?? EVENT_TYPE_LABEL[m.event.event_type as keyof typeof EVENT_TYPE_LABEL] ?? m.event.event_type}
                             {m.milestone > 0 && ["birthday", "anniversary"].includes(m.event.event_type) ? ` · ${m.milestone} years` : ""}
                           </p>
