@@ -595,4 +595,10 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
   .dy-plan-card > :nth-child(2) { grid-area: title; }
   .dy-plan-card > :nth-child(3) { grid-area: sub; min-height: 0; text-align: left; }
 }
+
+/* opening the book: on first paint the right-hand page swings a few degrees into place from the spine */
+@keyframes dy-page-settle { from { opacity: 0.2; transform: perspective(2200px) rotateY(-16deg); } to { opacity: 1; transform: perspective(2200px) rotateY(0deg); } }
+@media (min-width: 1280px) {
+  .dy-page--right { transform-origin: left center; animation: dy-page-settle 0.9s var(--gp-ease) 0.05s both; }
+}
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Gift } from "lucide-react";
 import { Robin, hasRobinArt } from "@/components/art/Robin";
+import { GIFT_GIVEN_EVENT, OrderCelebration } from "@/components/orders/OrderCelebration";
 import type { IdeaCardData } from "@/lib/diary/ui-types";
 import type { DiaryContactRow, DiaryEventRow, Moment } from "@/lib/diary/view";
 import { Book } from "../book/Book";
@@ -37,6 +38,7 @@ export function PersonSpread({ contact, photoUrl, events, moments, timeline, pla
   const reading = hasRobinArt("reading");
   return (
     <>
+      <OrderCelebration eventName={GIFT_GIVEN_EVENT} message={`Gift given — ${first} will remember it!`} />
       <div className="mx-auto mb-4 max-w-[78rem] space-y-5">
         <Link href="/diary" className="dy-hand dy-on-wood inline-flex items-center gap-1.5 text-[1.35rem] hover:underline"><ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to my diary</Link>
         {plan ? <PlanSheet key={`${plan.plan?.id ?? "none"}:${plan.plan?.status ?? ""}:${plan.plan?.note ?? ""}:${plan.plan?.giftName ?? ""}`} data={plan} personName={first} /> : null}

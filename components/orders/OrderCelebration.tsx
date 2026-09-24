@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { Robin, hasRobinArt } from "@/components/art/Robin";
 
 export const PAYMENT_CONFIRMED_EVENT = "gp:payment-confirmed";
+/** Fired by the diary's gift plan when a gift is marked as given — the same burst, a different sentence for screen readers. */
+export const GIFT_GIVEN_EVENT = "gp:gift-given";
 
 const SPARKS: { dx: number; dy: number; delay: number }[] = [
   { dx: 70, dy: -46, delay: 0.05 },
@@ -21,16 +23,16 @@ const SPARKS: { dx: number; dy: number; delay: number }[] = [
  * than props, since PayNowButton and this component don't otherwise share a parent worth threading state
  * through. Auto-dismisses itself; never blocks the page underneath (pointer-events-none throughout).
  */
-export function OrderCelebration() {
+export function OrderCelebration({ eventName = PAYMENT_CONFIRMED_EVENT, message = "Payment confirmed — thank you for your order!" }: { eventName?: string; message?: string } = {}) {
   const [phase, setPhase] = useState<"idle" | "in" | "out">("idle");
 
   useEffect(() => {
     function onConfirmed() {
       setPhase("in");
     }
-    window.addEventListener(PAYMENT_CONFIRMED_EVENT, onConfirmed);
-    return () => window.removeEventListener(PAYMENT_CONFIRMED_EVENT, onConfirmed);
-  }, []);
+    window.addEventListener(eventName, onConfirmed);
+    return () => window.removeEventListener(eventName, onConfirmed);
+  }, [eventName]);
 
   useEffect(() => {
     if (phase !== "in") return;
@@ -54,7 +56,7 @@ export function OrderCelebration() {
           </svg>
         ))}
       </div>
-      <p role="status" aria-live="polite" className="sr-only">Payment confirmed — thank you for your order!</p>
+      <p role="status" aria-live="polite" className="sr-only">{message}</p>
     </div>
   );
 }

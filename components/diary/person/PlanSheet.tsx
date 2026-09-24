@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Check, Truck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { GIFT_GIVEN_EVENT } from "@/components/orders/OrderCelebration";
 import { toast } from "@/components/ui/Toast";
 import { deletePlanAction, savePlanAction, setPlanStatusAction } from "@/lib/diary/actions";
 import { PLAN_COPY, PLAN_STEPS, nextStatus, stepIndex, type PlanStatus } from "@/lib/diary/plans";
@@ -50,16 +51,17 @@ export function PlanSheet({ data, personName }: { data: PlanViewData; personName
   const current = plan?.status ?? null;
   const next = current ? nextStatus(current) : null;
 
-  const run = (fn: () => Promise<{ error?: string }>, done?: string) =>
+  const run = (fn: () => Promise<{ error?: string }>, done?: string, celebrate = false) =>
     startTransition(async () => {
       const result = await fn();
       if (result.error) return void toast.error(result.error);
       if (done) toast.success(done);
+      if (celebrate) window.dispatchEvent(new Event(GIFT_GIVEN_EVENT)); // the robin's small celebration
       router.refresh();
     });
 
   const start = () => run(() => savePlanAction({ eventId: data.eventId, occasionDate: data.occasionDate }), "Plan started.");
-  const setStatus = (status: PlanStatus) => plan && status !== plan.status && run(() => setPlanStatusAction(plan.id, status), status === "given" ? `Lovely — ${personName} will remember it.` : undefined);
+  const setStatus = (status: PlanStatus) => plan && status !== plan.status && run(() => setPlanStatusAction(plan.id, status), status === "given" ? `Lovely — ${personName} will remember it.` : undefined, status === "given");
   const saveOwn = (e: React.FormEvent) => {
     e.preventDefault();
     if (!own.trim()) return;
