@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PLAN_STEPS } from "@/lib/diary/plans";
 import { parseISODate } from "@/lib/diary/recurrence";
 
 export const EVENT_TYPES = ["birthday", "anniversary", "wedding", "housewarming", "graduation", "festival", "thank-you", "other"] as const;
@@ -31,6 +32,7 @@ export const contactSchema = z.object({
     .nullish()
     .transform((v) => parseInterests(v))
     .refine((v) => v.length <= 15, "Keep it to 15 interests or fewer"),
+  tagline: optionalText(80),
   giftPreferences: optionalText(500),
   notes: optionalText(1000),
   budgetMax: z.preprocess(
@@ -73,3 +75,25 @@ export const giftSchema = z.object({
   giftedOn: isoDate.nullish().transform((v) => v ?? null),
 });
 export type GiftInput = z.input<typeof giftSchema>;
+
+export const planSchema = z.object({
+  eventId: z.string().uuid("Choose a date"),
+  /** the occurrence this plan is for (a birthday recurs, so each year has its own plan) */
+  occasionDate: isoDate,
+  productId: z.string().uuid().nullish().transform((v) => v ?? null),
+  giftName: optionalText(120),
+  note: optionalText(300),
+  status: z.enum(PLAN_STEPS).nullish().transform((v) => v ?? null),
+});
+export type PlanInput = z.input<typeof planSchema>;
+
+/** Small in-place edits on a person's page (the things they love, private notes, the line under their name, the usual budget). Only what is sent changes. */
+export const contactPatchSchema = z.object({
+  interests: z.array(z.string()).transform((v) => parseInterests(v)).refine((v) => v.length <= 15, "Keep it to 15 interests or fewer").optional(),
+  notes: optionalText(1000).optional(),
+  tagline: optionalText(80).optional(),
+  budgetMax: z
+    .preprocess((v) => (v === "" || v === null || v === undefined || Number.isNaN(v) ? null : v), z.coerce.number().positive("Enter a budget above zero").max(10_000_000).nullable())
+    .optional(),
+});
+export type ContactPatch = z.input<typeof contactPatchSchema>;

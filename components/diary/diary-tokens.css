@@ -1,0 +1,24 @@
+/* The diary's small palette — the colours its stickers, tape and monograms are drawn in. On :root (not on the desk) so a sticker looks right wherever it is used,
+   e.g. on a diary reminder in the notification inbox. Loaded by every component that draws a sticker. */
+:root {
+  --dy-heart: #d64550;
+  --dy-blush: #efb6ab;
+  --dy-rose: #e58a8e;
+  --dy-apricot: #f0b98a;
+  --dy-mustard: #e9c774;
+  --dy-sage: #b3c9a3;
+  --dy-mint: #9fc0a8;
+  --dy-sky: #a9c9d4;
+  --dy-petal: #fdf8ee;
+  --dy-gold: #e2a93b;
+  --dy-leaf: #4f7a55;
+  --dy-leaf-lo: #365c3f;
+  --dy-flame: #f29a2e;
+  --dy-brass: #c99a45;
+  --dy-pen: #1d1a18;
+  --dy-tea: #a86f3f;
+
+  --dy-paper-lo: #e6d1ac;
+  --dy-paper-edge: #cdb389;
+  --dy-foil-lo: #a8823f;
+}

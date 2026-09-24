@@ -11,6 +11,10 @@ export interface DiaryContactRow {
   notes: string | null;
   budget_max: number | null;
   is_favorite: boolean;
+  /** one line about them, shown under their name */
+  tagline?: string | null;
+  /** storage path of their photo in the private diary-photos bucket (never a URL) */
+  photo_url?: string | null;
 }
 export interface DiaryEventRow {
   id: string;
@@ -22,6 +26,8 @@ export interface DiaryEventRow {
   reminder_days: number[];
   is_active: boolean;
   notes: string | null;
+  /** when the date was added to the diary — moments before it can't have been "missed" */
+  created_at?: string;
 }
 export interface DiaryGiftRow {
   id: string;
@@ -31,6 +37,9 @@ export interface DiaryGiftRow {
   event_type: string | null;
   amount: number | null;
   gifted_at: string;
+  notes?: string | null;
+  /** a picture of the gift when it came from an order (a product photo URL) */
+  image?: string | null;
 }
 
 export interface Moment {
@@ -45,7 +54,7 @@ export interface Moment {
 
 /** How far ahead the dashboard looks, and how early before an occasion a gift counts as "for it". */
 export const HORIZON_DAYS = 60;
-const HANDLED_WINDOW_DAYS = 45;
+export const HANDLED_WINDOW_DAYS = 45;
 
 const giftDate = (g: DiaryGiftRow) => g.gifted_at.slice(0, 10);
 

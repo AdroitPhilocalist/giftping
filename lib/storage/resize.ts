@@ -145,3 +145,21 @@ export async function processVendorBanner(input: Buffer): Promise<{ full: Buffer
   const [full, medium] = await Promise.all([render(VENDOR_BANNER_SIZES.full, 82), render(VENDOR_BANNER_SIZES.medium, 78)]);
   return { full, medium };
 }
+
+export const DIARY_PHOTO_SIZE = 720;
+const DIARY_PHOTO_MIN_EDGE = 200;
+
+/**
+ * A photo of someone in the diary: centre-cropped (toward what looks most interesting — usually a face) to a square and stored at 720×720 WebP.
+ * Same real-bytes validation as every other upload; re-encoding strips EXIF/GPS, which matters more here than anywhere — this is a photo of a
+ * family member that must not carry the location it was taken at.
+ */
+export async function processDiaryPhoto(input: Buffer): Promise<Buffer> {
+  const { width, height } = await inspectUpload(input);
+  if (Math.min(width, height) < DIARY_PHOTO_MIN_EDGE) throw new ImageValidationError(`Photos must be at least ${DIARY_PHOTO_MIN_EDGE}px on their shortest side.`);
+  return sharp(input, { limitInputPixels: 50_000_000 })
+    .rotate()
+    .resize({ width: DIARY_PHOTO_SIZE, height: DIARY_PHOTO_SIZE, fit: "cover", position: sharp.strategy.attention })
+    .webp({ quality: 84 })
+    .toBuffer();
+}

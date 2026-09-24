@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Bell, Heart, Search, ShoppingBag, User } from "lucide-react";
+import { Heart, Search, ShoppingBag, User } from "lucide-react";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { Logo } from "@/components/layout/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { MobileTabBar } from "@/components/layout/MobileTabBar";
 import { NavLinks } from "@/components/layout/NavLinks";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getCartCount } from "@/lib/commerce/cart";
@@ -37,12 +38,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
             ) : (
               <Link href="/sign-in" aria-label="Sign in" className={`${iconButton} hidden sm:block`}><User className="h-5 w-5" /></Link>
             )}
-            {user ? (
-              <Link href="/notifications" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"} className={iconButton}>
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 ? <span className={`${badge} bg-red-600 text-white`}>{unreadCount > 99 ? "99+" : unreadCount}</span> : null}
-              </Link>
-            ) : null}
+            {user ? <NotificationBell unreadCount={unreadCount} /> : null}
             <Link href="/wishlist" aria-label={wishlistCount > 0 ? `Wishlist, ${wishlistCount} saved` : "Wishlist"} className={`${iconButton} hidden sm:block`}>
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{wishlistCount}</span> : null}

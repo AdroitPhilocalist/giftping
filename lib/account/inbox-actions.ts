@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getServerUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/db/server";
+import { getNotifications } from "@/lib/db/notifications";
 
 // Runs as the user: RLS limits it to their own rows and a DB trigger only lets `is_read` change.
 export async function markNotificationReadAction(id: string): Promise<void> {
@@ -18,4 +19,11 @@ export async function markAllNotificationsReadAction(): Promise<void> {
   if (!user) return;
   await (await createClient()).from("notifications").update({ is_read: true }).eq("user_id", user.id).eq("is_read", false);
   revalidatePath("/", "layout");
+}
+
+/** The few most recent notifications for the bell's dropdown — the shopper's own (RLS), newest first. */
+export async function recentNotificationsAction() {
+  const user = await getServerUser();
+  if (!user) return [];
+  return getNotifications(user.id, 5);
 }

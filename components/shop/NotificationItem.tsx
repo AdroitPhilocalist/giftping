@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { markNotificationReadAction } from "@/lib/account/inbox-actions";
+import { OccasionSticker } from "@/components/diary/art/OccasionSticker";
 import { cn } from "@/lib/utils/cn";
 
 export interface InboxItem {
@@ -12,6 +13,15 @@ export interface InboxItem {
   link_url: string | null;
   is_read: boolean;
   created_at: string;
+  type?: string;
+  metadata?: unknown;
+}
+
+/** The occasion a diary reminder is about (set by the reminder run), so the inbox can draw its sticker instead of a plain dot. */
+function diaryOccasion(item: InboxItem): string | null {
+  if (item.type !== "diary_reminder") return null;
+  const type = (item.metadata as { event_type?: unknown } | null)?.event_type;
+  return typeof type === "string" ? type : "other";
 }
 
 function ago(iso: string): string {
@@ -43,7 +53,14 @@ export function NotificationItem({ item }: { item: InboxItem }) {
         }
         className={cn("flex w-full items-start gap-3 p-4 text-left transition-colors hover:bg-brand-accent/40", !item.is_read && "bg-brand-primary/5")}
       >
-        <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", item.is_read ? "bg-transparent" : "bg-brand-secondary")} aria-hidden />
+        {diaryOccasion(item) ? (
+          <span className="relative mt-0.5 shrink-0" aria-hidden>
+            <OccasionSticker type={diaryOccasion(item)} className="h-9 w-9" />
+            {!item.is_read ? <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-brand-secondary" /> : null}
+          </span>
+        ) : (
+          <span className={cn("mt-1.5 h-2 w-2 shrink-0 rounded-full", item.is_read ? "bg-transparent" : "bg-brand-secondary")} aria-hidden />
+        )}
         <span className="min-w-0 flex-1">
           <span className={cn("block text-sm text-brand-dark", !item.is_read && "font-medium")}>{item.title}</span>
           <span className="block text-sm text-brand-dark/60">{item.message}</span>

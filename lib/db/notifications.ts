@@ -14,7 +14,7 @@ export const getUnreadNotificationCount = cache(async (userId: string): Promise<
 export async function getNotifications(userId: string, limit = 50) {
   const { data, error } = await (await createClient())
     .from("notifications")
-    .select("id, title, message, type, link_url, is_read, created_at")
+    .select("id, title, message, type, link_url, is_read, created_at, metadata")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(limit);

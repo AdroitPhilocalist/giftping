@@ -140,7 +140,9 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 /components/vendor → VendorApplicationForm, ProductForm (RHF + Zod, variants via useFieldArray with
                   keyName "fieldKey"), ImageManager, ProductRowActions, PortalNav
 /components/admin → DecisionButtons (Approve / Reject-with-reason modal)
-/components/diary → DiaryForms (Contact/Event/Gift dialogs, DeleteButton, ReminderToggle), GiftingScoreCard, MiniCalendar, SuggestionList
+/components/diary → the redesigned diary (a book on a desk — see "Stage 12 — the diary redesign" below): diary.css (all `dy-*` styles, in Tailwind's `components` layer) + diary-tokens.css (sticker colours on :root) +
+                  fonts.ts (Caveat, diary-only); book/ (DiaryDesk, Book, SectionTitle, Polaroid), art/ (Sprig, OccasionSticker, WaxSeal, Doodles, DeskProps — all SVG, coloured from variables), forms/ (PaperDialog +
+                  DiaryDialogs: person/date/gift dialogs and their ready-made buttons, parts.tsx), person/ (PersonSpread, PlanSheet, LovesBoard, PrivateNotes…), year/, review/, HomeSpread, FirstRun, PeopleBrowser…
 /lib/account    → address-actions.ts (save / default / delete — session client, RLS + triggers enforce)
 /lib/db         → Supabase clients + generated types + per-table query helpers: addresses.ts, orders.ts, categories.ts, vendors.ts
                   (incl. getVendorsForCategory — scopes a category page's vendor filter to vendors that
@@ -175,7 +177,7 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 /lib/integrations → resend.ts (fetch client; no-op without a key), razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
                   shiprocket-status.ts / shiprocket-webhook.ts (pure, tested) built; msg91.ts, onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
-/lib/storage    → (also branding.ts — vendor logo/banner storage in the public `vendor-branding` bucket, written only by POST /api/vendor/upload-branding; processVendorLogo/processVendorBanner; processBannerImage + the public `site-banners` bucket helpers in upload.ts — server-only writes via POST /api/admin/upload-banner) resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
+/lib/storage    → (also diary-photos.ts — the PRIVATE `diary-photos` bucket: written only by POST /api/diary/photo, read only through signed URLs; processDiaryPhoto in resize.ts) (also branding.ts — vendor logo/banner storage in the public `vendor-branding` bucket, written only by POST /api/vendor/upload-branding; processVendorLogo/processVendorBanner; processBannerImage + the public `site-banners` bucket helpers in upload.ts — server-only writes via POST /api/admin/upload-banner) resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
                   to WebP full 1600 / medium 800 / thumb 400, strips metadata; ImageValidationError),
                   upload.ts (service-role writes to the public `product-images` bucket). The bucket has NO
                   client write policies — the only write path is POST /api/vendor/upload-image (a route
@@ -186,7 +188,9 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
                   re-joins ranked ids against the vendor/category-joined product-card shape (the RPC
                   itself returns raw unjoined rows). Swappable for Algolia later without touching callers.
 /lib/diary      → recurrence.ts (pure date maths, Feb 29 → Feb 28, exact-day reminders), gifting-score.ts, suggestion-matcher.ts,
-                  view.ts (dashboard view-model), reminder-email.ts (HTML-escaped builder) — all pure + tested; candidates.ts (catalogue slice for ideas),
+                  view.ts (dashboard view-model), reminder-email.ts (paper-look HTML email, HTML-escaped, safe-URL-only images), plans.ts (gift plan rules: Idea→Chosen→Ordered→Wrapped→Given),
+                  memories.ts (last year's gift, year summary/review, "remembered" streak), present.ts (wording helpers), page-data.ts (rows → the plain shapes components take), ui-types.ts,
+                  gift-links.ts — all pure + tested; candidates.ts (catalogue slice for ideas),
                   reminders.ts (the cron engine, exactly-once via diary_reminder_log), actions.ts (Server Actions), format.ts
 /lib/validation → Zod schemas, one file per domain, shared by client forms and API routes
 /lib/content    → banners.ts (pure, tested: bannerStatus / audienceMatches / visibleBanners / safeCtaUrl for the admin-managed homepage carousel); imagery.ts — central image-asset map (see "Image handoff" below) — not built yet
@@ -194,7 +198,7 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 /emails         → not used: the diary reminder email is built by lib/diary/reminder-email.ts (plain HTML, no dependency); revisit React Email in Stage 10 if wanted
 /app/api/cron   → diary-reminders/route.ts (built), invoked daily by Vercel Cron (vercel.json, Bearer CRON_SECRET); also runs the stale-unpaid-order
                   and stale-guest-cart cleanups. Not a Railway worker, per the cost constraint above
-/scripts        → seed.ts (idempotent — categories, 2 vendors, 6 products w/ variants/images/reviews); seed-demo.ts (`npm run seed:images && npm run seed:demo [-- --reset]`: ~57 products, 14 demo shoppers, ~186 reviews, 43 back-dated orders through the real SQL functions, diary/wishlist/notifications for the test customer — deterministic and safe to re-run; dev database only); make-seed-images.ts (product pictures cut from the client artwork)
+/scripts        → seed.ts (idempotent — categories, 2 vendors, 6 products w/ variants/images/reviews); seed-demo.ts (`npm run seed:images && npm run seed:demo [-- --reset]`: ~57 products, 14 demo shoppers, ~186 reviews, 43 back-dated orders through the real SQL functions, a diary for the test customer written like a real family — Mom, Dad, Riya, Nani…, taglines, notes, 3 years of gifts with what they said, moments already passed this year, 3 gift plans — plus wishlist/notifications; deterministic and safe to re-run; dev database only); make-seed-images.ts (product pictures cut from the client artwork)
 /supabase/migrations → schema migrations, applied in order
 /public/seed-images → dev-only seed photography cropped from the client's own approved ui-references
                   (see "Product imagery" below) — not meant to ship to production, Stage 4+ vendor photos
@@ -406,6 +410,15 @@ files with the editor tool.
   A reminder is due on exactly one calendar day (`daysUntil === leadTime`), never "within N days", so a daily run and its re-runs are safe. "Today" is the owner's timezone (`users.timezone`).
 - Vitest now has `vitest.config.ts` (`@` alias) — pure modules can use `@/` imports in tests.
 - Not verified with real Resend (no key at the time of writing); web push is Stage 10.
+
+### Stage 12 — the diary redesign (read `docs/progress/2026-09-25-stage-12-diary-redesign.md`)
+
+- **The diary is a book on a desk**, built from parts (CSS paper/leather/tape/seal, SVG florals and occasion stickers), never from a flat picture of a page. Reference screens: `ui-references/diary/`. **See it without signing in:** `/design/diary?screen=home|first|person|year|review` and `/design/diary/email` (development only, 404 in production) render the real components over `app/(shop)/design/diary/fixtures.ts`.
+- **Diary CSS is in `@layer components` on purpose.** Unlayered CSS beats every Tailwind utility, so `absolute` on a `dy-note` silently lost. Anything overriding a `dy-*` rule must be a utility. Container-scoped variables don't reach a Radix portal: dialogs carry `dy-scope` + the font class; sticker colours live on `:root` (`diary-tokens.css`) so a sticker also works in the bell and inbox.
+- **A Server Component cannot pass a function prop to a Client Component** (crashes at request time, tsc doesn't see it). Dialogs take a render-prop `trigger`, so pages use the exported ready-made buttons (`AddPersonButton`, `EditDateButton`…).
+- **Photos of the people in a diary are private.** `diary_contacts.photo_url` holds a storage PATH, CHECK-pinned to `<owner>/<person>-<uuid>.webp`; the `diary-photos` bucket has no client policies; upload = `POST /api/diary/photo` (session-proven ownership, sharp re-encode, service-role write); display = 1-hour signed URLs and a plain `<img>` (never `next/image` — the optimiser must not cache a private picture). `eraseUser` and removing a person delete the files; a future feature that adds another place personal files can land must do the same.
+- **`diary_gift_plans`** (owner-only, no admin bypass, INVOKER guard trigger): one plan per (date, occurrence). "Ordered" is inferred from the user's own paid order for the chosen product; "Given" writes the gift into history once. `export_user_data()` includes it.
+- **A moment can only be "missed" if it was already in the diary** (`created_at`); "remembered" = a gift within the 45 days before or the day after. No pronouns are guessed anywhere in the copy ("Things Mom loves"). Sharing sends numbers only.
 
 ### Stage 11 (admin) — money-moving admin actions
 

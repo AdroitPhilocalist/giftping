@@ -512,6 +512,7 @@ export type Database = {
           notes: string | null
           photo_url: string | null
           relationship: string | null
+          tagline: string | null
           updated_at: string
           user_id: string
         }
@@ -526,6 +527,7 @@ export type Database = {
           notes?: string | null
           photo_url?: string | null
           relationship?: string | null
+          tagline?: string | null
           updated_at?: string
           user_id: string
         }
@@ -540,6 +542,7 @@ export type Database = {
           notes?: string | null
           photo_url?: string | null
           relationship?: string | null
+          tagline?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -612,6 +615,87 @@ export type Database = {
           },
           {
             foreignKeyName: "diary_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diary_gift_plans: {
+        Row: {
+          contact_id: string
+          created_at: string
+          event_id: string
+          gift_name: string | null
+          id: string
+          note: string | null
+          occasion_date: string
+          order_id: string | null
+          product_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          contact_id: string
+          created_at?: string
+          event_id: string
+          gift_name?: string | null
+          id?: string
+          note?: string | null
+          occasion_date: string
+          order_id?: string | null
+          product_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          contact_id?: string
+          created_at?: string
+          event_id?: string
+          gift_name?: string | null
+          id?: string
+          note?: string | null
+          occasion_date?: string
+          order_id?: string | null
+          product_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diary_gift_plans_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "diary_contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_gift_plans_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "diary_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_gift_plans_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_gift_plans_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diary_gift_plans_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

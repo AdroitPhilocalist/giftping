@@ -553,38 +553,76 @@ async function main() {
 
   const { count: contactCount } = await sb.from("diary_contacts").select("id", { count: "exact", head: true }).eq("user_id", testCustomer.id);
   if (!contactCount) {
+    // dates are given as "days from today" + the original year, so the diary always has moments coming up this week, this month and later —
+    // and a few that already passed this year (so the year view, "remembered" and the streak have something to show)
     const shiftDate = (daysFromNow: number, year: number) => {
       const d = new Date(now + daysFromNow * DAY);
       return `${year}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-${String(d.getUTCDate()).padStart(2, "0")}`;
     };
-    const people = [
-      { name: "Mom — Sunita", rel: "Mother", interests: ["gardening", "tea", "temple visits"], prefs: "Loves anything floral or brass. Allergic to strong perfume.", budget: 3000, fav: true, events: [{ type: "birthday", title: null, off: 5, year: 1966 }, { type: "anniversary", title: "Wedding anniversary", off: 47, year: 1990 }] },
-      { name: "Dad — Rajesh", rel: "Father", interests: ["cricket", "history books", "watches"], prefs: "Prefers practical gifts. Wears size 42 shirts.", budget: 4000, fav: true, events: [{ type: "birthday", title: null, off: 33, year: 1962 }] },
-      { name: "Riya — Sister", rel: "Sister", interests: ["skincare", "jewellery", "baking"], prefs: "Blush and gold, nothing too loud.", budget: 2500, fav: true, events: [{ type: "birthday", title: null, off: 2, year: 1998 }, { type: "graduation", title: "MBA convocation", off: 60, year: 2026 }] },
-      { name: "Arnav — Best friend", rel: "Friend", interests: ["coffee", "sneakers", "travel"], prefs: "Anything he can use on a trip.", budget: 2000, fav: false, events: [{ type: "birthday", title: null, off: 18, year: 1995 }] },
-      { name: "Kavya — Colleague", rel: "Colleague", interests: ["stationery", "plants"], prefs: "Minimal, desk-friendly gifts.", budget: 1500, fav: false, events: [{ type: "birthday", title: null, off: 11, year: 1992 }, { type: "thank-you", title: "Thanks for covering my leave", off: 25, year: 2026 }] },
-      { name: "Nani — Grandmother", rel: "Grandmother", interests: ["devotional music", "sweets", "embroidery"], prefs: "Silk, brass and mithai. Sugar-free where possible.", budget: 3500, fav: true, events: [{ type: "birthday", title: "85th birthday", off: 9, year: 1941 }] },
-      { name: "Maya & Kunal", rel: "Friends", interests: ["home decor", "wine"], prefs: "Just moved into a new flat.", budget: 3000, fav: false, events: [{ type: "housewarming", title: "Housewarming", off: 14, year: 2026 }, { type: "anniversary", title: "Anniversary", off: 88, year: 2019 }] },
-      { name: "Aditi — Cousin", rel: "Cousin", interests: ["dance", "handbags"], prefs: "Wedding in March — trousseau ideas welcome.", budget: 6000, fav: false, events: [{ type: "wedding", title: "Aditi's wedding", off: 75, year: 2026 }] },
+    type Ev = { type: string; title: string | null; off: number; year: number; once?: boolean };
+    const people: { name: string; rel: string; tagline: string | null; interests: string[]; prefs: string; budget: number; fav: boolean; notes: string | null; events: Ev[] }[] = [
+      { name: "Mom", rel: "Mother", tagline: "Always makes everyone feel special", interests: ["jasmine flowers", "sarees", "filter coffee", "gardening"], prefs: "Loves anything floral or brass. Allergic to strong perfume.", budget: 3000, fav: true, notes: "She said she liked the jasmine candle at Nani's. Also mentioned she wants a lightweight silk saree in pastel shades. Maybe plan something with a handwritten note this time.",
+        events: [{ type: "birthday", title: null, off: 9, year: 1966 }, { type: "anniversary", title: "Wedding anniversary", off: 47, year: 1990 }, { type: "festival", title: "Diwali", off: 45, year: 2020 }, { type: "other", title: "Mother's Day", off: -137, year: 2020 }] },
+      { name: "Dad", rel: "Father", tagline: "Fixes everything with a smile", interests: ["cricket", "history books", "watches"], prefs: "Prefers practical gifts. Wears size 42 shirts.", budget: 4000, fav: true, notes: null,
+        events: [{ type: "birthday", title: null, off: 33, year: 1962 }, { type: "other", title: "Father's Day", off: -95, year: 2020 }] },
+      { name: "Riya", rel: "Sister", tagline: "My partner in every plan", interests: ["skincare", "jewellery", "baking"], prefs: "Blush and gold, nothing too loud.", budget: 2500, fav: true, notes: "Wants to start a baking side-hustle — gift her something for the kitchen next time.",
+        events: [{ type: "birthday", title: null, off: 2, year: 1998 }, { type: "graduation", title: "MBA convocation", off: 60, year: 2026, once: true }, { type: "festival", title: "Raksha Bandhan", off: -27, year: 2020 }] },
+      { name: "Arnav", rel: "Friend", tagline: "Always up for a road trip", interests: ["coffee", "sneakers", "travel"], prefs: "Anything he can use on a trip.", budget: 2000, fav: false, notes: null, events: [{ type: "birthday", title: null, off: 18, year: 1995 }] },
+      { name: "Kavya", rel: "Colleague", tagline: null, interests: ["stationery", "plants"], prefs: "Minimal, desk-friendly gifts.", budget: 1500, fav: false, notes: null,
+        events: [{ type: "birthday", title: null, off: 11, year: 1992 }, { type: "thank-you", title: "Thanks for covering my leave", off: 25, year: 2026, once: true }] },
+      { name: "Nani", rel: "Grandparent", tagline: "Blesses every gift before she opens it", interests: ["devotional music", "sweets", "embroidery"], prefs: "Silk, brass and mithai. Sugar-free where possible.", budget: 3500, fav: true, notes: null, events: [{ type: "birthday", title: "85th birthday", off: 8, year: 1941 }] },
+      { name: "Maya & Kunal", rel: "Friend", tagline: null, interests: ["home decor", "wine"], prefs: "Just moved into a new flat.", budget: 3000, fav: false, notes: null, events: [{ type: "housewarming", title: "Housewarming", off: 14, year: 2026, once: true }, { type: "anniversary", title: "Anniversary", off: 88, year: 2019 }] },
+      { name: "Aditi", rel: "Other", tagline: null, interests: ["dance", "handbags"], prefs: "Wedding in March — trousseau ideas welcome.", budget: 6000, fav: false, notes: null, events: [{ type: "wedding", title: "Aditi's wedding", off: 75, year: 2026, once: true }] },
     ];
+    const createdAt = iso(now - 400 * DAY); // the diary has been kept for a while, so earlier moments this year count as moments it could have remembered
     for (const p of people) {
-      const c = await ok(sb.from("diary_contacts").insert({ user_id: testCustomer.id, name: p.name, relationship: p.rel, interests: p.interests, gift_preferences: p.prefs, budget_max: p.budget, is_favorite: p.fav, notes: null }).select("id").single(), "diary contact");
+      const c = await ok(sb.from("diary_contacts").insert({ user_id: testCustomer.id, name: p.name, relationship: p.rel, tagline: p.tagline, interests: p.interests, gift_preferences: p.prefs, budget_max: p.budget, is_favorite: p.fav, notes: p.notes, created_at: createdAt }).select("id").single(), "diary contact");
       for (const e of p.events) {
-        const recurring = !["graduation", "wedding", "housewarming", "thank-you"].includes(e.type);
-        await ok(sb.from("diary_events").insert({ user_id: testCustomer.id, contact_id: c.id, event_type: e.type, title: e.title, event_date: shiftDate(e.off, e.year), is_recurring: recurring, reminder_days: [7, 3], reminder_days_before: 7, is_active: true, notes: null }).select("id"), "diary event");
+        await ok(sb.from("diary_events").insert({ user_id: testCustomer.id, contact_id: c.id, event_type: e.type, title: e.title, event_date: shiftDate(e.off, e.year), is_recurring: !e.once, reminder_days: [7, 3], reminder_days_before: 7, is_active: true, notes: null, created_at: createdAt }).select("id"), "diary event");
       }
     }
     const { data: contacts } = await sb.from("diary_contacts").select("id, name").eq("user_id", testCustomer.id);
-    const cid = (name: string) => contacts?.find((c) => c.name.startsWith(name))?.id ?? null;
-    const gifts = [
-      { c: "Mom", name: "Kuthu Vilakku Brass Lamp", type: "birthday", amount: 2299, ago: 330, notes: "She placed it in the pooja room." },
-      { c: "Dad", name: "Monogrammed Leather Wallet", type: "birthday", amount: 2199, ago: 240, notes: null },
-      { c: "Riya", name: "Rose Gold Celebration Gift Box", type: "birthday", amount: 1799, ago: 350, notes: "She loved the candle." },
-      { c: "Arnav", name: "Leather Journal & Pen Set", type: "birthday", amount: 1799, ago: 150, notes: null },
-      { c: "Kavya", name: "Blank Leather Diary", type: "birthday", amount: 999, ago: 200, notes: null },
+    const cid = (name: string) => contacts?.find((c) => c.name === name || c.name.startsWith(name))?.id ?? null;
+    // what has been given before, with what they said — each sits inside the "gift sorted" window of a moment, so "last year you gave…" and the timeline have a story
+    const gifts: { c: string; name: string; type: string; amount: number; ago: number; notes: string | null; slug?: string }[] = [
+      { c: "Mom", name: "Kuthu Vilakku Brass Lamp", type: "birthday", amount: 2299, ago: 352, notes: "She loved this! Still keeps it in the puja room.", slug: "kuthu-vilakku-brass-lamp" },
+      { c: "Mom", name: "Handwoven silk scarf", type: "birthday", amount: 1899, ago: 717, notes: "Her favourite colour. Wore it during last Diwali." },
+      { c: "Mom", name: "Wellness hamper", type: "birthday", amount: 2499, ago: 1082, notes: "She really enjoyed the teas and candles. Said it was so thoughtful." },
+      { c: "Mom", name: "Peony Rose Bouquet", type: "other", amount: 1499, ago: 140, notes: "Delivered on Mother's Day morning.", slug: "peony-rose-bouquet" },
+      { c: "Dad", name: "Leather Wallet", type: "birthday", amount: 2199, ago: 335, notes: "He carries it everywhere now." },
+      { c: "Dad", name: "Executive Watch Gift Box", type: "other", amount: 3999, ago: 100, notes: "For Father's Day — he wore it that evening.", slug: "executive-watch-gift-box" },
+      { c: "Riya", name: "Rose Gold Celebration Gift Box", type: "birthday", amount: 1799, ago: 362, notes: "She loved the candle." },
+      { c: "Riya", name: "Silver jhumkas", type: "festival", amount: 1299, ago: 30, notes: "Tied her rakhi and gave these back." },
+      { c: "Arnav", name: "Leather Journal & Pen Set", type: "birthday", amount: 1799, ago: 348, notes: null },
+      { c: "Kavya", name: "Blank Leather Diary", type: "birthday", amount: 999, ago: 354, notes: null },
+      { c: "Nani", name: "Silk shawl", type: "birthday", amount: 2799, ago: 357, notes: "She blessed it before wearing it." },
       { c: "Maya", name: "Dried Flower Vase & Candle Set", type: "housewarming", amount: 1699, ago: 20, notes: "Before the party." },
     ];
-    for (const g of gifts) await ok(sb.from("gift_history").insert({ user_id: testCustomer.id, contact_id: cid(g.c), gift_name: g.name, event_type: g.type, amount: g.amount, gifted_at: iso(now - g.ago * DAY), notes: g.notes }).select("id"), "gift history");
+    for (const g of gifts) await ok(sb.from("gift_history").insert({ user_id: testCustomer.id, contact_id: cid(g.c), gift_name: g.name, product_id: g.slug ? productId.get(g.slug) ?? null : null, event_type: g.type, amount: g.amount, gifted_at: iso(now - g.ago * DAY), notes: g.notes }).select("id"), "gift history");
+
+    // gift plans: one chosen, one wrapped, one an order that has really been placed (so the tracker shows "Ordered" with a link)
+    const { data: evs } = await sb.from("diary_events").select("id, contact_id, event_type, event_date, is_recurring, title").eq("user_id", testCustomer.id);
+    const nextOcc = (e: { event_date: string; is_recurring: boolean }) => {
+      const today = new Date(now).toISOString().slice(0, 10);
+      const [, m, d] = e.event_date.split("-");
+      const y = Number(today.slice(0, 4));
+      const thisYear = `${y}-${m}-${d}`;
+      return e.is_recurring ? (thisYear >= today ? thisYear : `${y + 1}-${m}-${d}`) : e.event_date;
+    };
+    const birthdayOf = (name: string) => evs?.find((e) => e.contact_id === cid(name) && e.event_type === "birthday");
+    const { data: paidLines } = await sb.from("order_items").select("product_id, order:orders!inner(customer_id, status)").eq("order.customer_id", testCustomer.id).not("order.status", "in", "(created,payment_initiated,cancelled)").limit(1);
+    const orderedProduct = paidLines?.[0]?.product_id ?? null;
+    const plans = [
+      { who: "Mom", slug: "amber-glow-candle-and-diffuser-set", note: "She loves the scent", status: "chosen", product: null as string | null, made: 3 },
+      { who: "Riya", slug: "velvet-jewellery-box-pendant-set", note: "Matches the gold she wears", status: "wrapped", product: null as string | null, made: 10 },
+      { who: "Dad", slug: "", note: "A watch strap to go with the box he already has", status: "chosen", product: orderedProduct, made: 25 },
+    ];
+    for (const pl of plans) {
+      const ev = birthdayOf(pl.who);
+      if (!ev) continue;
+      const product = pl.product ?? (pl.slug ? productId.get(pl.slug) ?? null : null);
+      await ok(sb.from("diary_gift_plans").insert({ user_id: testCustomer.id, contact_id: ev.contact_id, event_id: ev.id, occasion_date: nextOcc(ev), product_id: product, gift_name: null, note: pl.note, status: pl.status, created_at: iso(now - pl.made * DAY) }).select("id"), "gift plan");
+    }
   }
 
   const { count: notifCount } = await sb.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", testCustomer.id);
@@ -592,14 +630,15 @@ async function main() {
     const orders = await ok(sb.from("orders").select("id, order_number, status").eq("customer_id", testCustomer.id).order("created_at", { ascending: false }), "test customer orders");
     const o = (i: number) => orders[i] ?? orders[0];
     const rows = [
-      { type: "diary_reminder", title: "Riya's birthday is in 2 days", message: "Riya — Sister turns another year on the 25th. Here are gift ideas she'd love.", link_url: "/diary", read: false, ago: 0.1 },
-      { type: "diary_reminder", title: "Nani's birthday is in 9 days", message: "Nani — Grandmother has a big birthday coming. Brass, silk and mithai are her favourites.", link_url: "/diary", read: false, ago: 0.3 },
+      { type: "diary_reminder", title: "Riya's birthday is in 2 days", message: "Tap to see gift ideas picked for them.", link_url: "/diary", read: false, ago: 0.1, meta: { event_type: "birthday" } },
+      { type: "diary_reminder", title: "Nani's 85th birthday is in 8 days", message: "Tap to see gift ideas picked for them.", link_url: "/diary", read: false, ago: 0.3, meta: { event_type: "birthday" } },
+      { type: "diary_reminder", title: "Mom's birthday is in 9 days", message: "Tap to see gift ideas picked for them.", link_url: "/diary", read: false, ago: 0.35, meta: { event_type: "birthday" } },
       { type: "shipment_update", title: "Your gift is on its way", message: `Part of order ${o(0).order_number} is with the courier.`, link_url: `/orders/${o(0).id}`, read: false, ago: 1 },
       { type: "order_confirmed", title: "Order confirmed", message: `Thank you — order ${o(1).order_number} is confirmed and the boutiques are preparing it.`, link_url: `/orders/${o(1).id}`, read: true, ago: 2 },
       { type: "order_delivered", title: "Delivered", message: `Your order ${o(2).order_number} has arrived. We hope it brings a smile.`, link_url: `/orders/${o(2).id}`, read: true, ago: 3 },
       { type: "system", title: "Welcome to GiftPing", message: "Add the people you love to your Gifting Diary and we'll remind you before every special day.", link_url: "/diary", read: true, ago: 30 },
     ];
-    for (const r of rows) await ok(sb.from("notifications").insert({ user_id: testCustomer.id, type: r.type, title: r.title, message: r.message, link_url: r.link_url, is_read: r.read, created_at: iso(now - r.ago * DAY) }).select("id"), "notification");
+    for (const r of rows) await ok(sb.from("notifications").insert({ user_id: testCustomer.id, type: r.type, title: r.title, message: r.message, link_url: r.link_url, is_read: r.read, created_at: iso(now - r.ago * DAY), ...("meta" in r ? { metadata: r.meta } : {}) }).select("id"), "notification");
   }
 
   const [pc, oc, uc, rc] = await Promise.all([

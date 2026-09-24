@@ -3,7 +3,9 @@ import { createAdminClient } from "@/lib/db/admin";
 import { isOneSignalConfigured, sendPush } from "@/lib/integrations/onesignal";
 import { isResendConfigured, sendEmail } from "@/lib/integrations/resend";
 import { buildReminderEmail, occasionLabel } from "@/lib/diary/reminder-email";
+import { lastYearsGift } from "@/lib/diary/memories";
 import { dueReminders, localDateIn, milestoneYears } from "@/lib/diary/recurrence";
+import type { DiaryGiftRow } from "@/lib/diary/view";
 import { loadCandidatePool, type CandidatePool } from "@/lib/diary/candidates";
 import { suggestGifts } from "@/lib/diary/suggestion-matcher";
 import { formatCurrency } from "@/lib/utils/format";
@@ -92,13 +94,19 @@ export async function runDiaryReminders(opts: { now?: Date; appUrl: string; dryR
     const contactIds = Array.from(new Set(due.map((d) => d.event.contact_id)));
     const [{ data: prefs }, { data: gifts }] = await Promise.all([
       admin.from("notification_preferences").select("user_id, email_enabled, push_enabled").eq("category", "diary_reminders").in("user_id", userIds),
-      admin.from("gift_history").select("contact_id, product_id, item:order_items(product_id)").in("contact_id", contactIds),
+      admin.from("gift_history").select("id, contact_id, product_id, gift_name, event_type, amount, gifted_at, item:order_items(product_id, product_name)").in("contact_id", contactIds),
     ]);
     const emailAllowed = new Map((prefs ?? []).map((p) => [p.user_id, p.email_enabled]));
     const pushAllowed = new Map((prefs ?? []).map((p) => [p.user_id, p.push_enabled]));
     const giftedByContact = new Map<string, Set<string>>();
+    const giftRowsByContact = new Map<string, DiaryGiftRow[]>(); // for "last year you gave …"
     for (const g of gifts ?? []) {
       const item = Array.isArray(g.item) ? g.item[0] : g.item;
+      if (g.contact_id) {
+        const rowsForContact = giftRowsByContact.get(g.contact_id) ?? [];
+        rowsForContact.push({ id: g.id, contact_id: g.contact_id, gift_name: g.gift_name ?? item?.product_name ?? null, product_id: g.product_id ?? item?.product_id ?? null, event_type: g.event_type, amount: g.amount === null ? null : Number(g.amount), gifted_at: g.gifted_at });
+        giftRowsByContact.set(g.contact_id, rowsForContact);
+      }
       for (const pid of [g.product_id, item?.product_id]) {
         if (!pid || !g.contact_id) continue;
         const set = giftedByContact.get(g.contact_id) ?? new Set<string>();
@@ -123,7 +131,7 @@ export async function runDiaryReminders(opts: { now?: Date; appUrl: string; dryR
             message: "Tap to see gift ideas picked for them.",
             type: "diary_reminder",
             link_url: "/diary",
-            metadata: { event_id: d.event.id, occurrence: d.occurrence, days_before: d.daysBefore } as never,
+            metadata: { event_id: d.event.id, occurrence: d.occurrence, days_before: d.daysBefore, event_type: d.event.event_type } as never,
           });
           if (notifyError) {
             await release(d.event.id, d.occurrence, d.daysBefore, "in_app");
@@ -180,7 +188,13 @@ export async function runDiaryReminders(opts: { now?: Date; appUrl: string; dryR
             priceLabel: formatCurrency(byId.get(s.productId)!.price),
             url: `${opts.appUrl}/products/${byId.get(s.productId)!.slug}`,
             reason: s.reasons[0] ?? "A thoughtful pick",
+            imageUrl: byId.get(s.productId)!.thumbnail,
           })),
+          lastYear: (() => {
+            const last = lastYearsGift({ gifts: giftRowsByContact.get(d.event.contact_id) ?? [], contactId: d.event.contact_id, occurrence: d.occurrence, eventType: d.event.event_type });
+            return last ? { giftName: last.gift_name ?? "a gift", imageUrl: last.product_id ? byId.get(last.product_id)?.thumbnail ?? null : null } : null;
+          })(),
+          robinUrl: `${opts.appUrl}/email/robin.png`,
           diaryUrl: `${opts.appUrl}/diary`,
           preferencesUrl: `${opts.appUrl}/account/notifications`,
         });

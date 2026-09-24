@@ -35,7 +35,44 @@ describe("reminder email", () => {
     expect(t).toContain("Artisan Coffee Box");
     expect(t).toContain("https://giftping-lime.vercel.app/diary");
     const none = buildReminderEmail({ ...base, suggestions: [] });
-    expect(none.html).not.toContain("Gift ideas picked for");
-    expect(none.text).not.toContain("Gift ideas");
+    expect(none.html).not.toContain("Thoughtful gift ideas for");
+    expect(none.text).not.toContain("gift ideas for");
+    expect(buildReminderEmail(base).html).toContain("Thoughtful gift ideas for Priya");
+  });
+  it("carries the date, the countdown and an emoji for the occasion", () => {
+    const { html } = buildReminderEmail(base);
+    expect(html).toContain("27 September 2026");
+    expect(html).toContain("7 days left");
+    expect(html).toContain("🎂");
+    expect(buildReminderEmail({ ...base, daysBefore: 1 }).html).toContain("1 day left");
+    expect(buildReminderEmail({ ...base, eventType: "festival", eventTitle: "Diwali" }).html).toContain("🪔");
+  });
+  it("says what was given last year, only when the diary knows", () => {
+    const withLast = buildReminderEmail({ ...base, lastYear: { giftName: "A silk scarf" } });
+    expect(withLast.html).toContain("Last year you gave Priya");
+    expect(withLast.html).toContain("A silk scarf");
+    expect(withLast.text).toContain("Last year you gave Priya A silk scarf.");
+    expect(buildReminderEmail(base).html).not.toContain("Last year you gave");
+    expect(buildReminderEmail({ ...base, lastYear: { giftName: "  " } }).html).not.toContain("Last year you gave");
+  });
+  it("shows pictures only for real web addresses, and escapes everything that goes with them", () => {
+    const html = buildReminderEmail({
+      ...base,
+      robinUrl: "https://giftping-lime.vercel.app/email/robin.png",
+      lastYear: { giftName: `<u>x</u>`, imageUrl: "javascript:alert(1)" },
+      suggestions: [{ ...base.suggestions[0], imageUrl: `https://cdn.test/a.webp?x="onerror="1` }, { ...base.suggestions[0], name: "Second", imageUrl: "data:image/png;base64,AAAA" }],
+    }).html;
+    expect(html).toContain('src="https://giftping-lime.vercel.app/email/robin.png"');
+    expect(html).toContain("&quot;onerror=&quot;1"); // the quote can't end the attribute
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("data:image");
+    expect(html).not.toContain("<u>x</u>");
+    expect(buildReminderEmail(base).html).not.toContain("<img"); // no pictures unless given
+  });
+  it("puts a hidden preview line at the top of the inbox and stays a complete document", () => {
+    const { html } = buildReminderEmail(base);
+    expect(html).toContain("A little nudge from your diary — 1 gift idea picked for Priya.");
+    expect(html.startsWith("<!doctype html>")).toBe(true);
+    expect(html.trim().endsWith("</html>")).toBe(true);
   });
 });

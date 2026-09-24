@@ -1,5 +1,6 @@
 import "server-only";
 import { createAdminClient } from "@/lib/db/admin";
+import { removeAllDiaryPhotos } from "@/lib/storage/diary-photos";
 import { sendEmail } from "@/lib/integrations/resend";
 import { appBaseUrl } from "@/lib/notifications/notify";
 import { buildAccountDeletedEmail } from "@/lib/notifications/templates";
@@ -35,6 +36,9 @@ export async function eraseUser(args: { userId: string; actorId: string; byAdmin
   }
   const result = (data as { result: string } | null)?.result ?? "";
   if (result !== "erased" && result !== "already_erased") return { ok: false, error: REFUSALS[result] ?? "Couldn't erase the account." };
+
+  // The photos of the people in their diary are files, not rows — the transaction above can't reach them. Best effort; safe to repeat.
+  await removeAllDiaryPhotos(args.userId);
 
   // Login: soft delete keeps the auth row (so orders' foreign keys hold) but blocks sign-in and frees the real email. Retry-safe.
   const authDelete = await admin.auth.admin.deleteUser(args.userId, true);
