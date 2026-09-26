@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Heart, Search, ShoppingBag, User } from "lucide-react";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
+import { HeaderShell } from "@/components/layout/HeaderShell";
 import { Logo } from "@/components/layout/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { MobileTabBar } from "@/components/layout/MobileTabBar";
@@ -26,8 +27,8 @@ export async function Navbar({ announcement }: { announcement: string }) {
   return (
     <>
       <AnnouncementBar message={announcement} />
-      <header className="sticky top-0 z-40 border-b border-brand-dark/[0.06] bg-brand-light/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+      <HeaderShell>
+        <div className="gp-header-inner mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
           <Logo className="shrink-0 xl:mr-6 2xl:mr-10" priority />
           <NavLinks />
 
@@ -53,7 +54,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
             <MobileMenu signedIn={Boolean(user)} />
           </div>
         </div>
-      </header>
+      </HeaderShell>
       <MobileTabBar cartCount={cartCount} wishlistCount={wishlistCount} />
     </>
   );

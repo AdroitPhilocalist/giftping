@@ -63,7 +63,7 @@ export default async function DiaryPage() {
   const options = rows.contacts.map((c) => ({ id: c.id, name: c.name }));
 
   return (
-    <DiaryDesk>
+    <DiaryDesk className="xl:pb-5 xl:pt-3">
       <HomeSpread
         name={name}
         today={today}

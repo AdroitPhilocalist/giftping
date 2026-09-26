@@ -110,7 +110,6 @@
 /* a page: paper with a soft sheen, grain, a dotted grid and a stack of page edges peeking out underneath */
 .dy-page {
   position: relative;
-  padding: clamp(1.25rem, 3vw, 2.4rem) clamp(1.1rem, 3vw, 2.5rem) clamp(1.5rem, 3vw, 2.4rem);
   border-radius: 0.5rem;
   background:
     radial-gradient(90% 55% at 50% -8%, rgb(255 252 244 / 0.75), transparent 62%),
@@ -140,6 +139,8 @@
   .dy-page--right::before { left: 0; background: linear-gradient(to left, transparent, rgb(95 58 22 / 0.16) 55%, rgb(70 40 12 / 0.34)); }
 }
 .dy-page > *:not(.dy-corner) { position: relative; z-index: 1; }
+/* the page's content lives in its own box, which is what scrolls when the book is fitted to the window (below); padding is here so the scrollbar sits at the page edge */
+.dy-page-scroll { position: relative; padding: clamp(1.25rem, 3vw, 2.4rem) clamp(1.1rem, 3vw, 2.5rem) clamp(1.5rem, 3vw, 2.4rem); }
 .dy-corner { position: absolute; z-index: 0; pointer-events: none; opacity: 0.92; }
 
 /* index tabs sticking out of the book's right edge (Home · People · Year · My year) */
@@ -600,5 +601,25 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
 @keyframes dy-page-settle { from { opacity: 0.2; transform: perspective(2200px) rotateY(-16deg); } to { opacity: 1; transform: perspective(2200px) rotateY(0deg); } }
 @media (min-width: 1280px) {
   .dy-page--right { transform-origin: left center; animation: dy-page-settle 0.9s var(--gp-ease) 0.05s both; }
+}
+
+/* Fit to the window: on a wide, reasonably tall screen the whole open book fits in view and each page scrolls inside itself, like a real notebook — the
+   page stays put, only what is written on it moves. (--dy-chrome is what sits above and below the book: announcement + header + desk padding + robin room.) */
+@media (min-width: 1280px) and (min-height: 700px) {
+  .dy-book--fit .dy-spread { height: clamp(34rem, calc(100dvh - var(--dy-chrome, 12.7rem)), 64rem); }
+  .dy-book--fit .dy-page { min-height: 0; overflow: hidden; }
+  .dy-book--fit .dy-cal-grid { row-gap: 0; }
+  .dy-book--fit .dy-cal-day { width: min(100%, 1.65rem); font-size: 1.1rem; }
+  .dy-book--fit .dy-page-scroll { padding-top: 1.5rem; padding-bottom: 1.1rem; }
+  .dy-book--fit .dy-page-scroll {
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgb(150 108 60 / 0.4) transparent;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4rem), transparent);
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 1.4rem), transparent);
+  }
+  .dy-book--fit .dy-page-scroll:focus-visible { outline: 2px solid var(--gp-copper); outline-offset: -4px; }
 }
 }

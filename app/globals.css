@@ -195,8 +195,26 @@ html.gp-robin-cursor select {
   transform: scaleX(var(--gp-cursor-flip, 1));
   transition: scale 0.18s var(--gp-ease);
 }
-.gp-robin-cursor-mark[data-interactive="true"] .gp-robin-cursor-inner { scale: 1.22; }
-.gp-robin-cursor-mark[data-pressed="true"] .gp-robin-cursor-inner { scale: 0.8; }
+.gp-robin-cursor-mark[data-interactive="true"] .gp-robin-cursor-inner { scale: 0.72; }
+.gp-robin-cursor-mark[data-pressed="true"] .gp-robin-cursor-inner { scale: 0.6; }
+/* the exact pointer position: a small copper dot that becomes a ring over anything clickable (the robin itself stays out of the way) */
+.gp-robin-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gp-copper);
+  box-shadow: 0 0 0 2px var(--gp-canvas);
+  transform: translate(-100px, -100px);
+  transition: opacity 0.15s ease, width 0.18s var(--gp-ease), height 0.18s var(--gp-ease), margin 0.18s var(--gp-ease), background 0.18s;
+}
+.gp-robin-dot[data-hidden="true"] { opacity: 0; }
+.gp-robin-dot[data-interactive="true"] { width: 22px; height: 22px; margin: -7px 0 0 -7px; background: transparent; box-shadow: 0 0 0 2px var(--gp-copper); }
+html:not(.gp-robin-cursor) .gp-robin-dot, html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
 
 /* Payment confirmed (components/orders/OrderCelebration.tsx): the robin pops in, a few copper sparks — the
    same diamond as OrnamentDivider, not generic confetti — burst outward, then everything fades. */
@@ -246,3 +264,11 @@ html.gp-robin-cursor select {
     repeating-linear-gradient(45deg, color-mix(in srgb, var(--gp-copper) 7%, transparent) 0 2px, transparent 2px 15px),
     repeating-linear-gradient(-45deg, color-mix(in srgb, var(--gp-copper) 7%, transparent) 0 2px, transparent 2px 15px);
 }
+
+/* The header condenses once the page has scrolled (components/layout/HeaderShell.tsx): a slimmer bar with a smaller logo, so the page gets the room back. */
+.gp-header { transition: box-shadow 0.35s var(--gp-ease), background-color 0.35s var(--gp-ease); }
+.gp-header-inner { transition: padding 0.35s var(--gp-ease); }
+.gp-logo-mark { transition: width 0.35s var(--gp-ease), height 0.35s var(--gp-ease), transform 0.5s; }
+.gp-header[data-condensed="true"] { box-shadow: 0 6px 24px rgb(28 25 22 / 0.1); background-color: color-mix(in srgb, var(--gp-canvas) 94%, transparent); }
+.gp-header[data-condensed="true"] .gp-header-inner { padding-top: 0.3rem; padding-bottom: 0.3rem; }
+.gp-header[data-condensed="true"] .gp-logo-mark { width: 2.5rem; height: 2.5rem; }

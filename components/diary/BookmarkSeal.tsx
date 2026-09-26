@@ -8,8 +8,8 @@ import { WaxSeal } from "./art/WaxSeal";
  */
 export function BookmarkSeal({ className }: { className?: string }) {
   return (
-    <div className={className} style={{ position: "absolute", right: "0", top: "-2.6rem", width: "13.6rem", height: "11rem", zIndex: 6 }}>
-      <span className="dy-ribbon" style={{ left: "1.55rem", top: 0 }} aria-hidden="true" />
+    <div className={className} style={{ position: "absolute", right: "0", top: "-2.1rem", width: "13.6rem", height: "11rem", zIndex: 6 }}>
+      <span className="dy-ribbon" style={{ left: "1.55rem", top: "0.1rem" }} aria-hidden="true" />
       <WaxSeal size={82} animate className="!absolute z-[5]" >
         <Lock className="h-8 w-8" strokeWidth={2.2} aria-hidden="true" />
       </WaxSeal>

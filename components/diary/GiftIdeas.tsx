@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils/cn";
 /** One gift idea, as a polaroid pinned with tape: the whole card links to the product, the heart saves it to the wishlist. */
 export function IdeaCard({ idea, tilt = 0, tape = "blush", reasonLine = false, action }: { idea: IdeaCardData; tilt?: number; tape?: "blush" | "sage" | "mustard" | "sky"; reasonLine?: boolean; action?: React.ReactNode }) {
   return (
-    <figure className="dy-polaroid dy-polaroid--hover relative" style={{ ["--tilt" as string]: `${tilt}deg`, ["--photo-ratio" as string]: "4 / 3" }}>
+    <figure className="dy-polaroid dy-polaroid--hover relative [--photo-ratio:4/3] xl:[--photo-ratio:16/10]" style={{ ["--tilt" as string]: `${tilt}deg` }}>
       <span className={`dy-tape dy-tape--${tape}`} style={{ top: "-0.7rem", left: "50%", marginLeft: "-2.4rem", ["--tape-rot" as string]: `${tilt > 0 ? -5 : 4}deg` }} aria-hidden="true" />
       <div className="dy-polaroid-photo">
         <ProductImage src={idea.thumbnail} alt="" className="absolute inset-0 h-full w-full" sizes="(min-width: 1024px) 200px, 45vw" />
@@ -33,7 +33,7 @@ export function GiftIdeas({ ideas, who, moreHref, className, id = "ideas-h", rea
   return (
     <section aria-labelledby={id} className={className}>
       <SectionTitle id={id} icon={<Gift />} action={moreHref ? <Link href={moreHref} className="dy-link">See more →</Link> : null}>Gift ideas for {who}</SectionTitle>
-      <ul className={cn("mt-5 flex snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:overflow-visible sm:pb-0 sm:pt-0", cols === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
+      <ul className={cn("mt-5 xl:mt-3 flex snap-x snap-mandatory gap-5 overflow-x-auto px-1 pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:grid sm:overflow-visible sm:pb-0 sm:pt-0", cols === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}>
         {ideas.slice(0, cols === 3 ? 6 : 4).map((idea, i) => (
           <li key={idea.productId} className="dy-in w-[62%] shrink-0 snap-start sm:w-auto" style={{ ["--in-delay" as string]: `${200 + i * 100}ms` }}>
             <IdeaCard idea={idea} tilt={tiltFor(i + 2, 1.7)} tape={i % 3 === 0 ? "blush" : i % 3 === 1 ? "sage" : "mustard"} reasonLine={reasonLine} action={renderAction?.(idea)} />

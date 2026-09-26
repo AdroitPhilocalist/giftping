@@ -20,7 +20,7 @@ export function Logo({ className, tone = "dark", priority = false }: { className
   return (
     <Link href="/" aria-label="GiftPing — home" className={cn("group flex items-center gap-3", className)}>
       {mark ? (
-        <Image src={mark.src} alt="" width={mark.width} height={mark.height} priority={priority} sizes="56px" className="h-14 w-14 shrink-0 object-contain transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-105" />
+        <Image src={mark.src} alt="" width={mark.width} height={mark.height} priority={priority} sizes="56px" className="gp-logo-mark h-14 w-14 shrink-0 object-contain transition-transform duration-500 group-hover:-rotate-3 group-hover:scale-105" />
       ) : (
         <span className="relative inline-flex h-11 w-12 items-center justify-center">
           <Bird className="absolute -top-0.5 left-1.5 h-3.5 w-3.5 text-brand-secondary transition-transform duration-500 group-hover:-rotate-12" aria-hidden="true" />

@@ -12,7 +12,6 @@ import { MomentTickets } from "./MomentTickets";
 import { PaperCalendar } from "./PaperCalendar";
 import { PeopleShelf } from "./PeopleShelf";
 import { ScoreSeal } from "./ScoreSeal";
-import { StreakBadge } from "./StreakBadge";
 
 export interface HomeSpreadProps {
   name: string;
@@ -36,6 +35,7 @@ export function HomeSpread({ name, today, moments, ideas, ideasWho, ideasMoreHre
     <>
       <MobileCover name={name} />
       <Book
+        fit
         current="home"
         leftLabel="Special moments and gift ideas"
         rightLabel="Gifting score, calendar and people"
@@ -43,22 +43,22 @@ export function HomeSpread({ name, today, moments, ideas, ideasWho, ideasMoreHre
           <>
             <Corner at="bl" variant="daisy" />
             <HomeHeader name={name} />
-            <MomentTickets moments={moments} themeId={themeId} className="mt-2 xl:mt-8" addAction={<AddDateButton people={options} />} />
-            {ideas.length > 0 && ideasWho ? <GiftIdeas ideas={ideas} who={ideasWho} moreHref={ideasMoreHref ?? undefined} className="mt-9 pb-2" /> : null}
+            <MomentTickets moments={moments} themeId={themeId} className="mt-2 xl:mt-4" addAction={<AddDateButton people={options} />} />
+            {ideas.length > 0 && ideasWho ? <GiftIdeas ideas={ideas} who={ideasWho} moreHref={ideasMoreHref ?? undefined} className="mt-9 pb-2 xl:mt-3" /> : null}
           </>
         }
         right={
           <>
-            <ScoreSeal score={score} />
-            {streak >= 3 ? <StreakBadge count={streak} compact className="mt-5" /> : null}
-            <section aria-labelledby="cal-h" className="mt-8">
+            <ScoreSeal score={score} streak={streak} />
+            
+            <section aria-labelledby="cal-h" className="mt-8 xl:mt-3">
               <SectionTitle id="cal-h" icon={<CalendarDays />}>This Month</SectionTitle>
               <div className="mt-3 grid items-start gap-5 xl:grid-cols-[minmax(0,21rem)_1fr]">
                 <PaperCalendar today={today} marks={marks} />
                 <MemoNote className="mt-2 max-xl:hidden" tilt={2.5}>Small moments, big happiness</MemoNote>
               </div>
             </section>
-            <PeopleShelf people={people} themeId={themeId} className="mt-9" actions={<><AddPersonButton /><AddDateButton people={options} /></>} />
+            <PeopleShelf people={people} themeId={themeId} className="mt-9 xl:mt-3" actions={<><AddPersonButton /><AddDateButton people={options} /></>} />
             <Corner at="br" variant="wild" size="h-32 w-16" />
           </>
         }

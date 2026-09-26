@@ -29,19 +29,19 @@ export function DiaryTabs({ current }: { current?: DiaryTabKey }) {
  * The open diary: two pages side by side from 1024px up (a leather cover, paper edges, the fold in the middle), one after the other below that.
  * `current` lights the matching index tab; the robin perches on the top corner (a drawn fallback until the illustration exists).
  */
-export function Book({ left, right, current, robin = true, className, leftLabel, rightLabel }: { left: ReactNode; right: ReactNode; current?: DiaryTabKey; robin?: boolean; className?: string; leftLabel?: string; rightLabel?: string }) {
+export function Book({ left, right, current, robin = true, className, leftLabel, rightLabel, fit = false }: { left: ReactNode; right: ReactNode; current?: DiaryTabKey; robin?: boolean; className?: string; leftLabel?: string; rightLabel?: string; fit?: boolean }) {
   return (
-    <div className={cn("relative mx-auto max-w-[78rem]", robin && "xl:pt-14", className)}>
+    <div className={cn("relative mx-auto max-w-[78rem]", robin && "xl:pt-9", className)}>
       <DiaryTabs current={current} />
-      <div className="dy-book">
+      <div className={cn("dy-book", fit && "dy-book--fit")}>
         {robin ? (
-          <div className="pointer-events-none absolute -top-[4.9rem] right-4 z-10 hidden w-[7.6rem] xl:right-10 xl:block" aria-hidden="true">
+          <div className="pointer-events-none absolute -top-[3.7rem] right-4 z-10 hidden w-[6.2rem] xl:right-10 xl:block" aria-hidden="true">
             <div className="dy-bob" style={{ "--bob-rot": "-2deg" } as React.CSSProperties}><Robin pose="perched" title="" /></div>
           </div>
         ) : null}
         <div className="dy-spread">
-          <section className="dy-page dy-page--left" aria-label={leftLabel}>{left}</section>
-          <section className="dy-page dy-page--right" aria-label={rightLabel}>{right}</section>
+          <section className="dy-page dy-page--left" aria-label={leftLabel}><div className="dy-page-scroll" tabIndex={fit ? 0 : undefined}>{left}</div></section>
+          <section className="dy-page dy-page--right" aria-label={rightLabel}><div className="dy-page-scroll" tabIndex={fit ? 0 : undefined}>{right}</div></section>
         </div>
       </div>
     </div>

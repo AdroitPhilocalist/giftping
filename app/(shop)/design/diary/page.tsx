@@ -53,7 +53,7 @@ export default async function DiaryPreviewPage({ searchParams }: { searchParams:
   }
 
   return (
-    <DiaryDesk>
+    <DiaryDesk className="xl:pb-5 xl:pt-3">
       <HomeSpread
         name="Priya"
         today={TODAY}

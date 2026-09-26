@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Bird } from "lucide-react";
 import { Jaali } from "@/components/ornaments/Jaali";
 import { Logo } from "@/components/layout/Logo";
+import { RobinCursorToggle } from "@/components/layout/RobinCursorToggle";
 import { TrustStrip } from "@/components/layout/TrustStrip";
 
 const columns = [
@@ -31,6 +32,7 @@ const columns = [
     ],
   },
 ];
+
 
 export function Footer() {
   return (
@@ -65,6 +67,7 @@ export function Footer() {
         </div>
         <div className="relative border-t border-brand-on-primary/10 px-4 py-4 text-center text-xs text-brand-on-primary/55">
           © {new Date().getFullYear()} GiftPing. All rights reserved.
+          <RobinCursorToggle className="ml-4 underline underline-offset-2 hover:text-brand-on-primary" />
         </div>
       </footer>
       {/* room for the fixed phone tab bar */}

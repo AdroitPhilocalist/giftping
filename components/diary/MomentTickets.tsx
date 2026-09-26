@@ -22,21 +22,21 @@ export function MomentTickets({ moments, themeId, addAction, className }: { mome
       {shown.length === 0 ? (
         <div className="mt-4"><RobinSleeping title="Nothing in the next 60 days" line="Relax! You're all caught up." action={addAction} /></div>
       ) : (
-        <ul className="mt-5 grid gap-5 sm:grid-cols-3">
+        <ul className="mt-5 grid gap-5 sm:grid-cols-3 xl:mt-4 xl:gap-4">
           {shown.map((m, i) => (
             <li key={m.key} className="dy-in" style={{ ["--in-delay" as string]: `${140 + i * 110}ms` } as CSSProperties}>
               <Link
                 href={`/diary/people/${m.contactId}?event=${m.eventId}#plan`}
-                className={cn("dy-note block h-full min-h-[10.5rem] pb-4 pt-5", NOTE_TONES[i % 3])}
+                className={cn("dy-note block h-full min-h-[10.5rem] pb-4 pt-5 xl:min-h-0 xl:pb-3 xl:pt-4", NOTE_TONES[i % 3])}
                 style={{ ["--tilt" as string]: `${tiltFor(i, 1.8)}deg`, ["--torn" as string]: `var(--dy-torn-${(i % 4) + 1})` } as CSSProperties}
               >
                 <span className={`dy-tape dy-tape--${TAPES[i % 3]}`} style={{ top: "-0.55rem", left: "38%", ["--tape-rot" as string]: `${i % 2 ? 5 : -5}deg` } as CSSProperties} aria-hidden="true" />
                 <div className="flex items-start justify-between gap-2">
-                  <OccasionSticker type={m.eventType} themeId={themeId} className="h-[2.9rem] w-[2.9rem] shrink-0" />
+                  <OccasionSticker type={m.eventType} themeId={themeId} className="h-[2.9rem] w-[2.9rem] shrink-0 xl:h-10 xl:w-10" />
                   <p className="dy-cap pt-0.5 text-right leading-[1.1]">{m.dateLabel}</p>
                 </div>
                 <p className="dy-hand-b mt-1.5 break-words text-[1.5rem] leading-[1.02]">{m.title}</p>
-                <p className="dy-num mt-2 text-[2.3rem] text-[var(--dy-ink)]">{daysLabel(m.daysAway)}{m.daysAway > 1 ? <span className="sr-only"> away</span> : null}</p>
+                <p className="dy-num mt-2 text-[2.3rem] text-[var(--dy-ink)] xl:mt-1 xl:text-[1.95rem]">{daysLabel(m.daysAway)}{m.daysAway > 1 ? <span className="sr-only"> away</span> : null}</p>
                 {m.handled ? (
                   <span className="dy-hand mt-1.5 inline-flex items-center gap-1.5 text-[1.15rem] text-[var(--gp-primary)]"><Check className="h-4 w-4" aria-hidden="true" /> Gift sorted</span>
                 ) : i === firstOpen ? (

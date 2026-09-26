@@ -9,15 +9,15 @@ import { possessive } from "@/lib/diary/present";
 /** The top of the left page (wide screens): "Priya's Gifting Diary", the promise under it, and the sealed ribbon. */
 export function HomeHeader({ name }: { name: string }) {
   return (
-    <header className="relative hidden pb-4 pt-2 xl:block">
+    <header className="relative hidden pb-2 pt-1 xl:block">
       <Sprig variant="daisy" className="absolute -left-2 top-3 h-40 w-[5.5rem]" />
       <div className="relative pl-[4rem] pr-[12.5rem] xl:pl-[4.4rem]">
-        <h1 className="dy-title dy-in" style={{ fontSize: "clamp(2.5rem, 3.9vw, 3.75rem)" }}>
+        <h1 className="dy-title dy-in" style={{ fontSize: "clamp(2.4rem, 3.3vw, 3.3rem)" }}>
           {possessive(name)}
           <br />
           Gifting Diary <HeartDoodle className="align-top text-[0.32em]" />
         </h1>
-        <p className="dy-in mt-3" style={{ ["--in-delay" as string]: "120ms" }}>
+        <p className="dy-in mt-2" style={{ ["--in-delay" as string]: "120ms" }}>
           <span className="dy-marker dy-sub">Because the best gifts come from a remembering heart</span>
         </p>
       </div>

@@ -18,12 +18,25 @@ const INTERACTIVE_SELECTOR = 'a, button, [role="button"], summary, input, select
  *   - never when the visitor asked for reduced motion — a *following* cursor is inherently motion.
  *   - over text fields and dropdowns the robin fades out and the native cursor takes over, so it's always clear where
  *     typing will land.
- *   - it grows slightly over anything clickable, so it still gives the affordance a normal pointer:pointer
- *     cursor would have — losing "this is clickable" is the usual complaint about custom cursors.
+ *   - it never sits ON the pointer (it hid small icon buttons): it rides just below and to the right of a small dot that marks the real pointer,
+ *     and over anything clickable it shrinks and the dot grows into a ring — the "this is clickable" cue a normal hand cursor would give.
+ *   - the visitor can switch it off (footer) — remembered in localStorage.
  *   - it's one mounted component in app/layout.tsx; removing that one line turns it off everywhere.
  */
+export const ROBIN_CURSOR_KEY = "gp-robin-cursor";
+export const ROBIN_CURSOR_EVENT = "gp:robin-cursor";
+/** The visitor's own switch (footer): "off" keeps the ordinary pointer everywhere. */
+export const robinCursorWanted = () => {
+  try {
+    return window.localStorage.getItem(ROBIN_CURSOR_KEY) !== "off";
+  } catch {
+    return true;
+  }
+};
+
 export function RobinCursor({ markSrc }: { markSrc: string | null }) {
   const ref = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fine = window.matchMedia("(pointer: fine)");
@@ -31,21 +44,32 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
     if (!fine.matches || reduced.matches) return;
 
     const el = ref.current;
-    if (!el) return;
-    document.documentElement.classList.add("gp-robin-cursor");
+    const dot = dotRef.current;
+    if (!el || !dot) return;
+    const root = document.documentElement;
+    const apply = () => root.classList.toggle("gp-robin-cursor", robinCursorWanted());
+    apply();
+    window.addEventListener(ROBIN_CURSOR_EVENT, apply);
 
     let lastX = -1;
     function onMove(e: MouseEvent) {
-      if (!el) return;
+      if (!el || !dot) return;
       // face the direction of travel — a tiny bit of personality, not just a dot that follows.
       if (lastX >= 0 && Math.abs(e.clientX - lastX) > 2) {
         el.style.setProperty("--gp-cursor-flip", e.clientX < lastX ? "-1" : "1");
       }
       lastX = e.clientX;
-      el.style.transform = `translate(${e.clientX - 17}px, ${e.clientY - 17}px)`;
+      // The robin keeps company just below and to the right of the real pointer instead of sitting on it, so it never hides what is being pointed at;
+      // a small copper dot marks the exact spot.
+      el.style.transform = `translate(${e.clientX + 10}px, ${e.clientY + 10}px)`;
+      dot.style.transform = `translate(${e.clientX - 4}px, ${e.clientY - 4}px)`;
       const source = e.target as Element | null;
-      el.dataset.interactive = source?.closest(INTERACTIVE_SELECTOR) ? "true" : "false";
-      el.dataset.hidden = source?.closest(NATIVE_CURSOR_SELECTOR) ? "true" : "false";
+      const interactive = source?.closest(INTERACTIVE_SELECTOR) ? "true" : "false";
+      const hidden = source?.closest(NATIVE_CURSOR_SELECTOR) ? "true" : "false";
+      el.dataset.interactive = interactive;
+      el.dataset.hidden = hidden;
+      dot.dataset.interactive = interactive;
+      dot.dataset.hidden = hidden;
     }
     function onDown() {
       if (el) el.dataset.pressed = "true";
@@ -55,6 +79,7 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
     }
     function onLeaveWindow() {
       if (el) el.style.transform = "translate(-100px, -100px)";
+      if (dot) dot.style.transform = "translate(-100px, -100px)";
     }
 
     window.addEventListener("mousemove", onMove);
@@ -62,7 +87,8 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
     window.addEventListener("mouseup", onUp);
     document.addEventListener("mouseleave", onLeaveWindow);
     return () => {
-      document.documentElement.classList.remove("gp-robin-cursor");
+      root.classList.remove("gp-robin-cursor");
+      window.removeEventListener(ROBIN_CURSOR_EVENT, apply);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("mousedown", onDown);
       window.removeEventListener("mouseup", onUp);
@@ -71,6 +97,8 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
   }, []);
 
   return (
+    <>
+    <div ref={dotRef} className="gp-robin-dot" aria-hidden="true" />
     <div ref={ref} className="gp-robin-cursor-mark" aria-hidden="true">
       <div className="gp-robin-cursor-inner">
       {markSrc ? (
@@ -88,5 +116,6 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
       )}
       </div>
     </div>
+    </>
   );
 }

@@ -1,25 +1,26 @@
 import { BarChart3, CalendarCheck, Feather, Gift, Heart } from "lucide-react";
 import type { GiftingScore } from "@/lib/diary/gifting-score";
 import { WaxSeal } from "./art/WaxSeal";
+import { StreakBadge } from "./StreakBadge";
 import { SectionTitle } from "./book/SectionTitle";
 
 const ICONS = { preparedness: Gift, knowing: Heart, coverage: CalendarCheck, consistency: Feather } as const;
 
 /** The Gifting Score, pressed into wax: the number, its label, and one slim bar per factor. Numbers come from computeGiftingScore(). */
-export function ScoreSeal({ score, className }: { score: GiftingScore; className?: string }) {
+export function ScoreSeal({ score, streak = 0, className }: { score: GiftingScore; streak?: number; className?: string }) {
   return (
     <section aria-labelledby="score-h" className={className}>
-      <SectionTitle id="score-h" icon={<BarChart3 />}>Gifting Score</SectionTitle>
-      <div className="mt-4 grid items-center gap-5 sm:grid-cols-[auto_1fr]">
+      <SectionTitle id="score-h" icon={<BarChart3 />} action={streak >= 3 ? <StreakBadge count={streak} variant="chip" /> : null}>Gifting Score</SectionTitle>
+      <div className="mt-3 grid items-center gap-4 sm:grid-cols-[auto_1fr]">
         <div className="mx-auto sm:mx-0" role="img" aria-label={`Gifting score ${score.score} out of 100: ${score.label}`}>
-          <WaxSeal size={158} animate>
+          <WaxSeal size={116} animate>
             <span className="block">
-              <span className="dy-num block text-[3.6rem]">{score.score}</span>
+              <span className="dy-num block text-[3rem]">{score.score}</span>
               <span className="dy-hand mt-0.5 block text-[1.2rem] leading-[1]">{score.label === "Gifting pro" ? "Gifting Pro" : score.label}</span>
             </span>
           </WaxSeal>
         </div>
-        <ul className="space-y-3">
+        <ul className="space-y-2 xl:space-y-1.5">
           {score.breakdown.map((b) => {
             const Icon = ICONS[b.key];
             const pct = Math.round((b.points / b.max) * 100);
@@ -35,7 +36,7 @@ export function ScoreSeal({ score, className }: { score: GiftingScore; className
           })}
         </ul>
       </div>
-      <p className="dy-hand mt-3 text-[1.25rem] leading-[1.15] text-[var(--dy-ink-soft)]">{score.nextBestAction}</p>
+      <p className="dy-hand mt-2 text-[1.2rem] leading-[1.1] text-[var(--dy-ink-soft)]">{score.nextBestAction}</p>
     </section>
   );
 }

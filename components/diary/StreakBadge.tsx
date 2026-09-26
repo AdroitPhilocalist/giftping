@@ -12,8 +12,15 @@ const ROSETTE = (() => {
   return `M${points.join("L")}Z`;
 })();
 
-export function StreakBadge({ count, className, compact = false }: { count: number; className?: string; compact?: boolean }) {
+export function StreakBadge({ count, className, compact = false, variant = "full" }: { count: number; className?: string; compact?: boolean; variant?: "full" | "chip" }) {
   if (count < 3) return null;
+  if (variant === "chip") {
+    return (
+      <span className={cn("dy-hand inline-flex items-center gap-1.5 rounded-full border border-[var(--gp-copper)]/40 bg-[var(--dy-paper-hi)] px-3 py-0.5 text-[1.05rem] leading-none", className)} title="Special days remembered in a row">
+        <span className="dy-num text-[1.35rem] text-[var(--gp-copper-dark)]">{count}</span> in a row <span aria-hidden="true">🏅</span>
+      </span>
+    );
+  }
   return (
     <div className={cn("flex items-center gap-3", compact ? "" : "flex-col text-center", className)}>
       <div className="relative shrink-0" style={{ width: compact ? "5.6rem" : "8.4rem" }} role="img" aria-label={`${count} special days remembered in a row`}>
