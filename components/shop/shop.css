@@ -1,0 +1,111 @@
+/* The shop's own staging: gift tags hung on twine, boutique awnings, world ambience. Same rule as the diary kit — in the `components` layer so Tailwind
+   utilities can still override, colours from the --gp-* tokens (a festival theme re-tints everything). */
+@layer components {
+
+/* ---------------------------------------------------------------- gift tags on twine */
+.gift-grid { --twine: color-mix(in srgb, var(--gp-copper) 50%, var(--gp-canvas)); }
+.gift-slot { position: relative; padding-top: 1.6rem; }
+/* the twine runs edge to edge along the row (the grid gap is 1rem, so each slot reaches 0.5rem past its own edges and the pieces meet) */
+.gift-slot::before {
+  content: "";
+  position: absolute;
+  top: 0.35rem;
+  left: -0.5rem;
+  right: -0.5rem;
+  border-top: 2px dashed var(--twine);
+  opacity: 0.85;
+}
+.gift-tag { position: relative; transform-origin: 50% 0; }
+.gift-tag:hover { animation: shop-swing 1.4s ease-in-out 1; }
+@keyframes shop-swing { 0% { rotate: 0deg; } 18% { rotate: 2.4deg; } 42% { rotate: -1.8deg; } 66% { rotate: 0.9deg; } 84% { rotate: -0.4deg; } 100% { rotate: 0deg; } }
+/* the little string from the twine to the hole in the tag, and the hole itself */
+.gift-tag-loop { position: absolute; z-index: 1; left: 50%; top: -1.25rem; width: 0; height: 1.5rem; border-left: 2px solid var(--twine); transform: translateX(-1px); pointer-events: none; }
+.gift-tag-hole { position: absolute; z-index: 2; left: 50%; top: 0.5rem; width: 0.85rem; height: 0.85rem; margin-left: -0.425rem; border-radius: 50%; background: var(--gp-canvas); box-shadow: inset 0 1px 2px rgb(28 25 22 / 0.35), 0 0 0 2px color-mix(in srgb, var(--gp-copper) 30%, transparent); pointer-events: none; }
+.gift-tag-body {
+  position: relative;
+  padding: 1.55rem 0.55rem 0.7rem;
+  border-radius: 1.1rem 1.1rem 1rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--gp-copper) 18%, transparent);
+  background: linear-gradient(180deg, var(--gp-surface), color-mix(in srgb, var(--gp-peach) 55%, var(--gp-surface)));
+  box-shadow: 0 10px 26px -12px rgb(28 25 22 / 0.22), inset 0 0 0 1px rgb(255 255 255 / 0.5);
+  transition: box-shadow 0.5s var(--gp-ease), translate 0.5s var(--gp-ease);
+}
+.gift-tag:hover .gift-tag-body { translate: 0 -3px; box-shadow: 0 22px 36px -14px rgb(28 25 22 / 0.3), inset 0 0 0 1px rgb(255 255 255 / 0.5); }
+.gift-tag-photo { position: relative; overflow: hidden; border-radius: 0.8rem; box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 14%, transparent); }
+/* the price, as a paper stamp overlapping the corner of the photo */
+.gift-price {
+  position: relative;
+  z-index: 2;
+  width: fit-content;
+  margin: -0.85rem 0 0 0.55rem;
+  padding: 0.2rem 0.7rem;
+  border-radius: 0.35rem;
+  background: var(--gp-surface);
+  border: 1.5px dashed color-mix(in srgb, var(--gp-copper) 55%, transparent);
+  box-shadow: 0 4px 10px -4px rgb(28 25 22 / 0.35);
+  rotate: -2.5deg;
+  font-family: var(--gp-font-display);
+  font-size: 1.05rem;
+  line-height: 1.25;
+  color: var(--gp-ink);
+  white-space: nowrap;
+}
+/* the discount, as a round seal */
+.gift-seal {
+  position: absolute;
+  z-index: 2;
+  left: 0.5rem;
+  top: 0.5rem;
+  display: grid;
+  place-items: center;
+  width: 2.9rem;
+  height: 2.9rem;
+  border-radius: 50%;
+  color: var(--gp-on-copper);
+  background: radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--gp-copper) 70%, #fff), var(--gp-copper) 55%, var(--gp-copper-dark));
+  box-shadow: 0 4px 10px -3px rgb(28 25 22 / 0.5), inset 0 0 0 2px color-mix(in srgb, var(--gp-on-copper) 45%, transparent);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  rotate: -8deg;
+}
+
+/* ---------------------------------------------------------------- boutique street */
+.awning { --awn-a: var(--gp-primary); --awn-b: var(--gp-peach); position: absolute; z-index: 3; left: 0; right: 0; top: 0; height: 1.9rem; transform-origin: 50% 0;
+  background: repeating-linear-gradient(90deg, var(--awn-a) 0 1.6rem, var(--awn-b) 1.6rem 3.2rem);
+  -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - 0.7rem) no-repeat, radial-gradient(circle at 50% 0, #000 0.8rem, transparent calc(0.8rem + 0.5px)) bottom / 1.6rem 0.8rem repeat-x;
+  mask: linear-gradient(#000 0 0) top / 100% calc(100% - 0.7rem) no-repeat, radial-gradient(circle at 50% 0, #000 0.8rem, transparent calc(0.8rem + 0.5px)) bottom / 1.6rem 0.8rem repeat-x;
+  filter: drop-shadow(0 6px 5px rgb(28 25 22 / 0.35));
+  transition: transform 0.5s var(--gp-ease);
+}
+.awning--1 { --awn-a: var(--gp-primary); --awn-b: var(--gp-peach); }
+.awning--2 { --awn-a: var(--gp-copper); --awn-b: var(--gp-surface); }
+.awning--3 { --awn-a: #d99a8c; --awn-b: var(--gp-surface); }
+.awning--4 { --awn-a: #d7a93f; --awn-b: var(--gp-primary); }
+.shopfront:hover .awning { animation: shop-awning-sway 1.2s ease-in-out 1; }
+@keyframes shop-awning-sway { 0%, 100% { transform: skewX(0deg); } 30% { transform: skewX(-1.6deg); } 65% { transform: skewX(1deg); } }
+.shopfront-photo { filter: hue-rotate(var(--hue, 0deg)); transition: transform 0.9s var(--gp-ease), filter 0.6s; }
+.shopfront:hover .shopfront-photo { transform: scale(1.06); filter: hue-rotate(var(--hue, 0deg)) brightness(1.12) saturate(1.1); }
+/* a hanging "Open" sign */
+.open-sign { position: absolute; z-index: 4; right: 1rem; top: 1.7rem; padding: 0.15rem 0.7rem; border-radius: 0.3rem; background: var(--gp-surface); color: var(--gp-copper-dark); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; box-shadow: 0 4px 8px -3px rgb(28 25 22 / 0.5); transform-origin: 50% -0.9rem; rotate: 3deg; }
+.open-sign::before { content: ""; position: absolute; left: 50%; top: -0.9rem; height: 0.9rem; border-left: 1.5px solid var(--gp-surface); }
+.shopfront:hover .open-sign { animation: shop-swing 1.4s ease-in-out 1; }
+
+/* ---------------------------------------------------------------- world ambience: things drifting across an occasion's header */
+.ambient { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.ambient > i { position: absolute; top: -10%; left: var(--x); width: var(--s, 1.2rem); height: var(--s, 1.2rem); opacity: 0; animation: shop-drift var(--dur, 14s) linear var(--delay, 0s) infinite; }
+@keyframes shop-drift {
+  0% { transform: translate3d(0, -10%, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: var(--o, 0.75); }
+  90% { opacity: var(--o, 0.75); }
+  100% { transform: translate3d(var(--sway, 3rem), 130%, 0) rotate(var(--rot, 300deg)); opacity: 0; }
+}
+.world-photo { animation: shop-kenburns 26s ease-in-out infinite alternate; transform-origin: 70% 40%; }
+@keyframes shop-kenburns { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+/* ---------------------------------------------------------------- filter tags */
+.pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.85rem; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gp-ink) 16%, transparent); background: color-mix(in srgb, var(--gp-surface) 80%, transparent); font-size: 0.82rem; line-height: 1.25; color: var(--gp-ink); white-space: nowrap; transition: background 0.25s, border-color 0.25s, transform 0.25s var(--gp-ease); }
+.pill:hover { border-color: var(--gp-copper); transform: translateY(-1px); }
+.pill[aria-current="true"] { background: var(--gp-primary); border-color: var(--gp-primary); color: var(--gp-on-primary); }
+}

@@ -1,6 +1,7 @@
 import { Robin } from "@/components/art/Robin";
 import { SearchBar } from "@/components/shop/SearchBar";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGrid } from "@/components/shop/ProductGrid";
 import { searchProducts } from "@/lib/search";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
@@ -40,7 +41,7 @@ export default async function SearchPage({
             <p className="mb-4 text-sm text-brand-dark/60">
               {results.length} result{results.length === 1 ? "" : "s"} for &ldquo;{query}&rdquo;
             </p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+            <ProductGrid>
               {results.map((product) => (
                 <ProductCard
                   key={product.id}
@@ -48,7 +49,7 @@ export default async function SearchPage({
                   isWishlisted={wishlistIds.has(product.id)}
                 />
               ))}
-            </div>
+            </ProductGrid>
           </>
         )}
       </div>

@@ -1,13 +1,10 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { GiftBoxArt } from "@/components/art/GiftBoxArt";
-import { HeroBackdrop } from "@/components/art/HeroBackdrop";
-import { Robin } from "@/components/art/Robin";
-import { Jaali } from "@/components/ornaments/Jaali";
 import { ProductCard } from "@/components/shop/ProductCard";
-import { ProductFilters } from "@/components/shop/ProductFilters";
+import { ProductGrid } from "@/components/shop/ProductGrid";
+import { ShopFilters } from "@/components/shop/ShopFilters";
+import { WorldHero } from "@/components/shop/WorldHero";
 import { Pagination } from "@/components/shop/Pagination";
-import { getCategoryBySlug } from "@/lib/db/categories";
+import { getActiveCategories, getCategoryBySlug } from "@/lib/db/categories";
 import { getVendorsForCategory } from "@/lib/db/vendors";
 import { listProducts, type ProductListFilters } from "@/lib/db/products";
 import { getServerUser } from "@/lib/auth/session";
@@ -26,7 +23,7 @@ export default async function CategoryPage({
   const sp = await searchParams;
 
   // category gates the page, but user/theme don't depend on it — fetch all three together.
-  const [category, user, theme] = await Promise.all([getCategoryBySlug(slug), getServerUser(), getActiveTheme()]);
+  const [category, user, theme, allCategories] = await Promise.all([getCategoryBySlug(slug), getServerUser(), getActiveTheme(), getActiveCategories()]);
   if (!category) notFound();
 
   const page = Number(sp.page ?? "1") || 1;
@@ -58,6 +55,15 @@ export default async function CategoryPage({
     return `/categories/${slug}${qs ? `?${qs}` : ""}`;
   }
 
+  // every filter option is a link to this page with one thing changed
+  function hrefFor(patch: Partial<Record<"vendor" | "occasion" | "recipient" | "sort" | "inStock", string | undefined>>) {
+    const merged = { vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, ...patch };
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(merged)) if (v) params.set(k, v);
+    const qs = params.toString();
+    return `/categories/${slug}${qs ? `?${qs}` : ""}`;
+  }
+
   const world = siteImage(`world-${slug}`, theme.id);
 
   // "Birthday" -> "Birthday World"; "Corporate Gifting" -> accent on the last word; "For Her" stays as it is
@@ -68,65 +74,28 @@ export default async function CategoryPage({
 
   return (
     <div>
-      <section className="relative isolate overflow-hidden border-b border-brand-dark/[0.06] bg-brand-accent/70">
-        {world ? (
-          <HeroBackdrop image={world} priority />
-        ) : (
-          <Jaali className="opacity-[0.07]" />
-        )}
-        <div className="relative mx-auto grid max-w-7xl items-center gap-6 px-4 py-12 sm:px-6 md:grid-cols-[1fr_auto] lg:px-8 lg:py-20">
-          <div className="rise max-w-xl">
-            <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-dark/60">
-              <Link href="/categories" className="hover:text-brand-secondary-dark">Occasions</Link> <span className="text-brand-secondary">›</span> {category.name}
-            </p>
-            <h1 className="mt-3 font-heading text-4xl leading-tight text-brand-dark sm:text-5xl lg:text-6xl">
-              {lead} <span className="accent-word">{tail}</span>
-            </h1>
-            {category.description ? <p className="mt-4 max-w-xl text-base leading-relaxed text-brand-dark/70">{category.description}</p> : null}
-          </div>
-          {world ? null : (
-            <div className="hidden items-end gap-1 md:flex" aria-hidden="true">
-              <Robin className="float-slow w-24" />
-              <GiftBoxArt tone="green" className="-ml-3 w-24" />
-              <GiftBoxArt tone="copper" className="-ml-6 w-16" />
-            </div>
-          )}
-        </div>
-      </section>
+      <WorldHero slug={slug} image={world} lead={lead} tail={tail} description={category.description} name={category.name} siblings={allCategories.map((c) => ({ slug: c.slug, name: c.name }))} />
 
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <ProductFilters
-              vendors={vendors}
-              current={{
-                vendor: sp.vendor,
-                occasion: sp.occasion,
-                recipient: sp.recipient,
-                sort: sp.sort,
-                inStock: sp.inStock,
-              }}
-            />
+            <ShopFilters vendors={vendors} current={{ vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock }} hrefFor={hrefFor} />
           </aside>
 
           <div>
-            <p className="mb-4 text-sm text-brand-dark/60">
-              {total} {total === 1 ? "product" : "products"} found
+            <p className="mb-2 font-heading text-lg italic text-brand-dark/70">
+              {total} {total === 1 ? "gift" : "gifts"} found
             </p>
             {products.length === 0 ? (
               <p className="rounded-2xl border border-dashed border-brand-dark/15 p-12 text-center text-brand-dark/50">
                 No products match these filters yet. Try adjusting them.
               </p>
             ) : (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+              <ProductGrid>
                 {products.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    product={product}
-                    isWishlisted={wishlistIds.has(product.id)}
-                  />
+                  <ProductCard key={product.id} product={product} isWishlisted={wishlistIds.has(product.id)} />
                 ))}
-              </div>
+              </ProductGrid>
             )}
             <Pagination page={page} totalPages={totalPages} buildHref={buildHref} />
           </div>

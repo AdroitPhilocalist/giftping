@@ -3,6 +3,7 @@ import { Robin } from "@/components/art/Robin";
 import { requireRole } from "@/lib/auth/session";
 import { getWishlistProducts } from "@/lib/db/wishlists";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGrid } from "@/components/shop/ProductGrid";
 import { Button } from "@/components/ui/Button";
 
 export default async function WishlistPage() {
@@ -23,11 +24,11 @@ export default async function WishlistPage() {
           </Button>
         </div>
       ) : (
-        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+        <ProductGrid className="mt-8">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} isWishlisted />
           ))}
-        </div>
+        </ProductGrid>
       )}
     </div>
   );

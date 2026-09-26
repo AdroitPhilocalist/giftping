@@ -8,6 +8,7 @@ import { SectionHeading } from "@/components/home/SectionHeading";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGrid } from "@/components/shop/ProductGrid";
 import { VendorCard } from "@/components/shop/VendorCard";
 import { HeroBanners } from "@/components/shop/HeroBanners";
 import { getFeaturedVendors } from "@/lib/db/vendors";
@@ -45,13 +46,13 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ a
             <SectionHeading align="left" eyebrow="Curated for you" title="Trending in the Mall" subtitle="What people are gifting right now." />
             <Link href="/categories" className="hidden shrink-0 text-sm font-medium text-brand-secondary-dark hover:underline sm:block">View all →</Link>
           </Reveal>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+          <ProductGrid className="mt-6 lg:grid-cols-4">
             {trending.map((product, i) => (
               <Reveal key={product.id} delay={i * 70}>
                 <ProductCard product={product} isWishlisted={wishlistIds.has(product.id)} />
               </Reveal>
             ))}
-          </div>
+          </ProductGrid>
         </section>
       ) : null}
 

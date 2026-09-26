@@ -63,7 +63,7 @@ export function RobinCursor({ markSrc }: { markSrc: string | null }) {
       // a small copper dot marks the exact spot.
       el.style.transform = `translate(${e.clientX + 10}px, ${e.clientY + 10}px)`;
       dot.style.transform = `translate(${e.clientX - 4}px, ${e.clientY - 4}px)`;
-      const source = e.target as Element | null;
+      const source = e.target instanceof Element ? e.target : null;
       const interactive = source?.closest(INTERACTIVE_SELECTOR) ? "true" : "false";
       const hidden = source?.closest(NATIVE_CURSOR_SELECTOR) ? "true" : "false";
       el.dataset.interactive = interactive;

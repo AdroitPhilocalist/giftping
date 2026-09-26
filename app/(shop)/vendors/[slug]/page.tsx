@@ -6,6 +6,8 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import { ShopfrontArt } from "@/components/art/ShopfrontArt";
 import { VendorLogo } from "@/components/shop/VendorLogo";
+import { ProductGrid } from "@/components/shop/ProductGrid";
+import { streetLook } from "@/components/shop/VendorCard";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { Pagination } from "@/components/shop/Pagination";
 import { Badge } from "@/components/ui/Badge";
@@ -34,11 +36,13 @@ export default async function VendorStorefrontPage({
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
   ]);
 
+  const look = streetLook(vendor.slug);
   const defaultFront = vendor.banner_url ? null : defaultShopfrontImage(vendor.slug, theme.id);
 
   return (
     <div>
-      <div className="relative aspect-[16/7] max-h-80 w-full overflow-hidden bg-gradient-to-b from-brand-primary-dark to-brand-primary sm:aspect-[16/5]">
+      <div className="shopfront relative aspect-[16/7] max-h-80 w-full overflow-hidden bg-gradient-to-b from-brand-primary-dark to-brand-primary sm:aspect-[16/5]">
+        <span className={`awning awning--${look.awning}`} aria-hidden="true" />
         {vendor.banner_url ? (
           <Image src={vendor.banner_url} alt={`${vendor.business_name} banner`} fill priority sizes="100vw" className="object-cover" />
         ) : defaultFront ? (
@@ -91,11 +95,11 @@ export default async function VendorStorefrontPage({
             This boutique doesn&apos;t have any live products yet.
           </p>
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
+          <ProductGrid>
             {products.map((product) => (
               <ProductCard key={product.id} product={product} isWishlisted={wishlistIds.has(product.id)} />
             ))}
-          </div>
+          </ProductGrid>
         )}
         <Pagination
           page={page}

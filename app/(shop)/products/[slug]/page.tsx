@@ -7,6 +7,7 @@ import { SectionHeading } from "@/components/home/SectionHeading";
 import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ProductBuyBox } from "@/components/shop/ProductBuyBox";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ProductTabs } from "@/components/shop/ProductTabs";
 import { ReviewList } from "@/components/shop/ReviewList";
 import { VendorLogo } from "@/components/shop/VendorLogo";
@@ -201,9 +202,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       {related.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
           <SectionHeading eyebrow="Keep browsing" title="You may also like" />
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <ProductGrid className="mt-8 lg:grid-cols-4">
             {related.map((item) => <ProductCard key={item.id} product={item} isWishlisted={wishlistIds.has(item.id)} />)}
-          </div>
+          </ProductGrid>
         </section>
       ) : null}
 

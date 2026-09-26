@@ -6,6 +6,7 @@ import { Robin } from "@/components/art/Robin";
 import { Jaali } from "@/components/ornaments/Jaali";
 import { Pagination } from "@/components/shop/Pagination";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { ProductGrid } from "@/components/shop/ProductGrid";
 import { Button } from "@/components/ui/Button";
 import { getServerUser } from "@/lib/auth/session";
 import { siteImage } from "@/lib/content/imagery";
@@ -65,9 +66,9 @@ export default async function GiftsForPage({ params, searchParams }: { params: P
         ) : (
           <>
             <p className="text-sm text-brand-dark/60">{total} {total === 1 ? "gift" : "gifts"} found</p>
-            <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4">
+            <ProductGrid className="mt-4">
               {products.map((product) => <ProductCard key={product.id} product={product} isWishlisted={wishlistIds.has(product.id)} />)}
-            </div>
+            </ProductGrid>
             <Pagination page={page} totalPages={totalPages} buildHref={(p) => `/gifts-for/${rel.slug}${p > 1 ? `?page=${p}` : ""}`} />
           </>
         )}
