@@ -195,26 +195,10 @@ html.gp-robin-cursor select {
   transform: scaleX(var(--gp-cursor-flip, 1));
   transition: scale 0.18s var(--gp-ease);
 }
-.gp-robin-cursor-mark[data-interactive="true"] .gp-robin-cursor-inner { scale: 0.72; }
-.gp-robin-cursor-mark[data-pressed="true"] .gp-robin-cursor-inner { scale: 0.6; }
-/* the exact pointer position: a small copper dot that becomes a ring over anything clickable (the robin itself stays out of the way) */
-.gp-robin-dot {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 2147483647;
-  pointer-events: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--gp-copper);
-  box-shadow: 0 0 0 2px var(--gp-canvas);
-  transform: translate(-100px, -100px);
-  transition: opacity 0.15s ease, width 0.18s var(--gp-ease), height 0.18s var(--gp-ease), margin 0.18s var(--gp-ease), background 0.18s;
-}
-.gp-robin-dot[data-hidden="true"] { opacity: 0; }
-.gp-robin-dot[data-interactive="true"] { width: 22px; height: 22px; margin: -7px 0 0 -7px; background: transparent; box-shadow: 0 0 0 2px var(--gp-copper); }
-html:not(.gp-robin-cursor) .gp-robin-dot, html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
+/* over anything clickable the robin gets smaller (about 20px) so the button underneath stays visible; pressing shrinks it a touch more */
+.gp-robin-cursor-mark[data-interactive="true"] .gp-robin-cursor-inner { scale: 0.58; }
+.gp-robin-cursor-mark[data-pressed="true"] .gp-robin-cursor-inner { scale: 0.48; }
+html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
 
 /* Payment confirmed (components/orders/OrderCelebration.tsx): the robin pops in, a few copper sparks — the
    same diamond as OrnamentDivider, not generic confetti — burst outward, then everything fades. */
@@ -265,10 +249,31 @@ html:not(.gp-robin-cursor) .gp-robin-dot, html:not(.gp-robin-cursor) .gp-robin-c
     repeating-linear-gradient(-45deg, color-mix(in srgb, var(--gp-copper) 7%, transparent) 0 2px, transparent 2px 15px);
 }
 
-/* The header condenses once the page has scrolled (components/layout/HeaderShell.tsx): a slimmer bar with a smaller logo, so the page gets the room back. */
-.gp-header { transition: box-shadow 0.35s var(--gp-ease), background-color 0.35s var(--gp-ease); }
-.gp-header-inner { transition: padding 0.35s var(--gp-ease); }
-.gp-logo-mark { transition: width 0.35s var(--gp-ease), height 0.35s var(--gp-ease), transform 0.5s; }
-.gp-header[data-condensed="true"] { box-shadow: 0 6px 24px rgb(28 25 22 / 0.1); background-color: color-mix(in srgb, var(--gp-canvas) 94%, transparent); }
-.gp-header[data-condensed="true"] .gp-header-inner { padding-top: 0.3rem; padding-bottom: 0.3rem; }
-.gp-header[data-condensed="true"] .gp-logo-mark { width: 2.5rem; height: 2.5rem; }
+/* The header transforms as the page scrolls (components/layout/HeaderShell.tsx): the full-width bar at the top becomes a centred, floating ivory pill — smaller
+   logo, tighter spacing, soft shadow and blur — and grows back to the full bar at the top again. The bar's outer box keeps its height the whole time (the
+   pill floats inside it, and the empty part lets clicks through), so nothing on the page jumps. The announcement strip above is not sticky: it scrolls away
+   before the pill forms, and is back when the page is at the top. */
+.gp-header { height: 5.0625rem; transition: background-color 0.5s var(--gp-ease), border-color 0.5s var(--gp-ease), backdrop-filter 0.5s var(--gp-ease), -webkit-backdrop-filter 0.5s var(--gp-ease); }
+.gp-header-inner {
+  width: 100%;
+  border-radius: 0;
+  border: 1px solid transparent;
+  transition: width 0.55s var(--gp-ease), margin 0.55s var(--gp-ease), padding 0.55s var(--gp-ease), border-radius 0.55s var(--gp-ease), background-color 0.55s var(--gp-ease), box-shadow 0.55s var(--gp-ease), border-color 0.55s var(--gp-ease), backdrop-filter 0.55s var(--gp-ease), -webkit-backdrop-filter 0.55s var(--gp-ease);
+}
+.gp-logo-mark { transition: width 0.55s var(--gp-ease), height 0.55s var(--gp-ease), transform 0.5s; }
+.gp-header[data-condensed="true"] { background-color: transparent; border-color: transparent; -webkit-backdrop-filter: blur(0); backdrop-filter: blur(0); pointer-events: none; }
+.gp-header[data-condensed="true"] .gp-header-inner {
+  pointer-events: auto;
+  width: min(72rem, calc(100% - 1.25rem));
+  margin-top: 0.55rem;
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+  border-radius: 999px;
+  border-color: color-mix(in srgb, var(--gp-copper) 16%, transparent);
+  background-color: color-mix(in srgb, var(--gp-canvas) 94%, transparent);
+  box-shadow: 0 10px 34px -8px rgb(28 25 22 / 0.28), 0 2px 8px rgb(28 25 22 / 0.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+}
+.gp-header[data-condensed="true"] .gp-logo-mark { width: 2.4rem; height: 2.4rem; }
+@media (max-width: 639px) { .gp-header[data-condensed="true"] .gp-header-inner { padding-left: 1rem; padding-right: 0.75rem; } }
