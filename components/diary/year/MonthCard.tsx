@@ -28,14 +28,14 @@ export function MonthCard({ data, year, today, index, themeId }: { data: MonthDa
           if (day === null) return <span key={`b${i}`} />;
           const marks = data.marks[day];
           const isToday = isThisMonth && day === td;
-          if (!marks?.length) return <span key={day} className={cn("dy-hand grid h-[1.55rem] place-items-center text-[0.95rem] leading-none", isToday && "rounded-full bg-[var(--gp-copper)] text-[var(--gp-on-copper)]")}>{day}</span>;
+          if (!marks?.length) return <span key={day} className={cn("dy-hand grid h-[1.3rem] place-items-center text-[0.9rem] leading-none", isToday && "rounded-full bg-[var(--gp-copper)] text-[var(--gp-on-copper)]")}>{day}</span>;
           return (
             <Link
               key={day}
               href={`/diary/people/${marks[0].contactId}`}
               title={marks.map((m) => m.label).join(" · ")}
               aria-label={`${day} ${NAMES[data.month - 1]}: ${marks.map((m) => m.label).join(", ")}`}
-              className={cn("dy-hand relative grid h-[1.55rem] place-items-center rounded-full bg-[color-mix(in_srgb,var(--dy-blush)_75%,transparent)] text-[0.95rem] font-bold leading-none transition-transform hover:scale-110", isToday && "!bg-[var(--gp-copper)] text-[var(--gp-on-copper)]")}
+              className={cn("dy-hand relative grid h-[1.3rem] place-items-center rounded-full bg-[color-mix(in_srgb,var(--dy-blush)_75%,transparent)] text-[0.95rem] font-bold leading-none transition-transform hover:scale-110", isToday && "!bg-[var(--gp-copper)] text-[var(--gp-on-copper)]")}
             >
               {day}
               <OccasionSticker type={marks[0].eventType} themeId={themeId} className="absolute -right-[0.35rem] -top-[0.4rem] h-[0.9rem] w-[0.9rem]" />

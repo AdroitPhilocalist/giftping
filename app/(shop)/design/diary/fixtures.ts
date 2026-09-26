@@ -2,6 +2,9 @@ import { buildDiaryView, type DiaryContactRow, type DiaryEventRow, type DiaryGif
 import type { GiftingScore } from "@/lib/diary/gifting-score";
 import { toCalendarMarks, toMomentCard, toPersonCards } from "@/lib/diary/page-data";
 import type { IdeaCardData } from "@/lib/diary/ui-types";
+import type { CandidatePool } from "@/lib/diary/candidates";
+import type { DiaryPlanRow } from "@/lib/diary/plans";
+import type { DiaryRows } from "@/lib/db/diary";
 import type { TimelineGift } from "@/components/diary/person/GiftTimeline";
 import type { PlanViewData } from "@/components/diary/person/PlanSheet";
 
@@ -74,3 +77,21 @@ export const PLAN: PlanViewData = {
   daysAway: 9,
   plan: { id: "plan1", status: "ordered", giftName: "Jasmine Scented Candle", productId: "p1", productSlug: "x", note: "She loves the scent", image: "/seed-images/candle-trio.webp", orderId: "o1", orderNumber: "GP-20260921-1042" },
 };
+
+// ---- for the diary BOOK: the same rows shape the real page reads, and a small catalogue the idea engine can rank
+export const PLANS: DiaryPlanRow[] = [
+  { id: "plan1", contact_id: "1", event_id: "e1", occasion_date: "2026-10-03", product_id: "p1", gift_name: null, note: "She loves the scent", status: "chosen", order_id: null, created_at: "2026-09-20T10:00:00Z" },
+  { id: "plan2", contact_id: "2", event_id: "e4", occasion_date: "2026-10-12", product_id: null, gift_name: "A leather-bound journal", note: null, status: "idea", order_id: null, created_at: "2026-09-22T10:00:00Z" },
+];
+export const ROWS: DiaryRows = { contacts: CONTACTS, events: EVENTS, gifts: GIFTS, plans: PLANS, linkedOrders: new Map(), timezone: "Asia/Kolkata" };
+
+const TAGS = { tags: ["gift", "flowers", "coffee", "books"], occasionTags: ["birthday", "anniversary", "thank-you", "housewarming"], recipientTags: ["for-her", "for-him", "for-parents"], averageRating: 4.5, reviewCount: 12 };
+export const POOL: CandidatePool = (() => {
+  const byId: CandidatePool["byId"] = new Map();
+  const candidates = IDEAS.map((i) => {
+    const c = { id: i.productId, name: i.name, ...TAGS, categoryName: "Gifts", price: i.price };
+    byId.set(i.productId, { ...c, slug: i.slug, thumbnail: i.thumbnail, vendorName: null });
+    return c;
+  });
+  return { candidates, byId };
+})();

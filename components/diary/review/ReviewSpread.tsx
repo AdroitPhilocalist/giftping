@@ -45,7 +45,7 @@ export function ReviewSpread({ year, review, streak, people, isCurrentYear, them
   const fav = review.favouriteOccasion;
   return (
     <Book
-      current="review"
+      current="gifting"
       leftLabel={`Your gifting year ${year}`}
       rightLabel="A card to share"
       left={

@@ -6,9 +6,9 @@ import { WaxSeal } from "./art/WaxSeal";
  * "Only you can open this": a ribbon hanging from the top of the page ending in a wax seal with a padlock, and a torn tag. It is the diary's
  * privacy promise made visible — not even GiftPing's team can read a diary (see the RLS notes in CLAUDE.md).
  */
-export function BookmarkSeal({ className }: { className?: string }) {
+export function BookmarkSeal({ className, top = "-2.1rem" }: { className?: string; top?: string }) {
   return (
-    <div className={className} style={{ position: "absolute", right: "0", top: "-2.1rem", width: "13.6rem", height: "11rem", zIndex: 6 }}>
+    <div className={className} style={{ position: "absolute", right: "0", top, width: "13.6rem", height: "11rem", zIndex: 6 }}>
       <span className="dy-ribbon" style={{ left: "1.55rem", top: "0.1rem" }} aria-hidden="true" />
       <WaxSeal size={82} animate className="!absolute z-[5]" >
         <Lock className="h-8 w-8" strokeWidth={2.2} aria-hidden="true" />

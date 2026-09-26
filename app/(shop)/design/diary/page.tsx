@@ -1,20 +1,22 @@
 import { notFound } from "next/navigation";
 import { DiaryDesk } from "@/components/diary/book/DiaryDesk";
 import { FirstRun } from "@/components/diary/FirstRun";
-import { HomeSpread } from "@/components/diary/HomeSpread";
+import { DiaryBook } from "@/components/diary/flip/DiaryBook";
+import { buildHomeSpreads } from "@/components/diary/pages/buildSpreads";
+import { buildHomeBookData } from "@/lib/diary/home-book";
 import { PersonSpread } from "@/components/diary/person/PersonSpread";
 import { ReviewSpread } from "@/components/diary/review/ReviewSpread";
 import { YearSpread } from "@/components/diary/year/YearSpread";
 import { reviewYear, summariseYear } from "@/lib/diary/memories";
 import { toMonthData } from "@/lib/diary/page-data";
-import { CONTACTS, EVENTS, GIFTS, IDEAS, MARKS, MOMENTS, MOM_MOMENTS, OPTIONS, PEOPLE, PLAN, SCORE, TIMELINE, TODAY } from "./fixtures";
+import { CONTACTS, EVENTS, GIFTS, IDEAS, MOM_MOMENTS, PLAN, POOL, ROWS, TIMELINE, TODAY } from "./fixtures";
 
 export const metadata = { title: "Diary preview — GiftPing", robots: { index: false, follow: false } };
 
 /** Development-only gallery of the diary screens over sample data (404s in production): ?screen=home | first | person | year | review */
-export default async function DiaryPreviewPage({ searchParams }: { searchParams: Promise<{ screen?: string }> }) {
+export default async function DiaryPreviewPage({ searchParams }: { searchParams: Promise<{ screen?: string; p?: string }> }) {
   if (process.env.NODE_ENV === "production") notFound();
-  const { screen = "home" } = await searchParams;
+  const { screen = "home", p } = await searchParams;
 
   if (screen === "first") return <DiaryDesk><FirstRun firstName="Priya" /></DiaryDesk>;
 
@@ -52,21 +54,10 @@ export default async function DiaryPreviewPage({ searchParams }: { searchParams:
     );
   }
 
+  const data = buildHomeBookData({ rows: ROWS, pool: POOL, wished: new Set(), photoUrls: new Map(), today: TODAY });
   return (
-    <DiaryDesk className="xl:pb-5 xl:pt-3">
-      <HomeSpread
-        name="Priya"
-        today={TODAY}
-        moments={MOMENTS}
-        ideas={IDEAS.slice(0, 3)}
-        ideasWho="Mom's birthday"
-        ideasMoreHref="/diary/people/1#ideas"
-        score={SCORE}
-        streak={4}
-        marks={MARKS}
-        people={PEOPLE}
-        options={OPTIONS}
-      />
+    <DiaryDesk className="xl:pb-4 xl:pt-3">
+      <DiaryBook spreads={buildHomeSpreads("Priya", data)} initialId={p} />
     </DiaryDesk>
   );
 }

@@ -14,6 +14,7 @@ export default async function DiaryReviewPage({ searchParams }: { searchParams: 
   const user = await requireRole("customer", "vendor", "admin");
   const [rows, theme, params] = await Promise.all([getDiaryRows(user.id), getActiveTheme(), searchParams]);
   if (rows.contacts.length === 0) redirect("/diary");
+  if (params.year === undefined) redirect("/diary?p=gifting"); // this year is a spread of the diary book itself; other years keep this page
 
   const today = localDateIn(rows.timezone);
   const thisYear = Number(today.slice(0, 4));

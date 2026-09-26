@@ -62,3 +62,5 @@ export async function getDiaryRows(userId: string) {
     timezone: profile.data?.timezone ?? "Asia/Kolkata",
   };
 }
+
+export type DiaryRows = Awaited<ReturnType<typeof getDiaryRows>>;

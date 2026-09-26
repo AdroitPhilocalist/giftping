@@ -20,7 +20,7 @@ export function IdeaCard({ idea, tilt = 0, tape = "blush", reasonLine = false, a
       <figcaption className="dy-polaroid-cap !text-left">
         <Link href={`/products/${idea.slug}`} className="dy-stretch dy-hand-b block truncate text-[1.25rem] leading-[1.1] hover:text-[var(--gp-copper)]">{idea.name}</Link>
         <span className="dy-ui mt-0.5 block text-[0.95rem] font-semibold text-[var(--dy-ink)]">{formatCurrency(idea.price)}</span>
-        {reasonLine && idea.reason ? <span className="dy-cap mt-0.5 block leading-[1.15]">{idea.reason}</span> : null}
+        {reasonLine && idea.reason ? <span className="dy-cap dy-idea-reason mt-0.5 block leading-[1.15]">{idea.reason}</span> : null}
         {action ? <span className="mt-1 block">{action}</span> : null}
       </figcaption>
     </figure>

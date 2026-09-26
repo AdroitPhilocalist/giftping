@@ -1,0 +1,266 @@
+"use client";
+
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode,
+} from "react";
+import { Robin } from "@/components/art/Robin";
+import { cn } from "@/lib/utils/cn";
+import { TAB_META, type DiaryTabKey } from "./tabs";
+
+export type { DiaryTabKey };
+
+export interface SpreadDef {
+  id: string;
+  tab: DiaryTabKey;
+  /** shown under the book: "This month" */
+  label: string;
+  left: ReactNode;
+  right: ReactNode;
+}
+
+interface BookApi {
+  /** turn to the spread with this id */
+  goTo: (id: string) => void;
+}
+const BookContext = createContext<BookApi | null>(null);
+/** For anything inside a page that should turn the book (a contents line, a "see all" link). Null outside the book. */
+export const useDiaryBook = () => useContext(BookContext);
+
+const WIDE = "(min-width: 1280px) and (min-height: 720px)";
+const subscribeNever = () => () => {};
+const subscribeWide = (cb: () => void) => {
+  const mq = window.matchMedia(WIDE);
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+};
+const subscribeReduced = (cb: () => void) => {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+};
+
+interface PageDef {
+  key: string;
+  side: "left" | "right";
+  node: ReactNode;
+  no: number;
+  label: string;
+}
+interface Turn {
+  from: number;
+  to: number;
+  dir: 1 | -1;
+}
+
+const TURN_MS = 1000;
+
+/**
+ * The diary as a real book. On a wide screen it is an open two-page spread that fits the window; turning a page swings a two-sided leaf over the spine, so
+ * the page you turn to is revealed on its back. On a phone or a short screen it shows one page at a time and the same leaf turns it. Pages are given in
+ * spreads (left + right); the tabs at the edge, the pager under the book, the corners of the pages, the arrow keys and a swipe all turn it, and where you are
+ * is kept in the address (?p=…) so a reload or a link comes back to the same page.
+ */
+export function DiaryBook({ spreads, initialId, robin = true }: { spreads: SpreadDef[]; initialId?: string; robin?: boolean }) {
+  const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE).matches, () => true);
+  // false while the server-rendered markup is on screen: it can't know the window size, so the book stays hidden until it does (no layout jump)
+  const ready = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const reduced = useSyncExternalStore(subscribeReduced, () => window.matchMedia("(prefers-reduced-motion: reduce)").matches, () => false);
+
+  const pages: PageDef[] = useMemo(
+    () => spreads.flatMap((s, i) => [
+      { key: `${s.id}:l`, side: "left" as const, node: s.left, no: i * 2 + 1, label: `${s.label}, left page` },
+      { key: `${s.id}:r`, side: "right" as const, node: s.right, no: i * 2 + 2, label: `${s.label}, right page` },
+    ]),
+    [spreads],
+  );
+  const [pos, setPos] = useState(() => Math.max(0, spreads.findIndex((s) => s.id === initialId)) * 2);
+  const [turn, setTurn] = useState<Turn | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+
+  const cur = wide ? pos - (pos % 2) : pos;
+  const last = pages.length - 1;
+  const spreadIndex = Math.floor(cur / 2);
+  const step = wide ? 2 : 1;
+  const canPrev = cur > 0;
+  const canNext = cur + step <= last;
+
+  const finish = useCallback((t: Turn) => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+    setPos(t.to);
+    setTurn(null);
+  }, []);
+
+  const goToPos = useCallback(
+    (raw: number) => {
+      const target = wide ? raw - (raw % 2) : raw;
+      if (turn || target === cur || target < 0 || target > last) return;
+      const t: Turn = { from: cur, to: target, dir: target > cur ? 1 : -1 };
+      if (reduced) return setPos(target);
+      setTurn(t);
+      timer.current = setTimeout(() => finish(t), TURN_MS + 250); // a safety net if the animation event never arrives
+    },
+    [wide, turn, cur, last, reduced, finish],
+  );
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+
+  const goTo = useCallback((id: string) => {
+    const i = spreads.findIndex((s) => s.id === id);
+    if (i >= 0) goToPos(i * 2);
+  }, [spreads, goToPos]);
+  const api = useMemo<BookApi>(() => ({ goTo }), [goTo]);
+
+  // keep the place in the address, so a reload (or coming back from a person's page) opens the same spread
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (spreadIndex === 0) url.searchParams.delete("p");
+    else url.searchParams.set("p", spreads[spreadIndex]?.id ?? "");
+    window.history.replaceState(window.history.state, "", url);
+  }, [spreadIndex, spreads]);
+
+  // arrow keys, unless the reader is typing or a dialog is open
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      const el = e.target instanceof HTMLElement ? e.target : null;
+      if (el && (el.closest("input, textarea, select, [contenteditable='true']") || document.querySelector("[role='dialog']"))) return;
+      if (e.key === "ArrowRight" && canNext) goToPos(cur + step);
+      else if (e.key === "ArrowLeft" && canPrev) goToPos(cur - step);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [canNext, canPrev, cur, step, goToPos]);
+
+  // which pages are where
+  let staticLeft: PageDef | null = null;
+  let staticRight: PageDef | null = null;
+  let front: PageDef | null = null;
+  let back: PageDef | null = null;
+  if (wide) {
+    if (!turn) {
+      staticLeft = pages[cur];
+      staticRight = pages[cur + 1];
+    } else if (turn.dir === 1) {
+      staticLeft = pages[turn.from];
+      staticRight = pages[turn.to + 1];
+      front = pages[turn.from + 1];
+      back = pages[turn.to];
+    } else {
+      staticLeft = pages[turn.to];
+      staticRight = pages[turn.from + 1];
+      front = pages[turn.from];
+      back = pages[turn.to + 1];
+    }
+  } else if (!turn) {
+    staticRight = pages[cur];
+  } else if (turn.dir === 1) {
+    staticRight = pages[turn.to];
+    front = pages[turn.from];
+  } else {
+    staticRight = pages[turn.from];
+    front = pages[turn.to];
+  }
+
+  const progress = spreads.length > 1 ? spreadIndex / (spreads.length - 1) : 0;
+  const style = { "--stack-l": `${3 + Math.round(progress * 10)}px`, "--stack-r": `${3 + Math.round((1 - progress) * 10)}px` } as CSSProperties;
+  const activeTab = spreads[spreadIndex]?.tab;
+  const tabs = (Object.keys(TAB_META) as DiaryTabKey[]).filter((k) => spreads.some((s) => s.tab === k));
+
+  const shell = (page: PageDef | null, opts: { ears?: boolean; under?: boolean } = {}) =>
+    page ? (
+      <PageShell
+        key={page.key}
+        page={page}
+        modifier={wide}
+        ears={opts.ears ?? false}
+        under={opts.under ?? false}
+        onPrev={canPrev && !turn ? () => goToPos(cur - step) : undefined}
+        onNext={canNext && !turn ? () => goToPos(cur + step) : undefined}
+      />
+    ) : null;
+
+  return (
+    <BookContext.Provider value={api}>
+      <div className="relative mx-auto max-w-[78rem] xl:pt-10">
+        <nav aria-label="Diary sections" className="dy-tabs">
+          {tabs.map((k) => (
+            <button key={k} type="button" className="dy-tab" style={{ "--tab": TAB_META[k].tone } as CSSProperties} aria-current={k === activeTab ? "page" : undefined} onClick={() => { const i = spreads.findIndex((s) => s.tab === k); if (i >= 0) goToPos(i * 2); }}>
+              {TAB_META[k].label}
+            </button>
+          ))}
+        </nav>
+
+        <div className={cn("dy-book dy-book--fit dy-book--flip", turn && "is-turning")} style={style} data-ready={ready ? "" : undefined}>
+          {robin ? (
+            <div className="pointer-events-none absolute -top-[2.9rem] right-6 z-10 hidden w-[5.2rem] xl:block" aria-hidden="true">
+              <div className="dy-bob" style={{ "--bob-rot": "-2deg" } as CSSProperties}><Robin pose="perched" title="" /></div>
+            </div>
+          ) : null}
+          <div
+            className={cn("dy-spread dy-stage", turn && "is-turning")}
+            data-mode={wide ? "spread" : "single"}
+            onPointerDown={(e) => { swipe.current = e.pointerType === "mouse" ? null : { x: e.clientX, y: e.clientY }; }}
+            onPointerUp={(e) => {
+              const s = swipe.current;
+              swipe.current = null;
+              if (!s) return;
+              const dx = e.clientX - s.x;
+              if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.clientY - s.y) * 1.5) {
+                if (dx < 0 && canNext) goToPos(cur + step);
+                else if (dx > 0 && canPrev) goToPos(cur - step);
+              }
+            }}
+          >
+            {wide ? (
+              <>
+                {shell(staticLeft, { ears: true, under: turn?.dir === -1 })}
+                {shell(staticRight, { ears: true, under: turn?.dir === 1 })}
+              </>
+            ) : (
+              shell(staticRight, { ears: true, under: Boolean(turn) })
+            )}
+            {turn && front ? (
+              <div className={cn("dy-leaf", turn.dir === 1 ? "dy-leaf--fwd" : "dy-leaf--back")} onAnimationEnd={(e) => { if (e.target === e.currentTarget) finish(turn); }}>
+                <div className="dy-leaf-face dy-leaf-face--front">
+                  <PageShell page={front} modifier={wide} />
+                  <span className="dy-shade" aria-hidden="true" />
+                </div>
+                <div className="dy-leaf-face dy-leaf-face--back">
+                  {back ? <PageShell page={back} modifier={wide} /> : <div className="dy-page" />}
+                  <span className="dy-shade" aria-hidden="true" />
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="dy-pager" role="group" aria-label="Turn the pages">
+          <button type="button" className="dy-pager-btn" onClick={() => goToPos(cur - step)} disabled={!canPrev || Boolean(turn)} aria-label="Previous page"><ChevronLeft className="h-5 w-5" /></button>
+          <div className="dy-pager-dots">
+            {spreads.map((s, i) => (
+              <button key={s.id} type="button" className="dy-pager-dot" aria-current={i === spreadIndex ? "true" : undefined} aria-label={`${s.label} (pages ${i * 2 + 1}–${i * 2 + 2})`} title={s.label} onClick={() => goToPos(i * 2)} />
+            ))}
+          </div>
+          <button type="button" className="dy-pager-btn" onClick={() => goToPos(cur + step)} disabled={!canNext || Boolean(turn)} aria-label="Next page"><ChevronRight className="h-5 w-5" /></button>
+          <p className="dy-pager-label dy-on-wood" aria-hidden="true">{spreads[spreadIndex]?.label} · {wide ? `pages ${cur + 1}–${cur + 2}` : `page ${cur + 1} of ${pages.length}`}</p>
+        </div>
+        <p className="sr-only" aria-live="polite">{spreads[spreadIndex]?.label}, {wide ? `pages ${cur + 1} and ${cur + 2}` : `page ${cur + 1}`} of {pages.length}</p>
+      </div>
+    </BookContext.Provider>
+  );
+}
+
+function PageShell({ page, modifier, ears = false, under = false, onPrev, onNext }: { page: PageDef; modifier: boolean; ears?: boolean; under?: boolean; onPrev?: () => void; onNext?: () => void }) {
+  const isLeft = page.side === "left";
+  return (
+    <section className={cn("dy-page", modifier && (isLeft ? "dy-page--left" : "dy-page--right"))} aria-label={page.label}>
+      <div className="dy-page-scroll">{page.node}</div>
+      <span className="dy-pageno" aria-hidden="true">{page.no}</span>
+      {ears && modifier && isLeft && onPrev ? <button type="button" className="dy-dogear" onClick={onPrev} aria-label="Previous page" /> : null}
+      {ears && (!modifier || !isLeft) && onNext ? <button type="button" className="dy-dogear" onClick={onNext} aria-label="Next page" /> : null}
+      {under ? <span className="dy-under-shade" style={{ "--from": isLeft ? "100%" : "0%" } as CSSProperties} aria-hidden="true" /> : null}
+    </section>
+  );
+}

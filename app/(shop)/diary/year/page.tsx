@@ -14,6 +14,7 @@ export default async function DiaryYearPage({ searchParams }: { searchParams: Pr
   const user = await requireRole("customer", "vendor", "admin");
   const [rows, theme, params] = await Promise.all([getDiaryRows(user.id), getActiveTheme(), searchParams]);
   if (rows.contacts.length === 0) redirect("/diary"); // an empty diary starts on its front page
+  if (params.year === undefined) redirect("/diary?p=year"); // this year is a spread of the diary book itself; other years keep this page
 
   const today = localDateIn(rows.timezone);
   const asked = Number(params.year);

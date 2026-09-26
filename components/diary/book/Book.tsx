@@ -2,23 +2,17 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Robin } from "@/components/art/Robin";
 import { cn } from "@/lib/utils/cn";
+import { TAB_META, tabHref, type DiaryTabKey } from "../flip/tabs";
 
-export type DiaryTabKey = "home" | "people" | "year" | "review";
+export type { DiaryTabKey };
 
-const TABS: { key: DiaryTabKey; href: string; label: string; tone: string }[] = [
-  { key: "home", href: "/diary", label: "Diary", tone: "var(--dy-apricot)" },
-  { key: "people", href: "/diary/people", label: "People", tone: "var(--dy-sage)" },
-  { key: "year", href: "/diary/year", label: "Year", tone: "var(--dy-mustard)" },
-  { key: "review", href: "/diary/review", label: "My year", tone: "var(--dy-blush)" },
-];
-
-/** Index tabs: sticking out of the book's edge on wide screens (like the month tabs in the reference), a row of chips above it on small ones. */
+/** Index tabs: sticking out of the book's edge on wide screens (like the month tabs in the reference), a row of chips above it on small ones. Each opens that section of the diary book. */
 export function DiaryTabs({ current }: { current?: DiaryTabKey }) {
   return (
     <nav aria-label="Diary sections" className="dy-tabs">
-      {TABS.map((t) => (
-        <Link key={t.key} href={t.href} className="dy-tab" style={{ "--tab": t.tone } as React.CSSProperties} aria-current={t.key === current ? "page" : undefined}>
-          {t.label}
+      {(Object.keys(TAB_META) as DiaryTabKey[]).map((k) => (
+        <Link key={k} href={tabHref(k)} className="dy-tab" style={{ "--tab": TAB_META[k].tone } as React.CSSProperties} aria-current={k === current ? "page" : undefined}>
+          {TAB_META[k].label}
         </Link>
       ))}
     </nav>
