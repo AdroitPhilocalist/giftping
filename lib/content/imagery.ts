@@ -32,14 +32,14 @@ export function siteImage(key: ImageKey, themeId?: string): SiteImage | null {
   return entries[key] ?? null;
 }
 
-const DEFAULT_SHOPFRONTS = ["shopfront-perfume", "shopfront-jewellery", "shopfront-florist"] as const;
-
 /**
  * A stand-in boutique front for a vendor who hasn't uploaded a banner: one of the delivered default shopfronts, chosen by a stable hash of the
  * vendor's slug so a boutique always looks the same. Null when none have been delivered (the caller then draws ShopfrontArt).
  */
 export function defaultShopfrontImage(seed: string, themeId?: string): SiteImage | null {
-  const available = DEFAULT_SHOPFRONTS.map((key) => siteImage(key, themeId)).filter((img): img is SiteImage => img !== null);
+  // every delivered `shopfront-*` picture (the theme's own, else the native ones) — dropping in more files gives the street more variety with no code change
+  const keys = Array.from(new Set(Object.keys(entries).map((k) => k.replace(/^[^/]+\//, "")).filter((k) => k.startsWith("shopfront-")))).sort() as ImageKey[];
+  const available = keys.map((key) => siteImage(key, themeId)).filter((img): img is SiteImage => img !== null);
   if (available.length === 0) return null;
   let h = 0;
   for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;

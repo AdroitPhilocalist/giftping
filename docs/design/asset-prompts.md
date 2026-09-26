@@ -156,3 +156,33 @@ The demo catalogue (57 products) currently uses crops of your artwork as stand-i
 - **E-gift cards** — four card designs (`giftcard-birthday`, `-anniversary`, `-festive`, `-thank-you`, landscape, no text) sold as a product and emailed to the recipient. It is a real feature (a balance ledger, a redeem-at-checkout code), not just pictures — worth raising with the client because gift cards are a big share of gifting sales.
 - **Shop-the-look** — tag products on a world picture (hover the candle in the wedding banner to see it). Uses pictures you already have.
 - **Festival kits** — Diwali and Christmas versions of the hero, mall map and cards (the theme switch is already built). Each festival is ~6 pictures under `ui-references/batch-1/<festival>/` with the same file names as the native set.
+
+## Batch 4 — art for the page-by-page pass (26 Sep)
+
+Every page is getting its own "scene" the way the diary and the mall map have. The code is built to work without these files (it draws its own version), so generate them in any order — the ones near the top change the most. Same rules as before: **no readable text, letters, numbers, slogans, brand names or logos anywhere**, warm cream/green/copper palette, the same painterly style as `shopfront-florist`. Save as PNG into `ui-references/batch-1/` with the exact file names, then `npm run images:sync`.
+
+### A. More boutique shopfronts (biggest visible change — right now three pictures are shared by all boutiques)
+Each one: *"The front of a small boutique on an Indian mall street at dusk, seen straight on, with a striped awning, a glowing shop window and a door, painterly warm style like the florist shopfront. The window shows: <ITEMS>. No text, no signs with letters, no logos."* Landscape 3:2.
+
+| File | `<ITEMS>` |
+|---|---|
+| `shopfront-chocolate.png` | ribbon-tied chocolate boxes, glass jars of sweets, a cake stand |
+| `shopfront-stationery.png` | notebooks, leather journals, fountain pens, a brass desk lamp |
+| `shopfront-homedecor.png` | brass diyas, cushions, a vase of dried flowers, a small rug |
+| `shopfront-candles.png` | candles of every size, glass jars, a warm glow |
+| `shopfront-tea.png` | tea tins, china cups, a brass kettle, dried flowers |
+| `shopfront-kids.png` | soft toys, wooden blocks, a small tent, balloons |
+
+They appear automatically on Boutique Avenue and boutique pages (each boutique picks one and gets its own awning colour).
+
+### B. Occasion worlds still missing
+`world-housewarming.png`, `world-thank-you.png`, `world-festivals.png`, `world-kids-baby.png` — a 16:9 painterly *room/scene* for that occasion with generous empty space on the left for the headline (see `world-wedding` for the composition). Regenerate `world-for-her`, `world-for-him`, `world-corporate-gifting`, `world-birthday` with the "no text or brand names" line if you haven't yet.
+
+### C. Scenes for the next pages (I will build these next)
+| File | Prompt |
+|---|---|
+| `scene-gift-counter.png` | A wooden gift-wrapping counter seen from the front: rolls of paper, ribbons on spools, a brass scale, a small handwritten-style card (blank), a robin perched on the counter. 16:9, empty space at the top. (checkout) |
+| `scene-keepsake-box.png` | An open wooden keepsake chest with drawers slightly open, filled with ribbons, a small stamp collection, tickets and a heart-shaped charm. 4:3. (account) |
+| `scene-courier.png` | A friendly cartoon-painterly courier on a small scooter carrying a wrapped gift, side view, transparent background, facing right. (order tracking) |
+| `scene-display-stand.png` | An empty round wooden display stand with a soft spotlight and a draped cloth, on a cream wall. Square. (product pages) |
+| `scene-empty-shelf.png` | An empty wooden shelf with a single hanging tag, a robin looking around. 4:3. (empty search / no results) |

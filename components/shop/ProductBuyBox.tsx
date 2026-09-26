@@ -11,6 +11,7 @@ import { Textarea, Input, Label } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
 import { addToCartAction } from "@/lib/commerce/cart-actions";
 import { effectiveStock, maxPurchasable } from "@/lib/commerce/pricing";
+import { GiftCardPreview } from "@/components/shop/GiftCardPreview";
 import { PERSONALIZATION_OCCASIONS as OCCASIONS } from "@/lib/commerce/personalization";
 import { formatCurrency } from "@/lib/utils/format";
 import { cn } from "@/lib/utils/cn";
@@ -165,6 +166,7 @@ export function ProductBuyBox({
               <span className="mb-1.5 text-xs text-brand-dark/50" aria-live="polite">{giftMessage.length}/150</span>
             </div>
             <Textarea id="giftMessage" placeholder="Write something from the heart…" maxLength={150} value={giftMessage} onChange={(e) => setGiftMessage(e.target.value)} />
+            <GiftCardPreview recipient={recipientName} message={giftMessage} className="mt-4" />
           </div>
           <div>
             <Label>Occasion</Label>

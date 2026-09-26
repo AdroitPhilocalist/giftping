@@ -108,4 +108,24 @@
 .pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.85rem; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--gp-ink) 16%, transparent); background: color-mix(in srgb, var(--gp-surface) 80%, transparent); font-size: 0.82rem; line-height: 1.25; color: var(--gp-ink); white-space: nowrap; transition: background 0.25s, border-color 0.25s, transform 0.25s var(--gp-ease); }
 .pill:hover { border-color: var(--gp-copper); transform: translateY(-1px); }
 .pill[aria-current="true"] { background: var(--gp-primary); border-color: var(--gp-primary); color: var(--gp-on-primary); }
+
+/* ---------------------------------------------------------------- the gift card preview */
+.gift-card { position: relative; margin: 0.4rem 0 0.2rem; max-width: 22rem; rotate: -1.4deg; transition: rotate 0.4s var(--gp-ease); }
+.gift-card:hover { rotate: 0deg; }
+.gift-card-tape { position: absolute; z-index: 2; left: 50%; top: -0.6rem; width: 4.2rem; height: 1.4rem; margin-left: -2.1rem; rotate: -3deg; background: color-mix(in srgb, var(--gp-copper) 32%, transparent); box-shadow: 0 1px 2px rgb(28 25 22 / 0.2); }
+.gift-card-paper {
+  position: relative;
+  padding: 1.1rem 1.3rem 0.9rem;
+  border-radius: 0.3rem;
+  font-family: var(--font-caveat), "Segoe Script", cursive;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 1.55rem, color-mix(in srgb, var(--gp-copper) 22%, transparent) 1.55rem calc(1.55rem + 1px)) 0 0.7rem / 100% 100% no-repeat,
+    linear-gradient(180deg, var(--gp-surface), color-mix(in srgb, var(--gp-peach) 60%, var(--gp-surface)));
+  box-shadow: 0 10px 22px -10px rgb(28 25 22 / 0.35), inset 0 0 0 1px color-mix(in srgb, var(--gp-copper) 16%, transparent);
+  color: var(--gp-ink);
+}
+.gift-card-to { font-size: 1.35rem; line-height: 1.55rem; font-weight: 600; }
+.gift-card-body { min-height: 3.1rem; font-size: 1.4rem; line-height: 1.55rem; overflow-wrap: anywhere; white-space: pre-wrap; }
+.gift-card-empty { color: color-mix(in srgb, var(--gp-ink) 40%, transparent); }
+.gift-card-sign { margin-top: 0.3rem; text-align: right; font-size: 1.25rem; line-height: 1.5rem; color: var(--gp-copper-dark); }
 }
