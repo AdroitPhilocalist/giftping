@@ -483,6 +483,15 @@ Two things worth knowing before touching auth UI again:
   natural fit. For local testing without waiting on real email, create confirmed accounts directly via
   the Supabase admin client (`auth.admin.createUser({ email_confirm: true, ... })`) rather than going
   through the UI signup flow.
+- **An env var meant for production can silently redirect local dev to production.** `.env.local` sets
+  `NEXT_PUBLIC_APP_URL` to the deployed Vercel URL (so the same file also works for a `vercel env pull`),
+  and `lib/auth/actions.ts`'s `getAppUrl()` used to check that unconditionally before the request's own
+  origin — so on `localhost`, Google OAuth/signup-confirmation/password-reset all redirected back to
+  *production*, establishing the session on production's cookies while the `localhost` tab's own cookie
+  never changed (looking exactly like "another account's data" showing up locally, when nothing ever
+  crossed accounts in the database). Fixed: `getAppUrl()` now checks the request's `Origin` header first,
+  falling back to `NEXT_PUBLIC_APP_URL` only when that header is absent — this also protects Vercel
+  **preview** deployments, which would otherwise have been bounced to the fixed production URL too.
 - **`pathname.startsWith(prefix)` route-matching in `proxy.ts` is a real footgun once a second route
   starts with the same prefix.** `isVendorPath()` used `pathname.startsWith("/vendor")` to gate the
   vendor-portal routes — which also matches `/vendors/aurelia-gifts`, Stage 3's public shop storefront

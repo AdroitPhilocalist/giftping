@@ -28,11 +28,21 @@ async function enforceAuthRateLimit(): Promise<string | null> {
   return null;
 }
 
+/**
+ * The origin to send an auth redirect (OAuth callback, email confirmation, password reset) back to.
+ * MUST prefer the real request's own origin over `NEXT_PUBLIC_APP_URL` — that env var holds the
+ * production URL and is set in `.env.local` too (so the same file works for both `npm run dev` and
+ * Vercel), which used to make it win unconditionally: signing in with Google from localhost sent the
+ * browser to the *production* callback instead of back to localhost, silently leaving the local tab on
+ * its old (or no) session while the real one was established on a different origin's cookies — looking
+ * like another account's data, or stayed signed out. A real browser request always carries an `Origin`
+ * header, so that is checked first; `NEXT_PUBLIC_APP_URL` (and then localhost) are only a fallback for
+ * the rare caller with no origin header (e.g. a non-browser client).
+ */
 async function getAppUrl(): Promise<string> {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
   const headerList = await headers();
   const origin = headerList.get("origin");
-  return origin ?? "http://localhost:3000";
+  return origin ?? process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
 export async function signUpAction(_prev: ActionResult, formData: FormData): Promise<ActionResult> {

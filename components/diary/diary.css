@@ -638,6 +638,10 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
 .dy-stage .dy-page { height: 100%; }
 .dy-stage[data-mode="single"] .dy-page { border-radius: 0.6rem; }
 .dy-stage .dy-page-scroll { height: 100%; overflow: hidden; display: flex; flex-direction: column; }
+/* the old two-page book's `.dy-book--fit .dy-page-scroll` rule (further up this file) sets `overscroll-behavior: contain` for its own scrollable pages —
+   DiaryBook keeps the `dy-book--fit` class too (for its height clamp), so a spread page inherits that even though FitPage means it never scrolls
+   internally. Left alone, that silently swallowed every mouse-wheel scroll anywhere over the book instead of letting it scroll the surrounding page. */
+.dy-stage[data-mode="spread"] .dy-page-scroll { overscroll-behavior: auto; }
 .dy-stage[data-mode="single"] .dy-page-scroll { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgb(150 108 60 / 0.4) transparent; }
 
 /* the thickness of the page block on each side changes as you read: the pages you have turned pile up on the left */
