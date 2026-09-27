@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Heart, Search, ShoppingBag, User } from "lucide-react";
 import { AccountMenu } from "@/components/layout/AccountMenu";
-import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { HeaderShell } from "@/components/layout/HeaderShell";
 import { Logo } from "@/components/layout/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
@@ -23,7 +22,7 @@ const badge = "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justif
 // competing with it; the copper accent still arrives on hover, so it isn't lost as an affordance.
 const diaryButton = "ml-1.5 hidden items-center whitespace-nowrap rounded-full border border-brand-on-primary/35 bg-brand-on-primary/[0.06] px-5 py-2.5 text-sm font-medium text-brand-on-primary transition-all duration-300 hover:border-brand-secondary hover:bg-brand-secondary hover:text-brand-on-secondary xl:inline-flex";
 
-export async function Navbar({ announcement }: { announcement: string }) {
+export async function Navbar() {
   const user = await getServerUser();
   const [wishlistCount, cartCount, unreadCount, categories, vendors] = await Promise.all([
     user ? getWishlistProductIds(user.id).then((ids) => ids.size) : 0,
@@ -35,7 +34,6 @@ export async function Navbar({ announcement }: { announcement: string }) {
 
   return (
     <>
-      <AnnouncementBar message={announcement} />
       <HeaderShell>
         <div className="gp-header-inner gp-bar-gradient mx-auto flex max-w-[92rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Logo className="shrink-0 xl:mr-4 2xl:mr-8" tone="light" priority />

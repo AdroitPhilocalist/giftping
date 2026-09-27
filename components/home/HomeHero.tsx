@@ -47,7 +47,7 @@ export async function HomeHero() {
         <div className="relative flex min-h-[30rem] flex-col justify-end px-4 pb-24 pt-28 sm:min-h-[34rem] sm:px-6 sm:pb-28 lg:min-h-[640px] lg:justify-center lg:pb-32 lg:pt-24">
           <div className="mx-auto w-full max-w-7xl lg:px-2">
             <div className="max-w-xl">
-              <div className="rise">
+              <div className="gp-hero-copy rise">
                 <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-brand-secondary">Welcome to GiftPing Mall</p>
                 <h1 className="mt-4 font-heading text-[2.6rem] leading-[1.05] text-brand-on-primary sm:text-6xl lg:text-[4.2rem]">
                   A World of Gifts.
@@ -62,7 +62,7 @@ export async function HomeHero() {
                 <Button size="lg" asChild>
                   <Link href="/mall">Explore the Mall <ArrowRight className="h-4 w-4" /></Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-brand-on-primary/45 text-brand-on-primary hover:border-brand-on-primary hover:bg-brand-on-primary/10" asChild>
+                <Button size="lg" variant="outline" className="border-brand-on-primary/50 bg-brand-primary-dark/35 text-brand-on-primary shadow-lift backdrop-blur-[2px] hover:border-brand-on-primary hover:bg-brand-primary-dark/55" asChild>
                   <Link href="/about">Watch Our Story <Play className="h-4 w-4" /></Link>
                 </Button>
               </div>

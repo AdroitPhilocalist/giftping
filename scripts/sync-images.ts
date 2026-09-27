@@ -46,7 +46,8 @@ const widthFor = (stem: string) => (stem.startsWith("hero") ? 2400 : stem === "m
     }
     const outFile = join(OUT, `${key}.webp`);
     mkdirSync(dirname(outFile), { recursive: true });
-    const info = await sharp(file).rotate().resize({ width: widthFor(stem), withoutEnlargement: true }).webp({ quality: stem.startsWith("hero") ? 80 : 84 }).toFile(outFile);
+    // heroes are the biggest, most scrutinised images on the site (the homepage now runs one full-bleed) — worth a few more KB of quality than the rest.
+    const info = await sharp(file).rotate().resize({ width: widthFor(stem), withoutEnlargement: true }).webp({ quality: stem.startsWith("hero") ? 90 : 84 }).toFile(outFile);
     manifest[key] = { src: `/images/${key}.webp`, width: info.width, height: info.height };
     console.log(`✓ ${key}  ${info.width}×${info.height}  ${(info.size / 1024).toFixed(0)}KB`);
   }

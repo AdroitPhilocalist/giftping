@@ -4,7 +4,7 @@
  *
  * ADDING A FESTIVAL (nothing on any page changes):
  *   1. app/themes/<id>.css   — override the tokens you want to change, and @import it at the top of app/globals.css
- *   2. add an entry below     — label, announcement line
+ *   2. add an entry below     — label and kind
  *   3. public/themes/<id>/    — artwork, mapped in lib/content/imagery.ts (later)
  *   4. schedule or preview it (admin) — anything not overridden falls back to the native look
  */
@@ -14,18 +14,15 @@ export interface ThemeDef {
   id: string;
   label: string;
   kind: ThemeKind;
-  /** the line in the dark bar above the header */
-  announcement: string;
 }
 
 export const DEFAULT_THEME_ID = "native";
-export const DEFAULT_ANNOUNCEMENT = "Gift happiness. Create memories. Celebrate every occasion.";
 
 export const THEMES: Record<string, ThemeDef> = {
-  native: { id: "native", label: "GiftPing (native)", kind: "native", announcement: DEFAULT_ANNOUNCEMENT },
+  native: { id: "native", label: "GiftPing (native)", kind: "native" },
   // Test themes: they exist to prove that a complete restyle is only variables. They are never offered for scheduling.
-  "demo-night": { id: "demo-night", label: "Demo · Night", kind: "demo", announcement: DEFAULT_ANNOUNCEMENT },
-  "demo-jewel": { id: "demo-jewel", label: "Demo · Jewel", kind: "demo", announcement: "A festive-style makeover — colours only, no page changed." },
+  "demo-night": { id: "demo-night", label: "Demo · Night", kind: "demo" },
+  "demo-jewel": { id: "demo-jewel", label: "Demo · Jewel", kind: "demo" },
 };
 
 export function isThemeId(value: unknown): value is string {

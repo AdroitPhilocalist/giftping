@@ -35,7 +35,7 @@
 
   /* imagery scrims and ornaments */
   --gp-hero-scrim: rgb(12 42 29 / 0.72);
-  --gp-bar-top: color-mix(in srgb, var(--gp-primary) 92%, white 8%); /* the header/announcement-strip panel's shared starting shade — see .gp-bar-gradient below */
+  --gp-bar-top: color-mix(in srgb, var(--gp-primary) 92%, white 8%); /* the header panel's starting shade — see .gp-bar-gradient below */
   --gp-ornament: var(--gp-copper);
 
   /* motion */
@@ -126,13 +126,22 @@ h1, h2, h3, .font-heading {
 .rise { animation: gp-rise 0.8s var(--gp-ease) both; animation-delay: var(--rise-delay, 0ms); }
 
 /* The homepage hero (components/home/HomeHero.tsx): the photo runs the full width of the page, so the headline needs a scrim under it to stay legible over
-   whatever is in that part of the picture — a diagonal wash from the ink-dark hero-scrim token (fully opaque at the text) fading to nothing by mid-image,
-   plus a low horizontal one so the floating search card below still reads as landing on solid ground rather than an abrupt photo edge. */
+   whatever is in that part of the picture, regardless of exactly where a given line or button ends up within the text column — three layers stacked
+   (diagonal, left-to-right, bottom-up) rather than relying on one gradient's own shape to happen to cover everywhere text can land. */
 .gp-hero-scrim {
   background:
-    linear-gradient(100deg, var(--gp-hero-scrim) 0%, color-mix(in srgb, var(--gp-hero-scrim) 55%, transparent) 38%, transparent 68%),
-    linear-gradient(to top, color-mix(in srgb, var(--gp-hero-scrim) 65%, transparent) 0%, transparent 30%);
+    /* the diagonal wash for depth/character */
+    linear-gradient(115deg, var(--gp-hero-scrim) 0%, color-mix(in srgb, var(--gp-hero-scrim) 62%, transparent) 42%, transparent 74%),
+    /* a flatter left-to-right wash under the text column itself, so it stays legible regardless of exactly where within that column a line sits — the
+       diagonal alone thins unevenly with height and left "Watch Our Story" (further right, and vertically centred rather than pinned to the bottom on a
+       wide screen) with barely any cover */
+    linear-gradient(to right, color-mix(in srgb, var(--gp-hero-scrim) 58%, transparent) 0%, transparent 50%),
+    /* reaches much further up than just the search card's seam, so the button row has real cover even when the text block sits mid-height */
+    linear-gradient(to top, color-mix(in srgb, var(--gp-hero-scrim) 58%, transparent) 0%, transparent 62%);
 }
+/* belt and suspenders under the scrim above: a soft dark shadow behind the hero's own text, so a word stays readable even over whatever the scrim didn't
+   quite reach (a bright patch in a future photo, say) instead of depending on the gradient alone. */
+.gp-hero-copy { text-shadow: 0 2px 16px color-mix(in srgb, var(--gp-primary-dark) 75%, transparent), 0 1px 3px color-mix(in srgb, var(--gp-primary-dark) 90%, transparent); }
 @media (max-width: 639px) {
   /* a phone crops the same photo much narrower, so the diagonal wash alone isn't enough — add a flatter bottom-up fade behind the stacked text */
   .gp-hero-scrim { background: linear-gradient(to top, var(--gp-hero-scrim) 0%, color-mix(in srgb, var(--gp-hero-scrim) 70%, transparent) 45%, color-mix(in srgb, var(--gp-hero-scrim) 20%, transparent) 75%, transparent 100%); }
@@ -263,15 +272,14 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
     repeating-linear-gradient(-45deg, color-mix(in srgb, var(--gp-copper) 7%, transparent) 0 2px, transparent 2px 15px);
 }
 
-/* The announcement strip (AnnouncementBar.tsx) and the header (HeaderShell.tsx) are meant to read as one two-row panel, not two separately-coloured bars —
-   the strip is a flat fill in EXACTLY the shade the header's own gradient starts at (--gp-bar-top, defined with the other tokens near the top of this file),
-   so the seam between them can never show a mismatched jump: two independently-sized gradient boxes computing their own 0–100% independently would not
-   reliably line up at the boundary, a flat colour that matches the neighbour's own starting point always will. */
-.gp-bar-top { background: var(--gp-bar-top); }
+/* The header's own "material" (HeaderShell.tsx) — still forest green throughout, but with real depth: a soft warm glow low on the left (near the logo,
+   echoing the copper accent rather than adding a new colour), a bright sheen along the top edge, and a slightly richer diagonal underneath, instead of one
+   flat fill. --gp-bar-top (with the other tokens near the top of this file) is the shade it starts from. */
 .gp-bar-gradient {
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.08), transparent 40%),
-    linear-gradient(165deg, var(--gp-bar-top) 0%, var(--gp-primary) 55%, var(--gp-primary-dark));
+    radial-gradient(38rem 100% at 6% 100%, color-mix(in srgb, var(--gp-copper) 20%, transparent), transparent 70%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 45%),
+    linear-gradient(120deg, var(--gp-bar-top) 0%, var(--gp-primary) 45%, var(--gp-primary) 70%, var(--gp-primary-dark) 100%);
 }
 
 /* The header (components/layout/HeaderShell.tsx): a flush, full-width deep-forest-green bar at the top of the page — sitting directly on the hero like the
@@ -284,6 +292,10 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
   pointer-events: auto;
   position: relative;
   width: 100%;
+  /* fills the outer box's whole reserved height at rest, so the panel's own colour reaches every edge of it — the logo/content inside is shorter than
+     5.5rem (padding + a 3.5rem logo), and without this the leftover few pixels at the bottom showed the plain page colour through as a stray gap between
+     the header and whatever sits below it. Once condensed the pill is meant to hug its own smaller content instead, so that rule resets it to auto. */
+  height: 100%;
   margin-top: 0;
   border-radius: 0;
   border: 1px solid transparent;
@@ -292,6 +304,7 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
 }
 .gp-logo-mark { transition: width 0.55s var(--gp-ease), height 0.55s var(--gp-ease), transform 0.5s; }
 .gp-header[data-condensed="true"] .gp-header-inner {
+  height: auto;
   width: min(75rem, calc(100% - 1.25rem));
   margin-top: 0.5rem;
   margin-inline: auto;
