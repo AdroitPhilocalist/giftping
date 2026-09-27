@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import {
   createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode,
 } from "react";
 import { Robin } from "@/components/art/Robin";
 import { cn } from "@/lib/utils/cn";
+import { FitPage } from "./FitPage";
 import { TAB_META, type DiaryTabKey } from "./tabs";
 
 export type { DiaryTabKey };
@@ -13,7 +14,7 @@ export type { DiaryTabKey };
 export interface SpreadDef {
   id: string;
   tab: DiaryTabKey;
-  /** shown under the book: "This month" */
+  /** its name, for screen readers: "This month" */
   label: string;
   left: ReactNode;
   right: ReactNode;
@@ -24,7 +25,7 @@ interface BookApi {
   goTo: (id: string) => void;
 }
 const BookContext = createContext<BookApi | null>(null);
-/** For anything inside a page that should turn the book (a contents line, a "see all" link). Null outside the book. */
+/** For anything inside a page that should turn the book (a "See more →" link). Null outside the book. */
 export const useDiaryBook = () => useContext(BookContext);
 
 const WIDE = "(min-width: 1280px) and (min-height: 720px)";
@@ -58,8 +59,9 @@ const TURN_MS = 1000;
 /**
  * The diary as a real book. On a wide screen it is an open two-page spread that fits the window; turning a page swings a two-sided leaf over the spine, so
  * the page you turn to is revealed on its back. On a phone or a short screen it shows one page at a time and the same leaf turns it. Pages are given in
- * spreads (left + right); the tabs at the edge, the pager under the book, the corners of the pages, the arrow keys and a swipe all turn it, and where you are
- * is kept in the address (?p=…) so a reload or a link comes back to the same page.
+ * spreads (left + right). Everything that turns it is part of the book itself: the section tabs on its edge, "turn the page" written in the bottom corner of a
+ * page (with the corner curling up when you reach for it), the arrow keys, a swipe, and the "see more" links written on the pages. Nothing sits under the book.
+ * Where you are is kept in the address (?p=…) so a reload or a link comes back to the same page.
  */
 export function DiaryBook({ spreads, initialId, robin = true }: { spreads: SpreadDef[]; initialId?: string; robin?: boolean }) {
   const wide = useSyncExternalStore(subscribeWide, () => window.matchMedia(WIDE).matches, () => true);
@@ -178,6 +180,8 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
         under={opts.under ?? false}
         onPrev={canPrev && !turn ? () => goToPos(cur - step) : undefined}
         onNext={canNext && !turn ? () => goToPos(cur + step) : undefined}
+        onRestart={!canNext && canPrev && !turn ? () => goToPos(0) : undefined}
+        invite={spreadIndex === 0}
       />
     ) : null;
 
@@ -236,31 +240,64 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
           </div>
         </div>
 
-        <div className="dy-pager" role="group" aria-label="Turn the pages">
-          <button type="button" className="dy-pager-btn" onClick={() => goToPos(cur - step)} disabled={!canPrev || Boolean(turn)} aria-label="Previous page"><ChevronLeft className="h-5 w-5" /></button>
-          <div className="dy-pager-dots">
-            {spreads.map((s, i) => (
-              <button key={s.id} type="button" className="dy-pager-dot" aria-current={i === spreadIndex ? "true" : undefined} aria-label={`${s.label} (pages ${i * 2 + 1}–${i * 2 + 2})`} title={s.label} onClick={() => goToPos(i * 2)} />
-            ))}
-          </div>
-          <button type="button" className="dy-pager-btn" onClick={() => goToPos(cur + step)} disabled={!canNext || Boolean(turn)} aria-label="Next page"><ChevronRight className="h-5 w-5" /></button>
-          <p className="dy-pager-label dy-on-wood" aria-hidden="true">{spreads[spreadIndex]?.label} · {wide ? `pages ${cur + 1}–${cur + 2}` : `page ${cur + 1} of ${pages.length}`}</p>
-        </div>
         <p className="sr-only" aria-live="polite">{spreads[spreadIndex]?.label}, {wide ? `pages ${cur + 1} and ${cur + 2}` : `page ${cur + 1}`} of {pages.length}</p>
       </div>
     </BookContext.Provider>
   );
 }
 
-function PageShell({ page, modifier, ears = false, under = false, onPrev, onNext }: { page: PageDef; modifier: boolean; ears?: boolean; under?: boolean; onPrev?: () => void; onNext?: () => void }) {
+function PageShell({ page, modifier, ears = false, under = false, onPrev, onNext, onRestart, invite = false }: { page: PageDef; modifier: boolean; ears?: boolean; under?: boolean; onPrev?: () => void; onNext?: () => void; onRestart?: () => void; invite?: boolean }) {
   const isLeft = page.side === "left";
+  // a two-page spread puts "back" in the left page's corner and "next" in the right page's; a single page carries both
+  const showPrev = ears && onPrev && (!modifier || isLeft);
+  const showNext = ears && (onNext || onRestart) && (!modifier || !isLeft);
   return (
     <section className={cn("dy-page", modifier && (isLeft ? "dy-page--left" : "dy-page--right"))} aria-label={page.label}>
-      <div className="dy-page-scroll">{page.node}</div>
+      <div className="dy-page-scroll">{modifier ? <FitPage>{page.node}</FitPage> : page.node}</div>
+      <span className="dy-turn-fade" aria-hidden="true" />
       <span className="dy-pageno" aria-hidden="true">{page.no}</span>
-      {ears && modifier && isLeft && onPrev ? <button type="button" className="dy-dogear" onClick={onPrev} aria-label="Previous page" /> : null}
-      {ears && (!modifier || !isLeft) && onNext ? <button type="button" className="dy-dogear" onClick={onNext} aria-label="Next page" /> : null}
+      {showPrev ? (
+        <button type="button" className="dy-turn dy-turn--prev" onClick={onPrev}>
+          <TurnCurl />
+          <TurnArrow dir="prev" />
+          <span>Back</span>
+        </button>
+      ) : null}
+      {showNext && onNext ? (
+        <button type="button" className={cn("dy-turn dy-turn--next", invite && "dy-turn--invite")} onClick={onNext}>
+          <span>{invite ? "Turn the page" : "Next page"}</span>
+          <TurnArrow dir="next" />
+          <TurnCurl />
+        </button>
+      ) : null}
+      {showNext && !onNext && onRestart ? (
+        <button type="button" className="dy-turn dy-turn--next" onClick={onRestart}>
+          <span>Back to the front</span>
+          <RotateCcw className="h-[1.1rem] w-[1.1rem]" strokeWidth={2} aria-hidden="true" />
+          <TurnCurl />
+        </button>
+      ) : null}
       {under ? <span className="dy-under-shade" style={{ "--from": isLeft ? "100%" : "0%" } as CSSProperties} aria-hidden="true" /> : null}
     </section>
+  );
+}
+
+/** The corner of a page, folded up a little — it lifts more when you reach for it. (Two triangles: the paper folded over, and what it uncovers.) */
+function TurnCurl() {
+  return (
+    <span className="dy-curl" aria-hidden="true">
+      <b />
+      <i />
+    </span>
+  );
+}
+
+/** A hand-drawn arrow, the kind you would scribble in a margin. */
+function TurnArrow({ dir }: { dir: "next" | "prev" }) {
+  return (
+    <svg className={cn("dy-turn-arrow", dir === "prev" && "dy-turn-arrow--prev")} viewBox="0 0 48 22" aria-hidden="true" focusable="false">
+      <path d="M2 14c6-8 13 3 22-2 6-3 10-3 17-1" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" />
+      <path d="M35 4c4 2 8 5 11 8-4 2-8 5-10 8" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   );
 }

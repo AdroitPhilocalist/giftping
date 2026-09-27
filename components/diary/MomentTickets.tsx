@@ -5,6 +5,7 @@ import { OccasionSticker } from "./art/OccasionSticker";
 import { Sprig } from "./art/Sprig";
 import { SectionTitle } from "./book/SectionTitle";
 import { RobinSleeping } from "./EmptyStates";
+import { PLAN_COPY, PLAN_STEPS, stepIndex, type PlanStatus } from "@/lib/diary/plans";
 import { daysLabel, tiltFor } from "@/lib/diary/present";
 import type { MomentCardData } from "@/lib/diary/ui-types";
 import { cn } from "@/lib/utils/cn";
@@ -13,7 +14,9 @@ const TAPES = ["blush", "sage", "mustard"] as const;
 const NOTE_TONES = ["dy-note--cream", "dy-note--peach", "dy-note--sage"] as const;
 
 /** "Next 3 special moments": torn paper tickets, tilted like they were pinned by hand. The nearest one you haven't sorted offers "Choose a gift". */
-export function MomentTickets({ moments, themeId, addAction, className }: { moments: MomentCardData[]; themeId?: string; addAction?: React.ReactNode; className?: string }) {
+export interface TicketPlan { eventId: string; daysAway: number; status: PlanStatus; giftName: string | null }
+
+export function MomentTickets({ moments, themeId, addAction, className, plans = [] }: { moments: MomentCardData[]; themeId?: string; addAction?: React.ReactNode; className?: string; /** gift plans in progress: a ticket whose plan is under way says so instead of "Choose a gift" */ plans?: TicketPlan[] }) {
   const shown = moments.slice(0, 3);
   const firstOpen = shown.findIndex((m) => !m.handled);
   return (
@@ -23,7 +26,9 @@ export function MomentTickets({ moments, themeId, addAction, className }: { mome
         <div className="mt-4"><RobinSleeping title="Nothing in the next 60 days" line="Relax! You're all caught up." action={addAction} /></div>
       ) : (
         <ul className="mt-5 grid gap-5 sm:grid-cols-3 xl:mt-4 xl:gap-4">
-          {shown.map((m, i) => (
+          {shown.map((m, i) => {
+            const plan = m.handled ? undefined : plans.find((p) => p.eventId === m.eventId && p.daysAway === m.daysAway);
+            return (
             <li key={m.key} className="dy-in" style={{ ["--in-delay" as string]: `${140 + i * 110}ms` } as CSSProperties}>
               <Link
                 href={`/diary/people/${m.contactId}?event=${m.eventId}#plan`}
@@ -39,6 +44,13 @@ export function MomentTickets({ moments, themeId, addAction, className }: { mome
                 <p className="dy-num mt-2 text-[2.3rem] text-[var(--dy-ink)] xl:mt-1 xl:text-[1.95rem]">{daysLabel(m.daysAway)}{m.daysAway > 1 ? <span className="sr-only"> away</span> : null}</p>
                 {m.handled ? (
                   <span className="dy-hand mt-1.5 inline-flex items-center gap-1.5 text-[1.15rem] text-[var(--gp-primary)]"><Check className="h-4 w-4" aria-hidden="true" /> Gift sorted</span>
+                ) : plan ? (
+                  <span className="mt-1.5 block">
+                    <span className="flex items-center gap-1" role="img" aria-label={`Plan step: ${PLAN_COPY[plan.status].title}`}>
+                      {PLAN_STEPS.map((s) => <span key={s} className="h-2.5 w-2.5 rounded-full border border-[var(--gp-copper)]/50" style={{ background: stepIndex(s) <= stepIndex(plan.status) ? "var(--gp-primary)" : "transparent" }} />)}
+                    </span>
+                    <span className="dy-hand mt-0.5 block truncate text-[1.1rem] leading-[1.05] text-[var(--gp-copper-dark)]">{PLAN_COPY[plan.status].title}{plan.giftName ? ` · ${plan.giftName}` : ""}</span>
+                  </span>
                 ) : i === firstOpen ? (
                   <span className="dy-btn dy-btn--copper dy-btn--sm mt-2">Choose a gift →</span>
                 ) : (
@@ -47,7 +59,8 @@ export function MomentTickets({ moments, themeId, addAction, className }: { mome
                 <Sprig variant={i % 2 ? "wild" : "daisy"} className="absolute -bottom-1 right-0.5 h-20 w-10 opacity-80" flip={i % 2 === 1} />
               </Link>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </section>

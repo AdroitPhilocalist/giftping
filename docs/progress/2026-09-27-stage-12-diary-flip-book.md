@@ -1,5 +1,7 @@
 # Stage 12 (slice 13) — the diary becomes a real book you flip through
 
+> Superseded in part by `2026-09-27-stage-12-diary-front-spread-and-page-corners.md`: the Contents page and the pager under the book described below were replaced (the front spread now shows everything in small; turning is written on the pages).
+
 The feedback: the redesigned diary now *fit* the window, but both pages had to be scrolled inside, and the robin at the top right had its head cut by the navbar. "Use what a diary actually is — multiple pages. Flip them. As people and dates are added, add more pages. No vertical scrolling."
 
 ## What changed

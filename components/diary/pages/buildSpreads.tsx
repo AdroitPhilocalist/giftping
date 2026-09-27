@@ -1,12 +1,11 @@
 import type { HomeBookData } from "@/lib/diary/home-book";
 import type { SpreadDef } from "../flip/DiaryBook";
 import { AgendaPage, CalendarPage } from "./MonthPages";
-import { ContentsPage, type ContentsEntry } from "./ContentsPage";
 import { IdeasPage, IdeasRestPage } from "./IdeasPage";
 import { BackCoverPage, LogPage } from "./LogPages";
 import { AddPersonPage, PEOPLE_PER_PAGE, PeoplePage } from "./PeoplePages";
 import { ReviewPage, ScorePage } from "./ScoreReviewPages";
-import { WelcomePage } from "./WelcomePage";
+import { FrontLeftPage, FrontRightPage } from "./FrontPages";
 import { YearMonthsPage } from "./YearPages";
 import { PersonCardData } from "@/lib/diary/ui-types";
 
@@ -18,14 +17,14 @@ function chunk<T>(list: T[], size: number): T[][] {
 
 /**
  * The pages of the diary, in order, two to a spread:
- *   1–2   Today: whose diary, what is coming up, gift plans  |  the contents
+ *   1–2   The front spread — everything in small: what is coming up, a few ideas | gifting score, this month, your people
  *   3–4   This month: the calendar  |  the next sixty days
  *   5–6   Gift ideas for the next two moments
  *   7…    My people: six to a page — a new page appears as people are added
  *   …     The year ahead: January–June | July–December
  *   …     Gifting score  |  your gifting year (and a way to share it)
  *   …     The gift log  |  the inside of the back cover
- * Page numbers follow from the order, and the contents page is built from the same list — so it always matches.
+ * Each small piece on the front spread has a "see more" that turns to its full page below.
  */
 export function buildHomeSpreads(name: string, d: HomeBookData, themeId?: string): SpreadDef[] {
   const peoplePages = chunk<PersonCardData>(d.people, PEOPLE_PER_PAGE);
@@ -33,24 +32,11 @@ export function buildHomeSpreads(name: string, d: HomeBookData, themeId?: string
   if (peopleRight.length % 2 === 1) peopleRight.push(<AddPersonPage key="add" options={d.options} />);
   const peopleSpreadCount = Math.max(1, peopleRight.length / 2);
 
-  // ids first, so the contents page can name the page each section starts on
-  const ids = ["today", "month", "ideas", ...Array.from({ length: peopleSpreadCount }, (_, i) => (i === 0 ? "people" : `people-${i + 1}`)), "year", "gifting", "log"];
-  const pageOf = (id: string) => ids.indexOf(id) * 2 + 1;
-  const entries: ContentsEntry[] = [
-    { to: "today", page: pageOf("today"), label: "Coming up & gift plans", kind: "today" },
-    { to: "month", page: pageOf("month"), label: "This month", kind: "month" },
-    { to: "ideas", page: pageOf("ideas"), label: "Gift ideas", kind: "ideas" },
-    { to: "people", page: pageOf("people"), label: "My people", kind: "people" },
-    { to: "year", page: pageOf("year"), label: "The year ahead", kind: "year" },
-    { to: "gifting", page: pageOf("gifting"), label: "Gifting score & my year", kind: "gifting" },
-    { to: "log", page: pageOf("log"), label: "What I've given", kind: "log" },
-  ];
-
   const spreads: SpreadDef[] = [
     {
       id: "today", tab: "today", label: "Today",
-      left: <WelcomePage name={name} moments={d.moments} plans={d.plans} options={d.options} themeId={themeId} />,
-      right: <ContentsPage entries={entries} options={d.options} count={d.people.length} />,
+      left: <FrontLeftPage name={name} moments={d.moments} plans={d.plans} ideaSet={d.ideaSets[0]} options={d.options} themeId={themeId} />,
+      right: <FrontRightPage today={d.today} marks={d.marks} score={d.score} streak={d.streak} summary={d.summary} people={d.people} themeId={themeId} />,
     },
     {
       id: "month", tab: "month", label: "This month",

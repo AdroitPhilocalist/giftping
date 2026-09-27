@@ -16,7 +16,7 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
  * marked day lists what's on it (with a link to each person). Month arrows move within a year either side of today. The marks are computed on
  * the server for that whole window and passed in, so moving between months needs no network round-trip.
  */
-export function PaperCalendar({ today, marks, className }: { today: string; marks: CalendarMarks; className?: string }) {
+export function PaperCalendar({ today, marks, className, compact = false, hintExtra }: { today: string; marks: CalendarMarks; className?: string; compact?: boolean; /** compact only: something to sit after the "tap a circled day" hint (a link to the full month) */ hintExtra?: React.ReactNode }) {
   const t = parseISODate(today)!;
   const [cursor, setCursor] = useState({ year: t.year, month: t.month });
   const [picked, setPicked] = useState<string | null>(null);
@@ -37,10 +37,10 @@ export function PaperCalendar({ today, marks, className }: { today: string; mark
   const pickedMarks = picked ? marks[picked] ?? [] : [];
 
   return (
-    <div className={className}>
-      <div className="flex items-center justify-center gap-3">
+    <div className={cn(compact && "dy-cal--compact", className)}>
+      <div className={cn("flex items-center justify-center", compact ? "gap-2" : "gap-3")}>
         <button type="button" onClick={() => move(-1)} disabled={offset <= -12} aria-label="Previous month" className="dy-cal-arrow"><ChevronLeft className="h-4 w-4" /></button>
-        <p className="dy-hand text-[1.6rem] text-[var(--gp-copper)]" aria-live="polite">{MONTHS[cursor.month - 1]} {cursor.year}</p>
+        <p className={cn("dy-hand text-[var(--gp-copper)]", compact ? "text-[1.4rem]" : "text-[1.6rem]")} aria-live="polite">{MONTHS[cursor.month - 1]} {cursor.year}</p>
         <button type="button" onClick={() => move(1)} disabled={offset >= 12} aria-label="Next month" className="dy-cal-arrow"><ChevronRight className="h-4 w-4" /></button>
       </div>
       <div className="dy-cal-grid mt-2">
@@ -61,9 +61,10 @@ export function PaperCalendar({ today, marks, className }: { today: string; mark
           );
         })}
       </div>
-      <div className={cn("mt-3 min-h-[1.5rem]", pickedMarks.length === 0 && "hidden")} role="status">
+      <div className={cn(compact ? "mt-1.5 min-h-[1.5rem]" : "mt-3 min-h-[1.5rem]", pickedMarks.length === 0 && !compact && "hidden")} role="status">
+        {pickedMarks.length === 0 && compact ? <p className="dy-cap text-center">Tap a circled day{hintExtra ? <> · {hintExtra}</> : null}</p> : null}
         <ul className="space-y-1">
-          {pickedMarks.map((m, i) => (
+          {(compact ? pickedMarks.slice(0, 1) : pickedMarks).map((m, i) => (
             <li key={`${m.contactId}-${i}`}>
               <Link href={`/diary/people/${m.contactId}`} className="dy-hand inline-flex items-center gap-2 text-[1.25rem] text-[var(--dy-ink)] hover:text-[var(--gp-copper)]">
                 <OccasionSticker type={m.eventType} className="h-6 w-6" />
@@ -72,6 +73,7 @@ export function PaperCalendar({ today, marks, className }: { today: string; mark
             </li>
           ))}
         </ul>
+        {compact && pickedMarks.length > 1 ? <p className="dy-cap text-center">and {pickedMarks.length - 1} more that day</p> : null}
       </div>
     </div>
   );
