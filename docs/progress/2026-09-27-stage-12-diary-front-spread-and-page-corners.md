@@ -35,3 +35,13 @@ The Contents page and the "Gift plans" list are gone (plan progress lives on the
 ## Not verified
 
 The real signed-in `/diary` with seeded data (the design gallery renders the same components over sample data); the feel of the corner curl and the nudging arrow on a touch screen; real Safari/Firefox behaviour of the transform-based fit (built on plain `transform`, no `zoom`, for that reason).
+
+## Follow-up: "I can only go forward, not back"
+
+Reported after the slice above. Clicking "Back" with real mouse clicks worked at every size I tried (1280–1920 wide, single-page tablet, 360–390 phone; the backward leaf animation is the mirror of the forward one), so I could not reproduce a dead button. What I did find were real gaps that make going back feel impossible:
+
+- **The browser's own Back left the diary.** Turns were written with `replaceState`, so a Back press (or a two-finger swipe back) skipped every page and left `/diary`. Every turn now adds a history entry (`pushState`) and a `popstate` listener turns the book to wherever the address goes — the browser's Back/Forward are now "previous/next page", with the page-turn animation.
+- **A click during a turn was dropped, and the corners vanished for ~1.9s after each turn** (they were unmounted during the turn, then faded in after a delay). The corners are now always drawn, and a click during a turn is remembered (`queued`) and the book carries straight on into the next turn from `finish()`. Rapid Next-Next lands two spreads on; Next-then-Back ends where it started.
+- **The left corner said just "Back"** and looked lighter than the invitation on the right. It now reads "← Previous page" (phones: "Back" / "Next", so both fit on a 360px page).
+
+Lesson: a handler that runs after `setState` in a timer cannot rely on a ref updated in an effect having caught up (`goRef` was one render stale, so a queued turn was silently dropped) — chain the next turn inside the same `finish()` instead.

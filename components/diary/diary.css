@@ -649,12 +649,22 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
 
 /* Turning the page is written on the page itself: "Turn the page →" in the bottom corner, and a corner of paper folded up that lifts when you reach for it.
    (Two triangles make the fold: the flap of paper turned over, and the darker paper it uncovers.) */
-.dy-turn { position: absolute; bottom: 0; z-index: 6; display: flex; align-items: center; gap: 0.5rem; height: 3.3rem; padding: 0 0.9rem; border: 0; background: none; cursor: pointer; font-family: var(--dy-hand); font-size: 1.45rem; font-weight: 600; line-height: 1; color: var(--gp-copper-dark); transition: color 0.2s; animation: dy-turn-in 0.5s var(--gp-ease) 0.35s backwards; -webkit-tap-highlight-color: transparent; }
+.dy-turn { position: absolute; bottom: 0; z-index: 6; display: flex; align-items: center; gap: 0.5rem; height: 3.3rem; padding: 0 0.9rem; border: 0; background: none; cursor: pointer; font-family: var(--dy-hand); font-size: 1.45rem; font-weight: 600; line-height: 1; color: var(--gp-copper-dark); transition: color 0.2s; -webkit-tap-highlight-color: transparent; }
 .dy-turn--next { right: 0; padding-right: 3.6rem; }
 .dy-turn--prev { left: 0; padding-left: 3.6rem; }
 .dy-turn:hover, .dy-turn:focus-visible { color: var(--gp-copper); }
 .dy-turn:focus-visible { outline: 2px solid var(--gp-copper); outline-offset: -4px; border-radius: 0.6rem; }
-@keyframes dy-turn-in { from { opacity: 0; } to { opacity: 1; } }
+.dy-turn-short { display: none; }
+/* a phone page is narrow: "Back" and "Next" share the foot of it, so the words are short and the corners a little smaller */
+@media (max-width: 639px) {
+  .dy-turn-long { display: none; }
+  .dy-turn-short { display: inline; }
+  .dy-turn { font-size: 1.35rem; padding: 0 0.5rem; gap: 0.35rem; }
+  .dy-turn--next { padding-right: 2.6rem; }
+  .dy-turn--prev { padding-left: 2.6rem; }
+  .dy-turn-arrow { width: 2.2rem; }
+  .dy-curl { width: 1.7rem; height: 1.7rem; }
+}
 .dy-turn-arrow { width: 2.8rem; height: 1.3rem; flex: none; transition: transform 0.3s var(--gp-ease); }
 .dy-turn-arrow--prev { transform: scaleX(-1); }
 .dy-turn--next:hover .dy-turn-arrow, .dy-turn--next:focus-visible .dy-turn-arrow { transform: translateX(6px); }
@@ -671,7 +681,7 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
 .dy-turn--invite .dy-curl { animation: dy-curl-breathe 2.6s ease-in-out 1.2s infinite; }
 @keyframes dy-curl-breathe { 0%, 100% { width: 2rem; height: 2rem; } 50% { width: 2.7rem; height: 2.7rem; } }
 .dy-turn:hover.dy-turn--invite .dy-curl { animation: none; }
-@media (prefers-reduced-motion: reduce) { .dy-turn, .dy-turn--invite .dy-turn-arrow, .dy-turn--invite .dy-curl { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .dy-turn--invite .dy-turn-arrow, .dy-turn--invite .dy-curl { animation: none; } }
 /* on a single (phone/tablet) page the text scrolls under the corners, so the foot of the page fades to paper behind them */
 .dy-turn-fade { display: none; }
 .dy-stage[data-mode="single"] .dy-turn-fade { display: block; position: absolute; left: 0; right: 0; bottom: 0; height: 3.6rem; z-index: 5; pointer-events: none; border-radius: 0 0 0.6rem 0.6rem; background: linear-gradient(to bottom, transparent, var(--dy-paper) 70%); }

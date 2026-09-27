@@ -2,7 +2,7 @@
 
 import { RotateCcw } from "lucide-react";
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode,
+  createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties, type ReactNode,
 } from "react";
 import { Robin } from "@/components/art/Robin";
 import { cn } from "@/lib/utils/cn";
@@ -80,32 +80,55 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
   const [turn, setTurn] = useState<Turn | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const swipe = useRef<{ x: number; y: number } | null>(null);
+  /** where the reader asked to go while a page was still turning — the book goes there as soon as the page lands, so no click is ever lost */
+  const queued = useRef<number | null>(null);
+  const goRef = useRef<(raw: number) => void>(() => {});
+  const finishRef = useRef<(t: Turn) => void>(() => {});
+  const arrived = useRef(false);
 
   const cur = wide ? pos - (pos % 2) : pos;
   const last = pages.length - 1;
   const spreadIndex = Math.floor(cur / 2);
   const step = wide ? 2 : 1;
-  const canPrev = cur > 0;
-  const canNext = cur + step <= last;
+  /** the page the book is at, or is turning to — what "next" and "back" are measured from, so they still work while a page is mid-turn */
+  const base = turn ? turn.to : cur;
+  const canPrev = base > 0;
+  const canNext = base + step <= last;
 
+  /** a page has landed: settle on it — or, if the reader already asked to go further, carry straight on into the next turn */
   const finish = useCallback((t: Turn) => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = null;
+    const next = queued.current;
+    queued.current = null;
     setPos(t.to);
-    setTurn(null);
+    if (next === null || next === t.to) {
+      setTurn(null);
+      return;
+    }
+    const following: Turn = { from: t.to, to: next, dir: next > t.to ? 1 : -1 };
+    setTurn(following);
+    timer.current = setTimeout(() => finishRef.current(following), TURN_MS + 250);
   }, []);
+  useLayoutEffect(() => { finishRef.current = finish; });
 
   const goToPos = useCallback(
     (raw: number) => {
       const target = wide ? raw - (raw % 2) : raw;
-      if (turn || target === cur || target < 0 || target > last) return;
+      if (target < 0 || target > last) return;
+      if (turn) {
+        queued.current = target === turn.to ? null : target; // a page is still turning: go there once it lands
+        return;
+      }
+      if (target === cur) return;
       const t: Turn = { from: cur, to: target, dir: target > cur ? 1 : -1 };
       if (reduced) return setPos(target);
       setTurn(t);
-      timer.current = setTimeout(() => finish(t), TURN_MS + 250); // a safety net if the animation event never arrives
+      timer.current = setTimeout(() => finishRef.current(t), TURN_MS + 250); // a safety net if the animation event never arrives
     },
-    [wide, turn, cur, last, reduced, finish],
+    [wide, turn, cur, last, reduced],
   );
+  useLayoutEffect(() => { goRef.current = goToPos; });
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
 
   const goTo = useCallback((id: string) => {
@@ -114,13 +137,29 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
   }, [spreads, goToPos]);
   const api = useMemo<BookApi>(() => ({ goTo }), [goTo]);
 
-  // keep the place in the address, so a reload (or coming back from a person's page) opens the same spread
+  // The place is kept in the address (?p=…) so a reload, or a link from another page, opens the same spread. Every turn adds a history entry, so the browser's
+  // own Back (and a two-finger swipe back) turns the diary back a page instead of leaving it — and when the address moves, the book follows.
   useEffect(() => {
     const url = new URL(window.location.href);
-    if (spreadIndex === 0) url.searchParams.delete("p");
-    else url.searchParams.set("p", spreads[spreadIndex]?.id ?? "");
-    window.history.replaceState(window.history.state, "", url);
+    const want = spreadIndex === 0 ? null : spreads[spreadIndex]?.id ?? null;
+    if (url.searchParams.get("p") === want) {
+      arrived.current = true;
+      return;
+    }
+    if (want === null) url.searchParams.delete("p");
+    else url.searchParams.set("p", want);
+    window.history[arrived.current ? "pushState" : "replaceState"](window.history.state, "", url);
+    arrived.current = true;
   }, [spreadIndex, spreads]);
+  useEffect(() => {
+    const onPop = () => {
+      const id = new URL(window.location.href).searchParams.get("p");
+      const i = spreads.findIndex((s) => s.id === id);
+      goRef.current(Math.max(0, i) * 2);
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [spreads]);
 
   // arrow keys, unless the reader is typing or a dialog is open
   useEffect(() => {
@@ -128,12 +167,12 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
       if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
       const el = e.target instanceof HTMLElement ? e.target : null;
       if (el && (el.closest("input, textarea, select, [contenteditable='true']") || document.querySelector("[role='dialog']"))) return;
-      if (e.key === "ArrowRight" && canNext) goToPos(cur + step);
-      else if (e.key === "ArrowLeft" && canPrev) goToPos(cur - step);
+      if (e.key === "ArrowRight" && canNext) goToPos(base + step);
+      else if (e.key === "ArrowLeft" && canPrev) goToPos(base - step);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [canNext, canPrev, cur, step, goToPos]);
+  }, [canNext, canPrev, base, step, goToPos]);
 
   // which pages are where
   let staticLeft: PageDef | null = null;
@@ -178,9 +217,9 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
         modifier={wide}
         ears={opts.ears ?? false}
         under={opts.under ?? false}
-        onPrev={canPrev && !turn ? () => goToPos(cur - step) : undefined}
-        onNext={canNext && !turn ? () => goToPos(cur + step) : undefined}
-        onRestart={!canNext && canPrev && !turn ? () => goToPos(0) : undefined}
+        onPrev={canPrev ? () => goToPos(base - step) : undefined}
+        onNext={canNext ? () => goToPos(base + step) : undefined}
+        onRestart={!canNext && canPrev ? () => goToPos(0) : undefined}
         invite={spreadIndex === 0}
       />
     ) : null;
@@ -212,8 +251,8 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
               if (!s) return;
               const dx = e.clientX - s.x;
               if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.clientY - s.y) * 1.5) {
-                if (dx < 0 && canNext) goToPos(cur + step);
-                else if (dx > 0 && canPrev) goToPos(cur - step);
+                if (dx < 0 && canNext) goToPos(base + step);
+                else if (dx > 0 && canPrev) goToPos(base - step);
               }
             }}
           >
@@ -226,7 +265,7 @@ export function DiaryBook({ spreads, initialId, robin = true }: { spreads: Sprea
               shell(staticRight, { ears: true, under: Boolean(turn) })
             )}
             {turn && front ? (
-              <div className={cn("dy-leaf", turn.dir === 1 ? "dy-leaf--fwd" : "dy-leaf--back")} onAnimationEnd={(e) => { if (e.target === e.currentTarget) finish(turn); }}>
+              <div key={`${turn.from}>${turn.to}`} className={cn("dy-leaf", turn.dir === 1 ? "dy-leaf--fwd" : "dy-leaf--back")} onAnimationEnd={(e) => { if (e.target === e.currentTarget) finish(turn); }}>
                 <div className="dy-leaf-face dy-leaf-face--front">
                   <PageShell page={front} modifier={wide} />
                   <span className="dy-shade" aria-hidden="true" />
@@ -260,12 +299,14 @@ function PageShell({ page, modifier, ears = false, under = false, onPrev, onNext
         <button type="button" className="dy-turn dy-turn--prev" onClick={onPrev}>
           <TurnCurl />
           <TurnArrow dir="prev" />
-          <span>Back</span>
+          <span className="dy-turn-long">Previous page</span>
+          <span className="dy-turn-short">Back</span>
         </button>
       ) : null}
       {showNext && onNext ? (
         <button type="button" className={cn("dy-turn dy-turn--next", invite && "dy-turn--invite")} onClick={onNext}>
-          <span>{invite ? "Turn the page" : "Next page"}</span>
+          <span className="dy-turn-long">{invite ? "Turn the page" : "Next page"}</span>
+          <span className="dy-turn-short">Next</span>
           <TurnArrow dir="next" />
           <TurnCurl />
         </button>
