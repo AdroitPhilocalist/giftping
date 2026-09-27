@@ -37,7 +37,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
     <>
       <AnnouncementBar message={announcement} />
       <HeaderShell>
-        <div className="gp-header-inner mx-auto flex max-w-[92rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="gp-header-inner gp-bar-gradient mx-auto flex max-w-[92rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Logo className="shrink-0 xl:mr-4 2xl:mr-8" tone="light" priority />
           <NavLinks categories={categories} vendors={vendors} />
 

@@ -16,7 +16,8 @@ const OCCASIONS = [
   { label: "More", href: "/categories", icon: LayoutGrid },
 ] as const;
 
-/** The mall's front door: a glowing atrium on the right dissolving into the cream page, the headline on the left, and a search card floating over the seam. */
+/** The mall's front door: the atrium photo runs the full width of the page (the client's own approved mockup), the headline sitting directly on it behind a
+ * scrim, and a search card floating over the seam where the photo ends. */
 export async function HomeHero() {
   const theme = await getActiveTheme();
   const hero = siteImage("hero-atrium", theme.id);
@@ -24,15 +25,12 @@ export async function HomeHero() {
 
   return (
     <>
-      <section className="relative isolate">
-        <div className="relative h-72 overflow-hidden [mask-image:linear-gradient(to_bottom,black_62%,transparent_100%)] sm:h-96 lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[70%] lg:[mask-image:linear-gradient(to_right,transparent_0%,black_38%)]" aria-hidden={hero ? undefined : true}>
+      <section className="relative isolate overflow-hidden">
+        <div className="absolute inset-0" aria-hidden={hero ? undefined : true}>
           {hero ? (
             <picture className="absolute inset-0 block">
               {heroMobile ? <source media="(max-width: 1023px)" srcSet={heroMobile.src} /> : null}
-              {/* sizes' mobile branch is deliberately near-zero, not the real 100vw: below 1024px the <source> above always wins, so this <img> never actually
-                  renders there — but Next still preloads it at `priority`, and a real mobile-width sizes value would waste bandwidth preloading a picture
-                  nobody sees, racing the real heroMobile fetch for the same priority slot. */}
-              <Image src={hero.src} alt="A warmly lit gifting mall atrium with hanging gift boxes" fill priority sizes="(min-width: 1024px) 68vw, 10px" className="object-cover object-center" />
+              <Image src={hero.src} alt="A warmly lit gifting mall atrium with hanging gift boxes" fill priority sizes="100vw" className="object-cover object-center" />
             </picture>
           ) : (
             <>
@@ -43,28 +41,31 @@ export async function HomeHero() {
               <AtriumScene className={`absolute inset-0 h-full w-full ${heroMobile ? "hidden lg:block" : ""}`} />
             </>
           )}
+          <div className="gp-hero-scrim absolute inset-0" aria-hidden="true" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 pb-20 pt-2 sm:px-6 lg:min-h-[600px] lg:px-8 lg:pb-32 lg:pt-24">
-          <div className="max-w-xl">
-            <div className="rise">
-              <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-brand-secondary-dark">Welcome to GiftPing Mall</p>
-              <h1 className="mt-4 font-heading text-[2.6rem] leading-[1.05] text-brand-dark sm:text-6xl lg:text-[4.2rem]">
-                A World of Gifts.
-                <br />A World of <span className="accent-word">Emotions.</span>
-              </h1>
-              <span className="mt-6 block h-0.5 w-12 rounded-full bg-brand-secondary" aria-hidden="true" />
-              <p className="mt-6 max-w-md text-base leading-relaxed text-brand-dark/70 sm:text-lg">
-                Step into a premium gifting destination where every gift tells a story.
-              </p>
-            </div>
-            <div className="rise mt-8 flex flex-wrap gap-3" style={{ "--rise-delay": "140ms" } as React.CSSProperties}>
-              <Button size="lg" asChild>
-                <Link href="/mall">Explore the Mall <ArrowRight className="h-4 w-4" /></Link>
-              </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="/about">Watch Our Story <Play className="h-4 w-4" /></Link>
-              </Button>
+        <div className="relative flex min-h-[30rem] flex-col justify-end px-4 pb-24 pt-28 sm:min-h-[34rem] sm:px-6 sm:pb-28 lg:min-h-[640px] lg:justify-center lg:pb-32 lg:pt-24">
+          <div className="mx-auto w-full max-w-7xl lg:px-2">
+            <div className="max-w-xl">
+              <div className="rise">
+                <p className="text-[11px] font-medium uppercase tracking-[0.3em] text-brand-secondary">Welcome to GiftPing Mall</p>
+                <h1 className="mt-4 font-heading text-[2.6rem] leading-[1.05] text-brand-on-primary sm:text-6xl lg:text-[4.2rem]">
+                  A World of Gifts.
+                  <br />A World of <span className="accent-word">Emotions.</span>
+                </h1>
+                <span className="mt-6 block h-0.5 w-12 rounded-full bg-brand-secondary" aria-hidden="true" />
+                <p className="mt-6 max-w-md text-base leading-relaxed text-brand-on-primary/80 sm:text-lg">
+                  Step into a premium gifting destination where every gift tells a story.
+                </p>
+              </div>
+              <div className="rise mt-8 flex flex-wrap gap-3" style={{ "--rise-delay": "140ms" } as React.CSSProperties}>
+                <Button size="lg" asChild>
+                  <Link href="/mall">Explore the Mall <ArrowRight className="h-4 w-4" /></Link>
+                </Button>
+                <Button size="lg" variant="outline" className="border-brand-on-primary/45 text-brand-on-primary hover:border-brand-on-primary hover:bg-brand-on-primary/10" asChild>
+                  <Link href="/about">Watch Our Story <Play className="h-4 w-4" /></Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
