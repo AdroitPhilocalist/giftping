@@ -123,6 +123,13 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 - **Mall experience**: illustrated + Framer Motion (`motion` package, not yet installed) animated pages
   using AI-generated imagery from `ui-references/` and future client-supplied images — not a real 3D/WebGL
   scene.
+- **Security response headers**: `next.config.ts`'s `headers()` sets `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and a
+  `Permissions-Policy` that leaves camera/mic/geolocation off but allows `payment` for Razorpay's own
+  origin — Vercel doesn't set any of these itself (its automatic HSTS only covers a verified custom
+  domain). **Deliberately no Content-Security-Policy yet** — this app loads Razorpay's checkout
+  script/iframe, Sentry, and OneSignal, and a CSP needs live traffic against all three to verify safely
+  rather than being guessed at; see `docs/progress/2026-09-28-overnight-qa-and-security-pass.md`.
 
 ## Folder structure
 

@@ -17,6 +17,31 @@ const nextConfig: NextConfig = {
     // image either way. Already covered by the Vercel Pro image-optimization allowance (see CLAUDE.md).
     formats: ["image/avif", "image/webp"],
   },
+  // Baseline hardening headers on every response — Next/Vercel don't set any of these on their own (Vercel's
+  // own HSTS only covers a verified custom domain, not these). Deliberately NOT including a Content-Security-Policy
+  // here: this app loads Razorpay's checkout script/iframe, Sentry, and (per lib/push) OneSignal, and a CSP written
+  // without testing each of those live could silently break checkout — worth doing as its own dedicated pass with
+  // real payment/error/push traffic to verify against, not guessed at here. See docs/progress for the write-up.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          // Nothing may embed this site in a frame (clickjacking / UI-redress protection). This app itself embeds
+          // Razorpay's checkout iframe — that's a different direction and unaffected by this header.
+          { key: "X-Frame-Options", value: "DENY" },
+          // Stops the browser guessing a response's content-type from its bytes (e.g. treating an uploaded "image"
+          // as executable script) — relevant given vendor/customer file uploads (product photos, diary photos).
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          // Sends the full referrer only to our own origin; other sites just see the scheme+host, not the path
+          // (which can carry a search query, an order id, a diary link) — reduces incidental data leakage on outbound links.
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          // Off by default for browser features this site never uses; nothing here needs loosening for Razorpay/Sentry/OneSignal.
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(self \"https://api.razorpay.com\")" },
+        ],
+      },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {
