@@ -15,10 +15,13 @@ import { getFeaturedVendors } from "@/lib/db/vendors";
 import { getCartCount } from "@/lib/commerce/cart";
 import { getUnreadNotificationCount } from "@/lib/db/notifications";
 
-// The header is a dark pill (see .gp-header-inner in globals.css), so every icon/link inside it reads in cream, not the usual ink — hover fills with a soft
+// The header is dark green (see .gp-header-inner in globals.css), so every icon/link inside it reads in cream, not the usual ink — hover fills with a soft
 // cream wash rather than the usual dark one, and the "current" badge stays copper (the one accent that already reads clearly against forest green).
 const iconButton = "relative rounded-full p-2 text-brand-on-primary/85 transition-colors duration-300 hover:bg-brand-on-primary/12 hover:text-brand-on-primary";
 const badge = "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ring-2 ring-brand-primary";
+// A quieter "ghost" pill rather than a solid fill — the client's own reference shows it this way, and it reads as a natural part of the bar rather than
+// competing with it; the copper accent still arrives on hover, so it isn't lost as an affordance.
+const diaryButton = "ml-1.5 hidden items-center whitespace-nowrap rounded-full border border-brand-on-primary/35 bg-brand-on-primary/[0.06] px-5 py-2.5 text-sm font-medium text-brand-on-primary transition-all duration-300 hover:border-brand-secondary hover:bg-brand-secondary hover:text-brand-on-secondary xl:inline-flex";
 
 export async function Navbar({ announcement }: { announcement: string }) {
   const user = await getServerUser();
@@ -34,7 +37,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
     <>
       <AnnouncementBar message={announcement} />
       <HeaderShell>
-        <div className="gp-header-inner mx-auto flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5 lg:px-6">
+        <div className="gp-header-inner mx-auto flex max-w-[92rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Logo className="shrink-0 xl:mr-4 2xl:mr-8" tone="light" priority />
           <NavLinks categories={categories} vendors={vendors} />
 
@@ -54,9 +57,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{cartCount > 99 ? "99+" : cartCount}</span> : null}
             </Link>
-            <Link href="/diary" className="ml-1.5 hidden whitespace-nowrap rounded-full bg-brand-secondary px-5 py-2.5 text-sm font-medium text-brand-on-secondary shadow-[inset_0_1px_0_rgb(255_255_255_/_0.25)] transition-all duration-300 hover:-translate-y-px hover:bg-brand-secondary-dark hover:shadow-lift xl:inline-flex">
-              My Diary
-            </Link>
+            <Link href="/diary" className={diaryButton}>My Diary</Link>
             <MobileMenu signedIn={Boolean(user)} />
           </div>
         </div>
