@@ -20,8 +20,8 @@ interface BellItem {
   metadata: unknown;
 }
 
-const iconButton = "relative rounded-full p-2 text-brand-dark/75 transition-colors duration-300 hover:bg-brand-dark/5 hover:text-brand-dark";
-const badge = "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold";
+const iconButton = "relative rounded-full p-2 text-brand-on-primary/85 transition-colors duration-300 hover:bg-brand-on-primary/12 hover:text-brand-on-primary";
+const badge = "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ring-2 ring-brand-primary";
 
 function ago(iso: string): string {
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -66,7 +66,7 @@ export function NotificationBell({ unreadCount }: { unreadCount: number }) {
         </button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
-        <DropdownMenu.Content align="end" sideOffset={10} collisionPadding={12} className="paper z-50 w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-card border border-brand-secondary/30 shadow-lift focus:outline-none">
+        <DropdownMenu.Content align="end" sideOffset={10} collisionPadding={12} className="gp-menu-pop paper z-50 w-[min(24rem,calc(100vw-1.5rem))] overflow-hidden rounded-card border border-brand-secondary/30 shadow-lift focus:outline-none">
           <div className="flex items-center justify-between gap-3 border-b border-brand-secondary/20 px-4 py-3">
             <p className="font-heading text-lg italic text-brand-dark">Notifications</p>
             {unreadCount > 0 ? (

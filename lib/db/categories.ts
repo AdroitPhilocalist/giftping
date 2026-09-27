@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/db/server";
 
 export async function getActiveCategories() {
@@ -12,7 +13,8 @@ export async function getActiveCategories() {
   return data;
 }
 
-export async function getFeaturedCategories() {
+// cache(): the navbar's Occasions mega-menu may share a request with another page that also reads this.
+export const getFeaturedCategories = cache(async function getFeaturedCategories() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
@@ -23,7 +25,7 @@ export async function getFeaturedCategories() {
 
   if (error) throw error;
   return data;
-}
+});
 
 export async function getCategoryBySlug(slug: string) {
   const supabase = await createClient();

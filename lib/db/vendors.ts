@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/db/server";
 
 export async function getApprovedVendors() {
@@ -13,7 +14,9 @@ export async function getApprovedVendors() {
   return data;
 }
 
-export async function getFeaturedVendors(limit = 6) {
+// cache(): the navbar's Boutiques mega-menu and the homepage's vendor showcase both ask for this in the
+// same request — memoize so it only runs once (same pattern as getServerUser/getActiveTheme).
+export const getFeaturedVendors = cache(async function getFeaturedVendors(limit = 6) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("vendors")
@@ -25,7 +28,7 @@ export async function getFeaturedVendors(limit = 6) {
 
   if (error) throw error;
   return data;
-}
+});
 
 /** Distinct vendors with at least one active product in the given category — used to populate
  * the vendor filter chips/dropdown on a category page without listing irrelevant vendors. */

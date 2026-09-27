@@ -606,7 +606,7 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
 /* Fit to the window: on a wide, reasonably tall screen the whole open book fits in view and each page scrolls inside itself, like a real notebook — the
    page stays put, only what is written on it moves. (--dy-chrome is what sits above and below the book: announcement + header + desk padding + robin room.) */
 @media (min-width: 1280px) and (min-height: 700px) {
-  .dy-book--fit .dy-spread { height: clamp(34rem, calc(100dvh - var(--dy-chrome, 12.7rem)), 64rem); }
+  .dy-book--fit .dy-spread { height: clamp(34rem, calc(100dvh - var(--dy-chrome, 13.15rem)), 64rem); }
   .dy-book--fit .dy-page { min-height: 0; overflow: hidden; }
   .dy-book--fit .dy-cal-grid { row-gap: 0; }
   .dy-book--fit .dy-cal-day { width: min(100%, 1.65rem); font-size: 1.1rem; }
@@ -628,9 +628,9 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
    A wide screen shows a two-page spread that fits the window; a leaf (two-sided page, hinged at the spine) swings over to turn. On a phone or a short screen
    the book shows ONE page at a time and the same leaf turns it. Nothing scrolls inside a page on a wide screen: what does not fit goes on the next page.
    ===================================================================================================================================== */
-.dy-book--flip { --dy-chrome: 13.6rem; --stack-l: 4px; --stack-r: 12px; }
+.dy-book--flip { --dy-chrome: 14.05rem; --stack-l: 4px; --stack-r: 12px; }
 /* between 1280 and 1360px the section tabs sit in a row above the book instead of on its edge, so there is a tab-row more above it */
-@media (min-width: 1280px) and (max-width: 1359px) { .dy-book--flip { --dy-chrome: 16.6rem; } }
+@media (min-width: 1280px) and (max-width: 1359px) { .dy-book--flip { --dy-chrome: 17.05rem; } }
 .dy-stage { position: relative; display: grid; grid-template-columns: 1fr 1fr; perspective: 2800px; perspective-origin: 50% 40%; }
 .dy-stage[data-mode="single"] { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr); max-width: 34rem; margin-inline: auto; height: clamp(30rem, calc(100dvh - 15.5rem), 50rem); perspective-origin: 0% 40%; }
 /* a phone has its tab bar under the page: leave room so the "next page" corner is never behind it */
@@ -773,7 +773,7 @@ textarea.dy-field { min-height: 5.5rem; line-height: 1.55; resize: vertical; }
 .dy-fit-inner { width: calc(100% / var(--z, 1)); height: calc(100% / var(--z, 1)); transform: scale(var(--z, 1)); transform-origin: 0 0; }
 .dy-fit[data-fit="1"] .dy-drop-1, .dy-fit[data-fit="2"] .dy-drop-1, .dy-fit[data-fit="2"] .dy-drop-2 { display: none !important; }
 /* a shorter stage than the old floor: the pages scale to it */
-@media (min-width: 1280px) and (min-height: 720px) { .dy-book--flip.dy-book--fit .dy-spread { height: clamp(30rem, calc(100dvh - var(--dy-chrome, 13.6rem)), 64rem); } }
+@media (min-width: 1280px) and (min-height: 720px) { .dy-book--flip.dy-book--fit .dy-spread { height: clamp(30rem, calc(100dvh - var(--dy-chrome, 14.05rem)), 64rem); } }
 /* the small calendar keeps its size whatever the page's height (the taller-calendar rules above are for the month page) — and grows a little when the window is tall */
 .dy-book--flip .dy-cal--compact .dy-cal-day { width: min(100%, 1.8rem) !important; font-size: 1.1rem !important; }
 @container pg (min-height: 590px) { .dy-book--flip .dy-cal--compact .dy-cal-day { width: min(100%, 2rem) !important; font-size: 1.2rem !important; } .dy-book--flip .dy-cal--compact .dy-cal-grid { row-gap: 0.15rem; } }
