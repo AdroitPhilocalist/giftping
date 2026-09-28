@@ -10,7 +10,7 @@ import { whenOneSignalReady } from "@/lib/push/client";
  */
 let initialised = false;
 
-export function OneSignalIdentity({ appId, userId }: { appId: string; userId: string }) {
+export function OneSignalIdentity({ appId, userId, nonce }: { appId: string; userId: string; nonce?: string }) {
   useEffect(() => {
     (window.OneSignalDeferred ??= []).push(async (sdk) => {
       if (!initialised) {
@@ -26,7 +26,7 @@ export function OneSignalIdentity({ appId, userId }: { appId: string; userId: st
     });
   }, [appId, userId]);
 
-  return <Script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" strategy="afterInteractive" defer />;
+  return <Script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" strategy="afterInteractive" defer nonce={nonce} />;
 }
 
 // Re-exported so pages can await the SDK without importing the client module directly.

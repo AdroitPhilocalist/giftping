@@ -41,9 +41,13 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await getServerUser();
   const [theme, previewId] = await Promise.all([getActiveTheme(), getThemePreviewOverride()]);
   const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
+  const requestHeaders = await headers();
   // OneSignal's SDK refuses to run anywhere but the site address configured in its dashboard, so on localhost it only throws console errors.
-  const host = ((await headers()).get("host") ?? "").split(":")[0];
+  const host = (requestHeaders.get("host") ?? "").split(":")[0];
   const pushSdkAllowed = host !== "localhost" && host !== "127.0.0.1";
+  // Set by proxy.ts on every request, for the CSP's per-request script-src nonce — next/script needs it passed
+  // explicitly (Next only auto-applies the nonce to its own framework/page bundles, not third-party <Script>s).
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
   return (
     <html
       lang="en"
@@ -56,7 +60,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <main className="flex-1">{children}</main>
           <Footer />
           <Toaster />
-          {user && oneSignalAppId && pushSdkAllowed ? <OneSignalIdentity appId={oneSignalAppId} userId={user.id} /> : null}
+          {user && oneSignalAppId && pushSdkAllowed ? (
+            <OneSignalIdentity appId={oneSignalAppId} userId={user.id} nonce={nonce} />
+          ) : null}
           {previewId ? <ThemePreviewStrip label={resolveTheme(previewId).label} /> : null}
           <RobinCursor markSrc={siteImage("robin-perched", theme.id)?.src ?? null} />
           <CartFlyLayer />

@@ -127,9 +127,20 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
   `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and a
   `Permissions-Policy` that leaves camera/mic/geolocation off but allows `payment` for Razorpay's own
   origin — Vercel doesn't set any of these itself (its automatic HSTS only covers a verified custom
-  domain). **Deliberately no Content-Security-Policy yet** — this app loads Razorpay's checkout
-  script/iframe, Sentry, and OneSignal, and a CSP needs live traffic against all three to verify safely
-  rather than being guessed at; see `docs/progress/2026-09-28-overnight-qa-and-security-pass.md`.
+  domain).
+- **Content-Security-Policy**: set in `proxy.ts` (NOT `next.config.ts` — Next's nonce mechanism requires
+  minting a fresh nonce per request, which only `proxy.ts`/middleware can do), a per-request nonce +
+  `'strict-dynamic'` rather than a host allowlist for `script-src`. This means a script that a
+  nonce-trusted bundle loads dynamically (Razorpay's `checkout.js`, which itself goes on to load a second
+  script for risk detection; OneSignal's SDK config fetch) is automatically trusted too, without listing
+  those hosts by name — a stronger guarantee than an allowlist, and one that doesn't need updating when a
+  vendor adds a subdomain. `style-src` allows `'unsafe-inline'` deliberately (~40 components use dynamic
+  `style={{}}` from server data/theme tokens, never raw user text; Safari doesn't support the
+  finer-grained `style-src-attr` alternative). Live-tested against a real Razorpay checkout session, a
+  real Supabase Storage image request, and the real OneSignal SDK script (all clean, no CSP violations) —
+  see `docs/progress/2026-09-28-csp.md` for exactly what was and wasn't exercised (OneSignal's and
+  Sentry's `connect-src` entries are correct by configuration/research but not live-observed, since
+  neither fires a real network call from localhost).
 
 ## Folder structure
 

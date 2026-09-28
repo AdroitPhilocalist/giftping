@@ -18,10 +18,9 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   // Baseline hardening headers on every response — Next/Vercel don't set any of these on their own (Vercel's
-  // own HSTS only covers a verified custom domain, not these). Deliberately NOT including a Content-Security-Policy
-  // here: this app loads Razorpay's checkout script/iframe, Sentry, and (per lib/push) OneSignal, and a CSP written
-  // without testing each of those live could silently break checkout — worth doing as its own dedicated pass with
-  // real payment/error/push traffic to verify against, not guessed at here. See docs/progress for the write-up.
+  // own HSTS only covers a verified custom domain, not these). The Content-Security-Policy lives in proxy.ts
+  // instead, not here: it's a per-request nonce (Next's own recommended pattern), and only middleware can mint
+  // a fresh one per request. See docs/progress/2026-09-28-csp.md for what it allows and how it was tested live.
   async headers() {
     return [
       {
