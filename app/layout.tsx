@@ -56,7 +56,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="flex min-h-full flex-col font-sans">
         <TooltipProvider>
-          <Navbar announcement={theme.announcement} />
+          <Navbar />
           <main className="flex-1">{children}</main>
           <Footer />
           <Toaster />

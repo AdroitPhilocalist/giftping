@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Heart, Search, ShoppingBag, User } from "lucide-react";
+import { BookHeart, Heart, Search, ShoppingBag, User } from "lucide-react";
 import { AccountMenu } from "@/components/layout/AccountMenu";
-import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
 import { HeaderShell } from "@/components/layout/HeaderShell";
 import { Logo } from "@/components/layout/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
@@ -21,9 +20,9 @@ const iconButton = "relative rounded-full p-2 text-brand-on-primary/85 transitio
 const badge = "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ring-2 ring-brand-primary";
 // A quieter "ghost" pill rather than a solid fill — the client's own reference shows it this way, and it reads as a natural part of the bar rather than
 // competing with it; the copper accent still arrives on hover, so it isn't lost as an affordance.
-const diaryButton = "ml-1.5 hidden items-center whitespace-nowrap rounded-full border border-brand-on-primary/35 bg-brand-on-primary/[0.06] px-5 py-2.5 text-sm font-medium text-brand-on-primary transition-all duration-300 hover:border-brand-secondary hover:bg-brand-secondary hover:text-brand-on-secondary xl:inline-flex";
+const diaryButton = "ml-1.5 hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-brand-on-primary/35 bg-brand-on-primary/[0.06] px-5 py-2.5 text-sm font-medium text-brand-on-primary transition-all duration-300 hover:border-brand-secondary hover:bg-brand-secondary hover:text-brand-on-secondary xl:inline-flex";
 
-export async function Navbar({ announcement }: { announcement: string }) {
+export async function Navbar() {
   const user = await getServerUser();
   const [wishlistCount, cartCount, unreadCount, categories, vendors] = await Promise.all([
     user ? getWishlistProductIds(user.id).then((ids) => ids.size) : 0,
@@ -35,7 +34,6 @@ export async function Navbar({ announcement }: { announcement: string }) {
 
   return (
     <>
-      <AnnouncementBar message={announcement} />
       <HeaderShell>
         <div className="gp-header-inner gp-bar-gradient mx-auto flex max-w-[92rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Logo className="shrink-0 xl:mr-4 2xl:mr-8" tone="light" priority />
@@ -57,7 +55,7 @@ export async function Navbar({ announcement }: { announcement: string }) {
               <ShoppingBag className="h-5 w-5" />
               {cartCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{cartCount > 99 ? "99+" : cartCount}</span> : null}
             </Link>
-            <Link href="/diary" className={diaryButton}>My Diary</Link>
+            <Link href="/diary" className={diaryButton}><BookHeart className="h-4 w-4" aria-hidden="true" />My Diary</Link>
             <MobileMenu signedIn={Boolean(user)} />
           </div>
         </div>

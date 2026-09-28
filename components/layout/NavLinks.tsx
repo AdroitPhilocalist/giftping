@@ -45,37 +45,41 @@ export function NavLinks({ categories, vendors }: { categories: MegaCategory[]; 
   };
 
   return (
-    <nav aria-label="Main" className="hidden items-center gap-0.5 xl:flex 2xl:gap-1">
-      {NAV_ITEMS.map((item) => {
+    <nav aria-label="Main" className="hidden items-center xl:flex">
+      {NAV_ITEMS.map((item, index) => {
         const current = isCurrent(pathname, item.href);
         const mega: "occasions" | "boutiques" | null = item.label === "Occasions" ? "occasions" : item.label === "Boutiques" ? "boutiques" : null;
+        const divider = index < NAV_ITEMS.length - 1 ? <span aria-hidden="true" className="mx-0.5 text-brand-on-primary/25 2xl:mx-1">|</span> : null;
         const linkEl = (
           <Link
             href={item.href}
             aria-current={current ? "page" : undefined}
             aria-expanded={mega ? openMenu === mega : undefined}
             className={cn(
-              "gp-nav-link relative whitespace-nowrap rounded-full px-3.5 py-2 text-[0.88rem] font-medium tracking-[0.01em] transition-colors duration-300 2xl:px-4",
+              "gp-nav-link relative whitespace-nowrap rounded-full px-2.5 py-2 text-[0.88rem] font-medium tracking-[0.01em] transition-colors duration-300 2xl:px-3",
               current ? "gp-nav-link--current text-brand-secondary bg-brand-on-primary/10" : "text-brand-on-primary/85 hover:bg-brand-on-primary/10 hover:text-brand-on-primary",
             )}
           >
             {item.label}
           </Link>
         );
-        if (!mega) return <span key={item.label}>{linkEl}</span>;
+        if (!mega) return <span key={item.label} className="flex items-center">{linkEl}{divider}</span>;
         return (
-          <div key={item.label} className="relative" onMouseEnter={() => openNow(mega)} onMouseLeave={closeSoon} onFocus={() => openNow(mega)} onBlur={closeSoon}>
-            {linkEl}
-            {mega === "occasions" ? (
-              <MegaPanel open={openMenu === "occasions"} onMouseEnter={() => openNow("occasions")} onMouseLeave={closeSoon}>
-                <OccasionsPanel categories={categories} />
-              </MegaPanel>
-            ) : (
-              <MegaPanel open={openMenu === "boutiques"} onMouseEnter={() => openNow("boutiques")} onMouseLeave={closeSoon}>
-                <BoutiquesPanel vendors={vendors} />
-              </MegaPanel>
-            )}
-          </div>
+          <span key={item.label} className="flex items-center">
+            <div className="relative" onMouseEnter={() => openNow(mega)} onMouseLeave={closeSoon} onFocus={() => openNow(mega)} onBlur={closeSoon}>
+              {linkEl}
+              {mega === "occasions" ? (
+                <MegaPanel open={openMenu === "occasions"} onMouseEnter={() => openNow("occasions")} onMouseLeave={closeSoon}>
+                  <OccasionsPanel categories={categories} />
+                </MegaPanel>
+              ) : (
+                <MegaPanel open={openMenu === "boutiques"} onMouseEnter={() => openNow("boutiques")} onMouseLeave={closeSoon}>
+                  <BoutiquesPanel vendors={vendors} />
+                </MegaPanel>
+              )}
+            </div>
+            {divider}
+          </span>
         );
       })}
     </nav>
