@@ -138,3 +138,41 @@ the plain-page legibility turns out to matter more in practice, the fix is a pag
 tint only when a hero photo is actually behind the header, a stronger one otherwise) rather than one value
 that has to compromise between both cases — not built here, since it wasn't asked for and adds real
 conditional complexity for a problem that may not matter in practice.
+
+## Third correction, same day: the developer still saw a flat, washed-out grey bar
+
+Screenshots came back showing the header rendering as a flat, muted grey band — the hero photo underneath
+still perfectly visible, but the bar itself reading as an opaque grey wash rather than a tinted window onto
+that photo. This did **not** reproduce on this machine's own browser at any point while testing — same URL,
+same code, correct result. That mismatch, on its own, pointed at a rendering difference between environments
+rather than another wrong opacity number, so this pass didn't touch the gradient's alpha values at all (they
+were already validated as correct against the reference two corrections ago) — it removed the one part of
+the CSS that behaves inconsistently across browsers/OS settings: `backdrop-filter`.
+
+**Why `backdrop-filter` specifically, and why it fits every symptom exactly:**
+1. It sits on a `position: sticky` element (`HeaderShell.tsx`) whose child also transitions `width`,
+   `padding`, `border-radius`, and `box-shadow` on scroll (`data-condensed`) — compositing a live blur
+   against a *sticky* ancestor mid-transition is a genuinely inconsistent area across browser engines and
+   GPU paths; it can silently fail to sample the real backdrop.
+2. More concretely: **macOS's and Windows' own "Reduce Transparency" accessibility setting causes several
+   browsers (Safari does this by design) to substitute a flat, muted colour for any `backdrop-filter`
+   effect** — which is exactly "hero photo fine, bar itself flat grey" and nothing else. This is the single
+   most likely explanation and is directly testable (System Settings → Accessibility → Display → Reduce
+   Transparency, on whatever device produced those screenshots).
+
+Either cause lands on the same fix: stop depending on `backdrop-filter` for something a plain alpha-blended
+`background` can already do at this low an opacity. `.gp-header-glass` is now just the same colour gradient
+with `backdrop-filter` removed entirely — no blur, so the photo is if anything even sharper than the
+3px-blur version, and a plain semi-transparent background has no equivalent cross-browser or
+accessibility-setting risk to fail against. The condensed state's now-redundant `backdrop-filter: none`
+reset was removed too, since there's nothing left to reset.
+
+**What this session could not do**: reproduce the grey-bar symptom itself, since it never appeared in this
+environment. The fix is a confident diagnosis from the exact symptom pattern and a well-documented browser
+behaviour, not something verified by watching the bug happen and then disappear. If it recurs after this
+fix, the next thing to check is literally the Reduce Transparency setting on the device being used to view
+it, before touching this CSS again.
+
+Live-verified after this change: homepage (still matches the reference — sharp photo, light tint, both
+buttons correct), scroll/condensed transition (still switches cleanly to the solid fill). Full regression
+re-run clean: `tsc --noEmit`, `npx eslint .`, `npx vitest run` (291/291), `next build`.
