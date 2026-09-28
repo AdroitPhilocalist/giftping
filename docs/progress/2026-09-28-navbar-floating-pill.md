@@ -107,3 +107,34 @@ between the logo and the icons there, since mobile has no nav-link text to lose 
 re-run clean: `tsc --noEmit`, `npx eslint .`, `npx vitest run` (291/291, theme-safety included — the new
 `rgb(6 26 17 / alpha)` values live in `globals.css`, which is where colour tokens are *defined*, not a
 component file the theme-safety scanner checks), `next build`.
+
+## Second correction, same day: still not glass — a colour blur, not a clear tint
+
+The developer sent screenshots of the reference next to the live result, side by side, and the difference
+was obvious once actually compared that way rather than eyeballed separately: the reference shows the
+**actual photo — the round skylight, the hanging string lights, the ceiling architecture — still sharp and
+recognisable** through the bar, just lightly darkened for text contrast. What the first correction actually
+produced was a heavy `blur(18px)` over a fairly strong tint (up to 0.85 alpha at the ends), which didn't
+read as glass at all — it read as an abstract, blurred colour gradient with no photo detail left in it. Two
+things were wrong, not one: the blur was far too strong, and the tint was far too dark. Both compound each
+other — a strong blur alone would still show colour blobs from the photo's own tones, but combined with a
+near-opaque tint at the ends there was nothing photographic left to see.
+
+Fixed by making both numbers much smaller: blur down from `18px` to `3px` (barely softens edges, doesn't
+erase detail), and the gradient's alpha values roughly halved (`0.4` / `0.22` / `0.14` / `0.2` / `0.38`
+instead of `0.85` / `0.58` / `0.36` / `0.55` / `0.82`). Checked directly against the reference at the same
+crop afterward: the skylight and lights are now clearly visible through the bar, matching.
+
+**The trade-off, accepted deliberately rather than silently**: this necessarily weakens legibility on pages
+with no hero photo behind the header (`/mall`, and every other non-homepage page) — with this little tint,
+`/mall`'s plain cream background now shows through quite strongly and the middle nav links (Occasions,
+Boutiques, Diaries) read noticeably lower-contrast than the logo/icon ends. This is the direct, unavoidable
+cost of matching a "you can see the actual photo through it" reference exactly: a tint light enough to show
+a photo clearly is also too light to darken a bright plain page much. Given how specifically and repeatedly
+this was asked for against the homepage reference, this session prioritized matching it exactly over
+preserving non-hero-page contrast — **flagging this here rather than re-litigating it with more opacity
+tuning of my own**, since that's exactly the back-and-forth that caused the previous, too-dark attempt. If
+the plain-page legibility turns out to matter more in practice, the fix is a page-aware variant (a lighter
+tint only when a hero photo is actually behind the header, a stronger one otherwise) rather than one value
+that has to compromise between both cases — not built here, since it wasn't asked for and adds real
+conditional complexity for a problem that may not matter in practice.

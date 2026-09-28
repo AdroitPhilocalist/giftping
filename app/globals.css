@@ -278,22 +278,22 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
     linear-gradient(120deg, var(--gp-bar-top) 0%, var(--gp-primary) 45%, var(--gp-primary) 70%, var(--gp-primary-dark) 100%);
 }
 
-/* The header at rest (components/layout/Navbar.tsx): NOT a flat fill — a dark-green gradient that's genuinely translucent in the middle (over the plain nav
-   links) and darker toward both ends (logo, icons/CTA), with a backdrop blur so whatever is actually behind it — the hero photo's own gold light on the
-   homepage, or the plain page elsewhere — visibly shows through, softened rather than sharply visible. This is what the client's reference image shows:
-   the bar is not a solid colour block, it's genuinely see-through in the middle. Once condensed on scroll (a much smaller pill, likely over ordinary page
-   content by then, not a hero), it switches to .gp-bar-gradient's solid fill instead — legibility matters more than the glass effect at that size. */
+/* The header at rest (components/layout/Navbar.tsx): real glass, not a colour fill and not frosted — the client's reference shows the actual photo behind
+   it (the skylight, the hanging lights, the ceiling) still sharp and clearly recognisable, just lightly tinted for text contrast, barely darker behind the
+   logo/icons than in the middle. A heavy blur or a strong dark tint (both tried and corrected) hides the photo instead of showing it through glass — the
+   whole point is that it stays a photo, not an abstract colour blur. Once condensed on scroll (a much smaller pill, likely over ordinary page content by
+   then, not a hero), it switches to .gp-bar-gradient's solid fill instead — legibility matters more than the glass effect at that size. */
 .gp-header-glass {
   background: linear-gradient(
     100deg,
-    rgb(6 26 17 / 0.85) 0%,
-    rgb(6 26 17 / 0.58) 30%,
-    rgb(6 26 17 / 0.36) 55%,
-    rgb(6 26 17 / 0.55) 78%,
-    rgb(6 26 17 / 0.82) 100%
+    rgb(6 26 17 / 0.4) 0%,
+    rgb(6 26 17 / 0.22) 30%,
+    rgb(6 26 17 / 0.14) 55%,
+    rgb(6 26 17 / 0.2) 78%,
+    rgb(6 26 17 / 0.38) 100%
   );
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  backdrop-filter: blur(3px) saturate(1.05);
+  -webkit-backdrop-filter: blur(3px) saturate(1.05);
 }
 .gp-header[data-condensed="true"] .gp-header-glass {
   background:
