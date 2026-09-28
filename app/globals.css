@@ -269,12 +269,39 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
    reliably line up at the boundary, a flat colour that matches the neighbour's own starting point always will. */
 .gp-bar-top { background: var(--gp-bar-top); }
 /* still forest green throughout, but with real depth: a soft warm glow low on the left (near the logo, echoing the copper accent rather than adding a new
-   colour), a bright sheen along the top edge, and a slightly richer three-stop diagonal underneath — instead of one flat fill. */
+   colour), a bright sheen along the top edge, and a slightly richer three-stop diagonal underneath — instead of one flat fill. Only used by the now-unused
+   AnnouncementBar.tsx; the header itself uses .gp-header-glass below. */
 .gp-bar-gradient {
   background:
     radial-gradient(38rem 100% at 6% 100%, color-mix(in srgb, var(--gp-copper) 20%, transparent), transparent 70%),
     linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 45%),
     linear-gradient(120deg, var(--gp-bar-top) 0%, var(--gp-primary) 45%, var(--gp-primary) 70%, var(--gp-primary-dark) 100%);
+}
+
+/* The header at rest (components/layout/Navbar.tsx): NOT a flat fill — a dark-green gradient that's genuinely translucent in the middle (over the plain nav
+   links) and darker toward both ends (logo, icons/CTA), with a backdrop blur so whatever is actually behind it — the hero photo's own gold light on the
+   homepage, or the plain page elsewhere — visibly shows through, softened rather than sharply visible. This is what the client's reference image shows:
+   the bar is not a solid colour block, it's genuinely see-through in the middle. Once condensed on scroll (a much smaller pill, likely over ordinary page
+   content by then, not a hero), it switches to .gp-bar-gradient's solid fill instead — legibility matters more than the glass effect at that size. */
+.gp-header-glass {
+  background: linear-gradient(
+    100deg,
+    rgb(6 26 17 / 0.85) 0%,
+    rgb(6 26 17 / 0.58) 30%,
+    rgb(6 26 17 / 0.36) 55%,
+    rgb(6 26 17 / 0.55) 78%,
+    rgb(6 26 17 / 0.82) 100%
+  );
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+}
+.gp-header[data-condensed="true"] .gp-header-glass {
+  background:
+    radial-gradient(38rem 100% at 6% 100%, color-mix(in srgb, var(--gp-copper) 20%, transparent), transparent 70%),
+    linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 45%),
+    linear-gradient(120deg, var(--gp-bar-top) 0%, var(--gp-primary) 45%, var(--gp-primary) 70%, var(--gp-primary-dark) 100%);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 /* The header (components/layout/HeaderShell.tsx). On phones/tablets it's still the flush, full-width bar sitting directly on the hero, matching the

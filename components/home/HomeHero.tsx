@@ -62,7 +62,7 @@ export async function HomeHero() {
                 <Button size="lg" asChild>
                   <Link href="/mall">Explore the Mall <ArrowRight className="h-4 w-4" /></Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-brand-on-primary/45 text-brand-on-primary hover:border-brand-on-primary hover:bg-brand-on-primary/10" asChild>
+                <Button size="lg" variant="outline" className="border-transparent bg-brand-surface text-brand-dark hover:bg-brand-accent" asChild>
                   <Link href="/about">Watch Our Story <Play className="h-4 w-4" /></Link>
                 </Button>
               </div>

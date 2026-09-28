@@ -63,3 +63,47 @@ Checked against the running dev server, not just read from the diff:
 left in place rather than ripped out — no admin UI edits it directly, so it's harmless, and removing it
 would touch every theme entry for a saving of a few unused lines. Not worth it in the same pass as a visual
 change that might itself need to be revisited.
+
+## Correction, same day: the shape was right, the fill was wrong
+
+The developer came back immediately after seeing this live: the pill *shape* matched, but the background
+was still a flat, opaque dark green — and the reference image actually shows something quite different.
+Looking again, carefully, at the same image: the bar isn't a solid colour block at all. It's genuinely
+**translucent in the middle**, with the hero photo's own gold light visibly bleeding through right where the
+plain nav links sit ("Boutiques", "Diaries", "Corporate Gifting"), and only reads as solid dark green near
+the two ends (behind the logo, and behind the icons/"My Diary" button). This directly contradicts the
+previous section's "one fixed colour, never transparent" reasoning — that principle was simply wrong for
+*this* reference, and the fix below replaces it rather than layering on top of it.
+
+**What changed, on top of everything above:**
+- **`app/globals.css`**: added `.gp-header-glass` — a `linear-gradient` that's ~0.85 alpha dark green at
+  both ends and drops to ~0.36 alpha in the middle, combined with `backdrop-filter: blur(18px) saturate(1.2)`
+  so whatever is actually behind the bar (the hero photo's gold light on the homepage, or the plain cream
+  page elsewhere) shows through *softened*, not sharply. This is what the reference actually shows: the bar
+  is a genuine glass effect, not a flat fill. `Navbar.tsx` now uses this class instead of the old
+  `.gp-bar-gradient` (which is untouched and still used by the now-unused `AnnouncementBar.tsx`).
+- **Condensed (scrolled) state stays solid on purpose**: once the pill shrinks on scroll it's likely sitting
+  over ordinary page content rather than a deliberately-composed hero photo, so `data-condensed="true"`
+  switches `.gp-header-glass` back to the old solid `.gp-bar-gradient` fill — legibility over whatever
+  arbitrary content is now behind it matters more than the glass effect at that size, and this was a
+  judgement call, not something shown one way or the other in the reference (which only depicts the
+  un-scrolled state).
+- **Legibility on non-hero pages, checked and tuned live**: the glass effect's minimum opacity was tested
+  against a plain cream page (`/mall`) and bumped from 0.24 to 0.36 alpha at the gradient's most transparent
+  point after the nav links there read as slightly too washed-out on first pass — re-checked afterward and
+  it's legible while still visibly translucent.
+- **The two hero buttons now match the reference too**: "Explore the Mall" was already correct (solid
+  forest green, the `Button` component's default `primary` variant). "Watch Our Story" was wrong — it was
+  rendering as a transparent/outlined pill with a cream border, but the reference shows a **solid white/cream
+  pill with dark ink text**. Fixed in `components/home/HomeHero.tsx` by overriding that one button instance's
+  classes (`bg-brand-surface text-brand-dark`) rather than changing the shared `outline` variant other
+  buttons still rely on.
+
+**Live-verified again after the correction**: the homepage at the reference's own aspect ratio (side-by-side
+now genuinely close — gold light visible through the middle of the bar, both buttons matching), `/mall` for
+legibility over a plain page, the scroll/condensed transition (confirmed it switches cleanly to solid, no
+flash), and mobile (375px — unaffected; the glass gradient's transparent midpoint sits in the empty space
+between the logo and the icons there, since mobile has no nav-link text to lose contrast). Full regression
+re-run clean: `tsc --noEmit`, `npx eslint .`, `npx vitest run` (291/291, theme-safety included — the new
+`rgb(6 26 17 / alpha)` values live in `globals.css`, which is where colour tokens are *defined*, not a
+component file the theme-safety scanner checks), `next build`.
