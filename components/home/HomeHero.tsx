@@ -25,7 +25,10 @@ export async function HomeHero() {
 
   return (
     <>
-      <section className="relative isolate overflow-hidden">
+      {/* Cancels app/layout.tsx's <main> padding-top (added for the fixed header) and puts it straight back as the section's own padding — the photo,
+          being absolute inset-0, fills the section including that padding and so bleeds all the way up behind the header; the actual headline content
+          below is a normal in-flow child, so the section's padding still pushes it down to exactly the same visual position as before. */}
+      <section className="relative isolate -mt-[5.5rem] overflow-hidden pt-[5.5rem] lg:-mt-[6.5rem] lg:pt-[6.5rem]">
         <div className="absolute inset-0" aria-hidden={hero ? undefined : true}>
           {hero ? (
             <picture className="absolute inset-0 block">

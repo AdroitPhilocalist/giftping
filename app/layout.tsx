@@ -57,7 +57,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <body className="flex min-h-full flex-col font-sans">
         <TooltipProvider>
           <Navbar />
-          <main className="flex-1">{children}</main>
+          {/* Matches .gp-header's own height exactly (globals.css) — the header is `fixed`, so it no longer reserves this space itself; every
+              page needs it back as padding, except the homepage hero, which cancels it again with a negative margin to bleed under the header. */}
+          <main className="flex-1 pt-[5.5rem] lg:pt-[6.5rem]">{children}</main>
           <Footer />
           <Toaster />
           {user && oneSignalAppId && pushSdkAllowed ? (

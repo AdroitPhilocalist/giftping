@@ -176,3 +176,50 @@ it, before touching this CSS again.
 Live-verified after this change: homepage (still matches the reference — sharp photo, light tint, both
 buttons correct), scroll/condensed transition (still switches cleanly to the solid fill). Full regression
 re-run clean: `tsc --noEmit`, `npx eslint .`, `npx vitest run` (291/291), `next build`.
+
+## Fourth correction, same day: the real bug — the header was never actually over the photo
+
+The developer sent one more side-by-side, and this time the difference was structural, not a colour number:
+behind the navbar there was a strip of the **plain page background** (cream/peach), not the hero photo at
+all — visible as a distinct band, not just "the photo showing through faintly." That's a different class of
+bug than anything tuned so far, and it turned out the previous three corrections had all been tuning the
+right property on the wrong premise: **the hero photo was never actually positioned behind the header in the
+first place.**
+
+Checked directly via the DOM rather than guessing again: `HeaderShell.tsx`'s `<header>` was `position:
+sticky`. A sticky element still reserves its own box in normal document flow at rest — confirmed live,
+`getBoundingClientRect()` showed the header occupying `y: 0` to `104px`, and the hero `<section>` starting
+at `y: 104px`, right where the header ends. There was no overlap at all. The header's own background is
+mostly transparent by design (only `.gp-header-inner`'s pill has a fill) — so the "peach strip" the developer
+kept seeing behind it was simply `<body>`'s own cream background (`rgb(251, 246, 241)`), because that
+*genuinely was* the only thing behind the header. No opacity or blur value could ever have fixed this: the
+photo the glass effect was supposed to show through was never there to show.
+
+**The fix — three coordinated changes, not just one:**
+1. **`HeaderShell.tsx`**: `position: sticky` → `position: fixed` (`inset-x-0 top-0`). `fixed` removes the
+   header from document flow entirely, so it floats *over* whatever the page actually renders at the top,
+   rather than reserving its own space above it.
+2. **`app/layout.tsx`**: `<main>` gained `pt-[5.5rem] lg:pt-[6.5rem]` — matching `.gp-header`'s own height
+   exactly. Removing the header from flow means every *other* page would otherwise have its content jump up
+   and hide underneath the now-floating header; this padding puts that reserved space back, so every
+   non-hero page renders pixel-identical to before (verified: `/mall`, a product page, the diary flip-book,
+   and mobile all checked side-by-side against how they looked pre-change, no shift, nothing hidden).
+3. **`HomeHero.tsx`**: the hero `<section>` gained a matching *negative* margin (`-mt-[5.5rem]
+   lg:-mt-[6.5rem]`) plus the same amount back as `padding-top`. The negative margin cancels `<main>`'s new
+   padding specifically for this one section, pulling its box up so it starts at the true viewport top (`y:
+   0`) — confirmed live, `heroSectionRect.top` went from `104` to `0` after this change, now matching the
+   header's own `top: 0` exactly, genuinely overlapping for the first time. The section's own `padding-top`
+   then pushes the actual headline/button content back down to the same visual position it was already in
+   (the background image, being `absolute inset-0`, fills the section including its padding, so only the
+   *photo* extends up into the newly-reclaimed space, not the text sitting on top of it).
+
+This is why the three previous passes never fully worked: `.gp-header-glass`'s tint and (lack of) blur were
+already correct by the second/third correction, but a correct tint over the wrong backdrop still isn't the
+reference. Live-verified thoroughly given how structural this change is: homepage (photo now genuinely
+visible at `y: 0`, matching the reference), `/mall` and a product page (pixel-identical spacing to before),
+the diary flip-book (its own window-fitting logic, `FitPage`, still lands correctly — checked since it's the
+one other place height math could plausibly have broken), scroll/condensed transition, the Occasions
+mega-menu (still anchors correctly under the now-`fixed` pill), and mobile (untouched visually, still flush,
+now also technically `fixed` rather than `sticky` but with no visible difference since mobile has no hero to
+bleed under). Full regression re-run clean: `tsc --noEmit`, `npx eslint .`, `npx vitest run` (291/291),
+`next build`.
