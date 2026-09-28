@@ -197,7 +197,14 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 /components/shop → ProductCard, ProductImage (branded placeholder when no photo — see "Product imagery"
                   below), WishlistButton, ProductGallery, ProductBuyBox (variants + personalization +
                   working Add to Cart / Buy Now via the cart Server Actions), CartLineItem, GuestCartMerger, ReviewList, ProductFilters (plain GET form — query-param filters,
-                  works without JS), CategoryCard, VendorCard, SearchBar, Pagination
+                  works without JS), CategoryCard, VendorCard, SearchBar, Pagination, VendorHero (a boutique's
+                  own full-bleed banner hero on `/vendors/[slug]` — bleeds behind the fixed header the same
+                  `-mt-[5.5rem] lg:-mt-[6.5rem]`/matching-`pt-` way `HomeHero` does; any future full-bleed
+                  hero on a new page needs this exact pairing, not a change to `<main>`'s own padding — see
+                  `docs/progress/2026-09-28-navbar-floating-pill.md`), VendorFeatureGrid (the "why shop here"
+                  cards under it — generic, truthful claims per vendor, not one boutique's own marketing copy
+                  hardcoded into the shared template; see `docs/progress/2026-09-28-vendor-storefront-
+                  redesign.md`)
 /components/vendor → VendorApplicationForm, ProductForm (RHF + Zod, variants via useFieldArray with
                   keyName "fieldKey"), ImageManager, ProductRowActions, PortalNav
 /components/admin → DecisionButtons (Approve / Reject-with-reason modal)
