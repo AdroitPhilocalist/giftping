@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BellRing, BookHeart, Heart, MapPin, PackageSearch, type LucideIcon } from "lucide-react";
+import { BellRing, BookHeart, Heart, MapPin, PackageSearch, Star, User, type LucideIcon } from "lucide-react";
 import { Robin } from "@/components/art/Robin";
 import { DataExportSection } from "@/components/shop/DataExportSection";
 import { DeleteAccountSection } from "@/components/shop/DeleteAccountSection";
@@ -9,9 +9,11 @@ import { requireRole } from "@/lib/auth/session";
 export const metadata = { title: "My Account — GiftPing" };
 
 const TILES: { href: string; icon: LucideIcon; title: string; text: string }[] = [
+  { href: "/account/profile", icon: User, title: "Profile", text: "Your name, contact number, and photo." },
   { href: "/orders", icon: PackageSearch, title: "My orders", text: "Track parcels, ask for a return, see your history." },
   { href: "/diary", icon: BookHeart, title: "Gifting diary", text: "The people and dates you never want to miss." },
   { href: "/wishlist", icon: Heart, title: "Wishlist", text: "Things you've loved along the way." },
+  { href: "/account/reviews", icon: Star, title: "My reviews", text: "See and edit what you've written." },
   { href: "/account/addresses", icon: MapPin, title: "Saved addresses", text: "Where your gifts should go." },
   { href: "/account/notifications", icon: BellRing, title: "Notifications", text: "Choose which emails and alerts you get." },
 ];

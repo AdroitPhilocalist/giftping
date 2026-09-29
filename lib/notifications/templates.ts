@@ -249,6 +249,26 @@ export function buildReturnUpdateEmail(i: ReturnUpdateInput): BuiltEmail {
 // ---------------------------------------------------------------------------
 // A copy of the account's data was downloaded (security notice)
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Admin → vendor: a direct message or a broadcast to every vendor
+// ---------------------------------------------------------------------------
+export interface AdminMessageInput { vendorName: string; subject: string; message: string; dashboardUrl: string; preferencesUrl: string }
+
+export function buildAdminMessageEmail(i: AdminMessageInput): BuiltEmail {
+  // The message body is free text typed by an admin, not markup — render it as plain paragraphs (one per
+  // blank-line-separated block), each escaped, rather than trusting or interpreting any HTML in it.
+  const paragraphs = i.message.split(/\n{2,}/).map((block) => `<p style="margin:0 0 12px;color:#555">${escapeHtml(block).replace(/\n/g, "<br/>")}</p>`).join("");
+  const html = renderEmailFrame({
+    preheader: i.subject,
+    heading: i.subject,
+    bodyHtml: `<p style="margin:0 0 8px;color:#555">Hi ${escapeHtml(i.vendorName)},</p>${paragraphs}<p style="margin:0;color:#777;font-size:13px">This is an official message from the GiftPing team.</p>`,
+    cta: { label: "Open your dashboard", url: i.dashboardUrl },
+    footerHtml: footer(i.preferencesUrl),
+  });
+  const text = [`Hi ${i.vendorName},`, "", i.message, "", "This is an official message from the GiftPing team.", `Dashboard: ${i.dashboardUrl}`].join("\n");
+  return { subject: i.subject, html, text };
+}
+
 export interface DataExportInput { firstName: string; whenLabel: string; accountUrl: string; preferencesUrl: string }
 
 export function buildDataExportEmail(i: DataExportInput): BuiltEmail {

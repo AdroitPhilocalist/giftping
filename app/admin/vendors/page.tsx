@@ -1,3 +1,4 @@
+import { BroadcastVendorMessage } from "@/components/admin/BroadcastVendorMessage";
 import { DecisionButtons } from "@/components/admin/DecisionButtons";
 import { VendorAdminControls } from "@/components/admin/VendorAdminControls";
 import { Badge } from "@/components/ui/Badge";
@@ -17,10 +18,14 @@ export default async function AdminVendorsPage() {
   const rows = vendors ?? [];
   const pending = rows.filter((v) => v.status === "pending");
   const decided = rows.filter((v) => v.status !== "pending");
+  const approvedCount = rows.filter((v) => v.status === "approved").length;
 
   return (
     <div>
-      <h1 className="font-heading text-3xl text-brand-dark">Vendors</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="font-heading text-3xl text-brand-dark">Vendors</h1>
+        {approvedCount > 0 ? <BroadcastVendorMessage vendorCount={approvedCount} /> : null}
+      </div>
 
       <h2 className="mb-3 mt-6 font-heading text-lg text-brand-dark">Pending applications ({pending.length})</h2>
       {pending.length === 0 ? (

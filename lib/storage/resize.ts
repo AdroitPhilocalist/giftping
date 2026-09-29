@@ -163,3 +163,17 @@ export async function processDiaryPhoto(input: Buffer): Promise<Buffer> {
     .webp({ quality: 84 })
     .toBuffer();
 }
+
+export const AVATAR_SIZE = 400;
+const AVATAR_MIN_EDGE = 160;
+
+/** A customer's profile photo: centre-cropped toward whatever looks most interesting (usually a face, same strategy as a diary photo) to a square, stored at 400×400 WebP. */
+export async function processUserAvatar(input: Buffer): Promise<Buffer> {
+  const { width, height } = await inspectUpload(input);
+  if (Math.min(width, height) < AVATAR_MIN_EDGE) throw new ImageValidationError(`Photos must be at least ${AVATAR_MIN_EDGE}px on their shortest side.`);
+  return sharp(input, { limitInputPixels: 50_000_000 })
+    .rotate()
+    .resize({ width: AVATAR_SIZE, height: AVATAR_SIZE, fit: "cover", position: sharp.strategy.attention })
+    .webp({ quality: 84 })
+    .toBuffer();
+}

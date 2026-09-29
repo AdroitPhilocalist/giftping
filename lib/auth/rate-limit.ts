@@ -39,6 +39,10 @@ export const deliveryRateLimit = createLimiter(30, "1 m");
 export const dispatchRateLimit = createLimiter(20, "1 m");
 // Diary writes (people, dates, gifts).
 export const diaryRateLimit = createLimiter(60, "1 m");
+// Review submissions/edits/deletes.
+export const reviewRateLimit = createLimiter(20, "1 m");
+// Admin messages to a vendor or a broadcast to all vendors — low volume, but each one sends real email/push.
+export const adminMessageRateLimit = createLimiter(20, "1 m");
 
 export interface RateLimitResult {
   success: boolean;

@@ -207,11 +207,17 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
                   redesign.md`)
 /components/vendor → VendorApplicationForm, ProductForm (RHF + Zod, variants via useFieldArray with
                   keyName "fieldKey"), ImageManager, ProductRowActions, PortalNav
-/components/admin → DecisionButtons (Approve / Reject-with-reason modal)
+/components/admin → DecisionButtons (Approve / Reject-with-reason modal), BroadcastVendorMessage (message
+                  every approved vendor at once — see VendorAdminControls' own "Message" action for the
+                  single-vendor version, same modal shape as its Suspend action)
+/components/account → ProfileForm (RHF + Zod — name/phone), AvatarUpload (saves immediately on pick, same
+                  pattern as VendorBrandingForm's logo slot)
 /components/diary → the redesigned diary (a book on a desk — see "Stage 12 — the diary redesign" below): diary.css (all `dy-*` styles, in Tailwind's `components` layer) + diary-tokens.css (sticker colours on :root) +
                   fonts.ts (Caveat, diary-only); book/ (DiaryDesk, Book, SectionTitle, Polaroid), art/ (Sprig, OccasionSticker, WaxSeal, Doodles, DeskProps — all SVG, coloured from variables), forms/ (PaperDialog +
                   DiaryDialogs: person/date/gift dialogs and their ready-made buttons, parts.tsx), person/ (PersonSpread, PlanSheet, LovesBoard, PrivateNotes…), year/, review/, flip/ (DiaryBook — the page-turning home book) + pages/ (one component per diary page + buildSpreads), FirstRun…
-/lib/account    → address-actions.ts (save / default / delete — session client, RLS + triggers enforce)
+/lib/account    → address-actions.ts (save / default / delete — session client, RLS + triggers enforce),
+                  profile-actions.ts (updateProfileAction — name/phone only, explicit column whitelist,
+                  session client, no elevated trigger needed since users_update_own_or_admin already permits it)
 /lib/db         → Supabase clients + generated types + per-table query helpers: addresses.ts, orders.ts, categories.ts, vendors.ts
                   (incl. getVendorsForCategory — scopes a category page's vendor filter to vendors that
                   actually have products there), products.ts (listProducts w/ filter+sort+paginate,
@@ -220,7 +226,9 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
                   (Server Actions: sign-up/in/out, Google OAuth, password reset), rate-limit.ts
                   (Upstash — fails open/no-ops if not configured, never blocks on a missing dev credential)
 /lib/shop       → wishlist-actions.ts (toggleWishlistAction, a Server Action — not lib/commerce, that's
-                  reserved for cart/checkout/commission/coupons, which are a different domain)
+                  reserved for cart/checkout/commission/coupons, which are a different domain), review-
+                  actions.ts (submitReviewAction upserts on the reviews_product_user_unique constraint —
+                  "write a review" and "review again after a repeat purchase" are the same code path)
 /lib/commerce   → refunds.ts (pure, tested: refundableRemaining / suggestRefundAmount / refundShare / returnWindow / RETURN_REASONS), returns.ts (customer return requests; server-only), commission.ts (built, tested: resolveCommissionRate = vendor override → category →
                   platform_settings default → 10, `!= null` so 0 is a real override; computeCommission).
                   pricing.ts (pure, tested: computeUnitPrice / effectiveStock / maxPurchasable — Stage 6
@@ -238,14 +246,16 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 /lib/vendor     → product-csv.ts (pure, tested CSV parser + row validator reusing productSchema), product-import.ts + import-actions.ts (server preview/commit; import_vendor_products() is atomic, service_role-only, refuses a re-uploaded file), dispatch.ts (accept order + resumable Shiprocket booking saga), fulfilment-actions.ts, actions.ts (registerVendorAction, saveProductAction, setProductActiveAction, image
                   actions), product-helpers.ts (syncProductThumbnail, sendBackToReviewIfLive)
 /lib/admin      → refunds.ts + refund-actions.ts (return decisions; begin→gateway→complete refunds, retryable), actions.ts (approve/reject vendor & product; writes audit_logs + notifications via the
-                  admin client — those tables have no client write policies)
+                  admin client — those tables have no client write policies), vendor-message-actions.ts
+                  (messageVendorAction / broadcastVendorMessageAction — official admin→vendor comms via
+                  notifyUser(), category "vendor_updates"; also audit-logged)
 /lib/catalog    → tags.ts (OCCASION_TAGS, RECIPIENT_TAGS, labelForTag — shared by vendor form + shop filters)
 /lib/notifications → notify.ts (notifyUser: in-app + optional email, preference-gated, NEVER throws — use it for every user-facing message), email-layout.ts +
                   templates.ts (pure, tested, HTML-escaped order/shipment/vendor emails)
 /lib/integrations → resend.ts (fetch client; no-op without a key), razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
                   shiprocket-status.ts / shiprocket-webhook.ts (pure, tested) built; msg91.ts, onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
-/lib/storage    → (also diary-photos.ts — the PRIVATE `diary-photos` bucket: written only by POST /api/diary/photo, read only through signed URLs; processDiaryPhoto in resize.ts) (also branding.ts — vendor logo/banner storage in the public `vendor-branding` bucket, written only by POST /api/vendor/upload-branding; processVendorLogo/processVendorBanner; processBannerImage + the public `site-banners` bucket helpers in upload.ts — server-only writes via POST /api/admin/upload-banner) resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
+/lib/storage    → (also diary-photos.ts — the PRIVATE `diary-photos` bucket: written only by POST /api/diary/photo, read only through signed URLs; processDiaryPhoto in resize.ts) (also branding.ts — vendor logo/banner storage in the public `vendor-branding` bucket, written only by POST /api/vendor/upload-branding; processVendorLogo/processVendorBanner; processBannerImage + the public `site-banners` bucket helpers in upload.ts — server-only writes via POST /api/admin/upload-banner) (also avatar.ts — a customer's profile photo in the public `user-avatars` bucket, written only by POST /api/account/upload-avatar; processUserAvatar in resize.ts, same face-aware square crop as a diary photo) resize.ts (processProductImage: sharp validates the real bytes, EXIF-rotates, re-encodes
                   to WebP full 1600 / medium 800 / thumb 400, strips metadata; ImageValidationError),
                   upload.ts (service-role writes to the public `product-images` bucket). The bucket has NO
                   client write policies — the only write path is POST /api/vendor/upload-image (a route
@@ -527,6 +537,29 @@ files with the editor tool.
 
 - **Build a personal-data export from an explicit column list inside one SQL function** (`export_user_data`), never `select *` or a generic dump, and test it with a second user's data present. Anything that adds a new table holding personal data must be added to that function (and to `anonymize_user`).
 - **Sensitive-but-harmless-looking endpoints are POST-only, scoped to the session user, throttled from the audit log, audit-logged without personal data, and announced to the account holder.**
+
+### Profile management, review management, vendor communication — three spec features, DB layer was already ready
+
+- **A schema's own OUTPUT must survive being re-parsed as its own INPUT** — `updateProfileAction`'s phone
+  field is genuinely validated twice (once client-side via `react-hook-form`'s `zodResolver`, again
+  server-side, independently), and a `z.union([z.literal(""), z.string().regex(...)])` reported a bare
+  "Invalid input" specifically on that second pass in Zod v4, caught only by live-testing (unit tests
+  written *before* the bug wasn't enough — the schema was tested standalone, not round-tripped through
+  itself the way real use actually exercises it). Fixed by preprocessing straight to `null |
+  normalised-string` and validating with `.nullable()` instead of a union with the empty-string literal.
+  Any schema whose value gets parsed more than once in the same request (client + server, or upsert +
+  re-read) should have a test that re-parses its own successful output, not just fresh input.
+- **`users.avatar_url`** now follows the exact same rule Stage 11 established for `vendors.logo_url`: a
+  CHECK constraint pinning it to `<userId>/avatar-<uuid>.webp` in a new public `user-avatars` bucket with no
+  client write policies (`supabase/migrations/20260928190000_user_avatar.sql`) — it existed as a plain,
+  completely unused `text` column before this.
+- **`reviews_product_user_unique` (product_id, user_id)** didn't exist before this — nothing stopped a
+  customer submitting unlimited reviews for the same product, each counted separately by
+  `recompute_product_rating()`'s trigger. Added in `supabase/migrations/20260928191000_reviews_unique_
+  per_product.sql`, which also cleans up one real pre-existing duplicate pair found in the demo seed data
+  (checked live before writing the migration) — a migration adding a new uniqueness constraint should
+  always check the real database for existing violations first, not assume there are none.
+- Full write-up: `docs/progress/2026-09-29-profile-reviews-vendor-messaging.md`.
 
 ## Auth
 

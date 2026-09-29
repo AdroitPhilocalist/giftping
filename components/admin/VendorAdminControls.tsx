@@ -7,6 +7,7 @@ import { Input, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { toast } from "@/components/ui/Toast";
 import { removeVendorBrandingAction, setCommissionOverrideAction, setVendorSuspendedAction } from "@/lib/admin/vendor-actions";
+import { messageVendorAction } from "@/lib/admin/vendor-message-actions";
 
 export function VendorAdminControls({ vendorId, name, status, commissionOverride, hasLogo = false, hasBanner = false }: { vendorId: string; name: string; status: string; commissionOverride: number | null; hasLogo?: boolean; hasBanner?: boolean }) {
   const router = useRouter();
@@ -15,13 +16,20 @@ export function VendorAdminControls({ vendorId, name, status, commissionOverride
   const [reason, setReason] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [rate, setRate] = useState(commissionOverride === null ? "" : String(commissionOverride));
+  const [messaging, setMessaging] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageError, setMessageError] = useState<string | null>(null);
 
-  const run = (fn: () => Promise<{ ok: boolean; error?: string; message?: string }>, done: string, onError: (e: string) => void) =>
+  // `after` runs only on success — each caller closes its OWN modal (a shared `run()` used to hardcode
+  // closing the suspend modal specifically, which meant a different action's modal, like "Message" below,
+  // never closed itself on success even though the toast reported success).
+  const run = (fn: () => Promise<{ ok: boolean; error?: string; message?: string }>, done: string, onError: (e: string) => void, after?: () => void) =>
     startTransition(async () => {
       const r = await fn();
       if (!r.ok) return onError(r.error ?? "Something went wrong.");
       toast.success(r.message ?? done);
-      setSuspending(false);
+      after?.();
       router.refresh();
     });
 
@@ -39,6 +47,7 @@ export function VendorAdminControls({ vendorId, name, status, commissionOverride
           {hasBanner ? <button type="button" disabled={pending} onClick={() => confirm(`Remove ${name}'s banner? The vendor is told.`) && run(() => removeVendorBrandingAction(vendorId, "banner"), "Banner removed.", (m) => toast.error(m))} className="hover:text-red-700">banner</button> : null}
         </span>
       ) : null}
+      <button type="button" onClick={() => { setSubject(""); setMessage(""); setMessageError(null); setMessaging(true); }} className="text-brand-dark/60 hover:text-brand-primary">Message</button>
       {status === "approved" ? (
         <button type="button" onClick={() => { setReason(""); setError(null); setSuspending(true); }} className="text-brand-dark/60 hover:text-red-700">Suspend</button>
       ) : status === "suspended" ? (
@@ -50,7 +59,18 @@ export function VendorAdminControls({ vendorId, name, status, commissionOverride
         {error ? <p role="alert" className="mt-3 text-sm text-red-700">{error}</p> : null}
         <div className="mt-4 flex justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={() => setSuspending(false)} disabled={pending}>Cancel</Button>
-          <Button size="sm" className="bg-red-700 hover:bg-red-800" disabled={pending} onClick={() => run(() => setVendorSuspendedAction(vendorId, true, reason), "Boutique suspended.", setError)}>{pending ? "Suspending…" : "Suspend boutique"}</Button>
+          <Button size="sm" className="bg-red-700 hover:bg-red-800" disabled={pending} onClick={() => run(() => setVendorSuspendedAction(vendorId, true, reason), "Boutique suspended.", setError, () => setSuspending(false))}>{pending ? "Suspending…" : "Suspend boutique"}</Button>
+        </div>
+      </Modal>
+      <Modal open={messaging} onOpenChange={setMessaging} title={`Message ${name}`} description="Sent to their notification inbox and, unless they've opted out, their email.">
+        <label htmlFor={`msg-subject-${vendorId}`} className="mb-1 block text-sm font-medium text-brand-dark">Subject</label>
+        <Input id={`msg-subject-${vendorId}`} value={subject} maxLength={150} onChange={(e) => setSubject(e.target.value)} placeholder="e.g. Update to our packaging guidelines" />
+        <label htmlFor={`msg-body-${vendorId}`} className="mb-1 mt-3 block text-sm font-medium text-brand-dark">Message</label>
+        <Textarea id={`msg-body-${vendorId}`} value={message} maxLength={4000} onChange={(e) => setMessage(e.target.value)} placeholder="Write your message…" className="min-h-32" />
+        {messageError ? <p role="alert" className="mt-3 text-sm text-red-700">{messageError}</p> : null}
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => setMessaging(false)} disabled={pending}>Cancel</Button>
+          <Button size="sm" disabled={pending} onClick={() => run(() => messageVendorAction(vendorId, subject, message), "Message sent.", setMessageError, () => setMessaging(false))}>{pending ? "Sending…" : "Send message"}</Button>
         </div>
       </Modal>
     </div>

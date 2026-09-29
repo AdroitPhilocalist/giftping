@@ -15,11 +15,13 @@ import { PayNowButton } from "@/components/shop/PayNowButton";
 import { CancelReturnButton, RequestReturnButton } from "@/components/shop/ReturnRequestControls";
 import { isRazorpayConfigured } from "@/lib/integrations/razorpay";
 import { ProductImage } from "@/components/shop/ProductImage";
+import { WriteReviewButton } from "@/components/shop/ReviewDialogs";
 import { Badge } from "@/components/ui/Badge";
 import { getServerUser } from "@/lib/auth/session";
 import { RETURN_REASONS, returnWindow, type ReturnReason } from "@/lib/commerce/refunds";
 import { getReturnWindowDays } from "@/lib/commerce/returns";
 import { getMyOrder } from "@/lib/db/orders";
+import { getReviewedProductIds } from "@/lib/db/reviews";
 import { formatCurrency } from "@/lib/utils/format";
 
 export const metadata = { title: "Your Order — GiftPing" };
@@ -43,8 +45,8 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   const user = await getServerUser();
   if (!user) notFound(); // proxy.ts redirects signed-out visitors first
 
-  // windowDays/theme don't depend on the order itself — fetch alongside it, not after it.
-  const [order, windowDays, theme] = await Promise.all([getMyOrder(id, user.id), getReturnWindowDays(), getActiveTheme()]);
+  // windowDays/theme/reviewedProductIds don't depend on the order itself — fetch alongside it, not after it.
+  const [order, windowDays, theme, reviewedProductIds] = await Promise.all([getMyOrder(id, user.id), getReturnWindowDays(), getActiveTheme(), getReviewedProductIds(user.id)]);
   if (!order) notFound();
 
   const progress = describeOrderProgress(order.status);
@@ -159,6 +161,11 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   const window = returnWindow({ deliveredAt, windowDays });
                   const canRequest = item.fulfilment_status === "delivered" && window.open && !openRequest && item.returned_quantity < item.quantity && Number(item.refunded_amount) < paid;
                   const lastRequest = requests[0] ?? null;
+                  const isDelivered = item.fulfilment_status === "delivered";
+                  // product_id is nullable at the type level (a defensive FK column), but every real order item has one —
+                  // a null here would mean the product row itself is gone, which nothing in this app currently does.
+                  const canReview = isDelivered && Boolean(item.product_id);
+                  const hasReview = item.product_id ? reviewedProductIds.has(item.product_id) : false;
                   return (
                     <li key={item.id} className="flex flex-wrap gap-3 py-3 text-sm">
                       <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-dark/10">
@@ -177,7 +184,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                         </p>
                       </div>
                       <p className="font-medium text-brand-dark">{formatCurrency(Number(item.total_price))}</p>
-                      {(refundedNow > 0 || refundInProgress || openRequest || lastRequest || canRequest) ? (
+                      {(refundedNow > 0 || refundInProgress || openRequest || lastRequest || canRequest || isDelivered) ? (
                         <div className="w-full space-y-1 border-t border-dashed border-brand-dark/10 pt-2 text-xs sm:pl-[4.75rem]">
                           {refundedNow > 0 ? <p className="text-brand-primary">{formatCurrency(refundedNow)} refunded to your original payment method (usually 5–7 working days).</p> : null}
                           {refundInProgress ? <p className="text-brand-dark/70">A refund is being processed.</p> : null}
@@ -194,6 +201,9 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                               orderItemId={item.id} productName={item.product_name} maxQuantity={item.quantity - item.returned_quantity}
                               closesOn={window.closesAt ? window.closesAt.toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null}
                             />
+                          ) : null}
+                          {canReview && item.product_id ? (
+                            <WriteReviewButton productId={item.product_id} orderItemId={item.id} productName={item.product_name} hasReview={hasReview} />
                           ) : null}
                         </div>
                       ) : null}
