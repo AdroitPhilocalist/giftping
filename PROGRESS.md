@@ -122,6 +122,28 @@ navigation to that page was blocked as PII handling; the code is a one-line addi
 delivery (test addresses are `@giftping.test`); the Vercel cron firing it in production; variant price changes (alerts
 track the product's own base/sale price, not per-variant adjustments). See `docs/progress/2026-10-02-wishlist-price-drops.md`.
 
+## Customer marketing email campaigns built (2 Oct) — consent-first, sized for the free Resend tier
+
+The last item on the 1 Oct spec-gap list. Full reasoning and the go-live checklist: `docs/compliance/marketing-email-dpdp.md`
+(an engineering record, **not legal advice** — counsel must review before launch) and `docs/progress/2026-10-02-marketing-campaigns.md`.
+**Biggest finding:** `users.marketing_opt_in` defaulted to TRUE and nothing ever asked anyone, so 19/21 accounts looked "opted in" without
+consent (invalid under India's DPDP Act). Default is now FALSE and everyone was reset: **0 opted in today, so the audience starts empty.**
+What exists: an unticked sign-up checkbox (recorded only after the email is confirmed) and an off-by-default switch in
+`/account/notifications`; a DB trigger logging every consent change with source + wording version (`marketing_consent_log`);
+one-click unsubscribe (signed never-expiring links, confirm page so link-scanners can't unsubscribe anyone, RFC 8058 headers);
+`/admin/campaigns` (draft → preview → test email → start → pause/resume/cancel, segments: everyone / buyers / non-buyers / lapsed);
+a queue sender that re-checks consent per person at send time, claims before sending (at-most-once), batches via Resend's batch endpoint and
+fails closed without `MARKETING_UNSUBSCRIBE_SECRET`. **Free-tier handling:** two admin-editable budgets (default 50/day, 1,500/month, UTC) —
+moving to a paid plan means raising those numbers, not changing code; the admin sees "takes about N days at the current limit" before sending.
+Data export now includes consent history (a bug in my first version of that — it silently omitted the section — was caught by testing).
+**Verified live** (real DB + running server): trigger/log/RLS/export; sender end-to-end with an injected fake provider (budget, mid-campaign
+unsubscribe, provider-not-ready, quota, ambiguous failure, re-queue, parallel runs → exactly one email each); every unsubscribe endpoint over HTTP;
+admin create/validate/preview/refused-empty-start/limits/delete in the browser; sign-up checkbox default. 385/385 tests (28 new), tsc/eslint/build clean.
+**Not verified:** a real email through Resend (Gmail's Unsubscribe button; Resend's real batch response shape — coded from docs); sign-up → confirmation email →
+consent end to end (Supabase SMTP rate limit); the settings switch was never viewed (browser tool denied that page as PII handling); Vercel cron in production.
+**Needs doing before launch (not built):** Resend paid plan + verified domain + DMARC; set `MARKETING_UNSUBSCRIBE_SECRET` in Vercel (never rotate);
+bounce/complaint webhook → withdraw consent; legal review (then flip `SITE.legalReviewed`); optional re-permission prompt for existing customers; age/guardian question.
+
 ## Stage 11 in progress
 
 Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). **Vendor logo + banner upload done** (with admin take-down). **Bulk CSV product upload done** (preview → all-or-nothing import as hidden drafts). **"Download my data" done. Dashboard alert for paid orders stuck with a suspended vendor done — Stage 11 (admin suite) is COMPLETE.** Next: Stage 12 (visual & motion polish), then Stage 13 (go-live). **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 

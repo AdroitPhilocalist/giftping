@@ -898,6 +898,151 @@ export type Database = {
           },
         ]
       }
+      marketing_campaign_recipients: {
+        Row: {
+          attempts: number
+          campaign_id: string
+          error: string | null
+          provider_id: string | null
+          sent_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          campaign_id: string
+          error?: string | null
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          campaign_id?: string
+          error?: string | null
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_campaign_recipients_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "marketing_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "marketing_campaign_recipients_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_campaigns: {
+        Row: {
+          body: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          cta_label: string | null
+          cta_url: string | null
+          id: string
+          name: string
+          preheader: string | null
+          recipient_count: number
+          segment: string
+          started_at: string | null
+          status: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          id?: string
+          name: string
+          preheader?: string | null
+          recipient_count?: number
+          segment?: string
+          started_at?: string | null
+          status?: string
+          subject: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          cta_label?: string | null
+          cta_url?: string | null
+          id?: string
+          name?: string
+          preheader?: string | null
+          recipient_count?: number
+          segment?: string
+          started_at?: string | null
+          status?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_campaigns_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_consent_log: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          notice_version: string | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          notice_version?: string | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          notice_version?: string | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_consent_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           category: string
@@ -2650,6 +2795,7 @@ export type Database = {
         Returns: Json
       }
       export_user_data: { Args: { p_user_id: string }; Returns: Json }
+      export_user_data_core: { Args: { p_user_id: string }; Returns: Json }
       fail_refund: {
         Args: { p_error: string; p_refund_id: string }
         Returns: undefined
@@ -2753,6 +2899,15 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      set_marketing_consent: {
+        Args: {
+          p_notice_version?: string
+          p_opt_in: boolean
+          p_source: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       settlement_items_all: {
         Args: { p_vendor_id: string }

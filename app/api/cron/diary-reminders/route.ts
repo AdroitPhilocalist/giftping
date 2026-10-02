@@ -1,5 +1,5 @@
-import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { cronAuthorised } from "@/lib/cron/authorised";
 import { createAdminClient } from "@/lib/db/admin";
 import { runDiaryReminders } from "@/lib/diary/reminders";
 import { runPriceDropAlerts } from "@/lib/wishlist/price-drop-job";
@@ -8,16 +8,8 @@ import { runPriceDropAlerts } from "@/lib/wishlist/price-drop-job";
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
-/** Constant-time, length-blind compare; an unset secret validates nothing (so an unconfigured deploy can't be triggered by anyone). */
-function authorised(header: string | null, secret: string): boolean {
-  if (!secret || !header?.startsWith("Bearer ")) return false;
-  const a = createHash("sha256").update(header.slice(7)).digest();
-  const b = createHash("sha256").update(secret).digest();
-  return timingSafeEqual(a, b);
-}
-
 async function handle(request: Request) {
-  if (!authorised(request.headers.get("authorization"), process.env.CRON_SECRET ?? "")) {
+  if (!cronAuthorised(request.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

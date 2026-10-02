@@ -6,6 +6,7 @@ import { signUpAction, type ActionResult } from "@/lib/auth/actions";
 import { Input, Label } from "@/components/ui/Input";
 import { SubmitButton } from "@/components/auth/SubmitButton";
 import { GoogleButton } from "@/components/auth/GoogleButton";
+import { MARKETING_CONSENT_DETAIL, MARKETING_CONSENT_LABEL } from "@/lib/marketing/consent";
 
 const initialState: ActionResult = {};
 
@@ -44,6 +45,14 @@ export default function SignUpPage() {
                 minLength={8}
                 autoComplete="new-password"
               />
+            </div>
+            {/* Optional, UNTICKED by default and separate from creating the account: marketing consent must be a clear, deliberate choice. */}
+            <div className="flex items-start gap-3 rounded-xl bg-brand-accent/40 p-3">
+              <input id="marketingOptIn" name="marketingOptIn" type="checkbox" className="mt-1 h-4 w-4 shrink-0 accent-brand-primary" />
+              <label htmlFor="marketingOptIn" className="text-sm text-brand-dark">
+                {MARKETING_CONSENT_LABEL}
+                <span className="mt-0.5 block text-xs text-brand-dark/55">{MARKETING_CONSENT_DETAIL}</span>
+              </label>
             </div>
             {state.error ? <p className="text-sm text-red-600">{state.error}</p> : null}
             <SubmitButton>Create account</SubmitButton>

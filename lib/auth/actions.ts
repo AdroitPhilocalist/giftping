@@ -4,6 +4,8 @@ import { headers } from "next/headers";
 import { getRequestIp } from "@/lib/auth/request-ip";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/db/server";
+import { createAdminClient } from "@/lib/db/admin";
+import { MARKETING_NOTICE_VERSION } from "@/lib/marketing/consent";
 import { mergeGuestCartIntoUser } from "@/lib/commerce/cart";
 import { safeRedirectPath } from "@/lib/auth/redirect";
 import { authRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
@@ -63,12 +65,16 @@ export async function signUpAction(_prev: ActionResult, formData: FormData): Pro
 
   const supabase = await createClient();
   const appUrl = await getAppUrl();
+  // An UNTICKED-by-default checkbox: only an explicit tick counts (a missing or any other value is "no").
+  const wantsMarketing = formData.get("marketingOptIn") === "on";
 
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.fullName },
+      // The tick is held as a PENDING choice and only recorded as consent once the email address is confirmed (auth/callback), so
+      // typing someone else's address and ticking the box can't subscribe them. The notice version they were shown travels with it.
+      data: { full_name: parsed.data.fullName, ...(wantsMarketing ? { marketing_opt_in_pending: true, marketing_notice_version: MARKETING_NOTICE_VERSION } : {}) },
       emailRedirectTo: `${appUrl}/auth/callback`,
     },
   });
@@ -95,6 +101,10 @@ export async function signUpAction(_prev: ActionResult, formData: FormData): Pro
     return { success: "Check your email to confirm your account before signing in." };
   }
 
+  // Email confirmation is switched off in this project, so the person is signed in already: record the choice now.
+  if (data.user && wantsMarketing) {
+    await createAdminClient().rpc("set_marketing_consent", { p_user_id: data.user.id, p_opt_in: true, p_source: "signup", p_notice_version: MARKETING_NOTICE_VERSION });
+  }
   if (data.user) await mergeGuestCartIntoUser(data.user.id);
   redirect("/");
 }

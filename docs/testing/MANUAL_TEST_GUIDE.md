@@ -176,7 +176,7 @@ Sign in as `test-customer@giftping.test`.
 
 - [ ] `/account/addresses`: add a new address, edit it, mark a different one as default, delete one.
       Confirm the default address is what's pre-selected at checkout.
-- [ ] `/account/notifications`: toggle email/notification preferences off and on, confirm it saves.
+- [ ] `/account/notifications`: toggle email/notification preferences off and on, confirm it saves. (The old "Offers & new arrivals" row is gone — marketing email now has its own opt-in switch at the top of the page; see the campaigns section below.)
 - [ ] `/wishlist`: add a few products to your wishlist from various product pages, confirm they all show up
       here; remove one, confirm it disappears.
 - [ ] **Wishlist price-drop alerts** *(new)*: `/account/notifications` now has a "Wishlist price drops" row —
@@ -347,6 +347,31 @@ Sign in as `test-admin@giftping.test`.
       meant to be closer to irreversible, so don't run it against your main `test-customer` account.
 
 ---
+
+### Marketing email campaigns & consent *(new — test this thoroughly, it has legal weight)*
+
+- [ ] **Sign-up checkbox**: `/sign-up` shows an **unticked** "Email me offers, new arrivals and gifting ideas…" box with the explanation under it. Create an
+      account **without** ticking it, confirm the email, then open `/account/notifications`: the "Offers & new arrivals by email" switch must be **off**.
+- [ ] **Ticking it**: create another account **with** the box ticked. Before clicking the confirmation email the switch must still read off/not subscribed; after
+      confirming and signing in it must be **on**, with "You turned this on on <date>". (Consent is only recorded once the email is confirmed.)
+- [ ] **Settings switch**: turn it on, then off, then on — each click saves immediately (a toast confirms), the date line updates, no page reload needed.
+- [ ] **Admin → Campaigns** (`/admin/campaigns`): the page shows how many customers have opted in (counts only — no addresses anywhere), the sending limits, and a red
+      "Sending is switched off" banner **only** if `MARKETING_UNSUBSCRIBE_SECRET` is missing.
+- [ ] **Create a campaign**: New campaign → fill name, subject, message. Try: button text without a link (refused); a link of `javascript:alert(1)` or `http://…` (refused);
+      a subject containing a line break (refused); a message over 5,000 characters (refused). A valid draft opens its page with an email **preview**.
+- [ ] **Preview**: shows "Hi <name>,", your paragraphs (a blank line = new paragraph), the button, and a footer with the reason, an Unsubscribe link and a preferences link.
+      Type `<b>bold</b>` or `<script>` in the message — it must appear as literal text, never as formatting.
+- [ ] **Test email**: "Send me a test" delivers one email to the admin's own address with "[TEST]" in the subject (needs a working Resend domain — see the compliance doc).
+- [ ] **Starting with nobody opted in** is refused with a clear message and the campaign stays a draft.
+- [ ] **Start a real campaign** (with a few opted-in test accounts): the confirm box states how many people and how long it will take at the current limit. After "Start",
+      the page shows queued/sent/failed/skipped counts. With the free-tier default (50/day) a bigger audience is sent over several days; "Send next batch now" sends more immediately
+      only while today's limit has room.
+- [ ] **Unsubscribe mid-campaign**: while a campaign is mid-send, unsubscribe one recipient (settings switch off). That person shows as **skipped** and never receives it.
+- [ ] **Unsubscribe from the email**: click the link in a received campaign email → a confirm page ("Yes, unsubscribe me") → click it → success page. Just *opening* the link must **not** unsubscribe.
+      In Gmail the header "Unsubscribe" button should also work. The same link used twice still shows success.
+- [ ] **Pause / resume / cancel**: pausing stops further sending; resuming continues; cancelling marks everyone not yet emailed as skipped.
+- [ ] **Limits**: change "Per day" in Sending limits (try a number bigger than "Per month" — refused); it saves, and the "room left now" figure follows after a reload.
+- [ ] **Data export**: as an opted-in customer, download your data (Account → export): it contains `marketing_emails` with your consent history and any campaigns you were sent.
 
 ## 11. Notifications
 

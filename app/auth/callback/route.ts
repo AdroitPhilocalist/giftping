@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/db/server";
+import { createAdminClient } from "@/lib/db/admin";
+import { MARKETING_NOTICE_VERSION } from "@/lib/marketing/consent";
 import { mergeGuestCartIntoUser } from "@/lib/commerce/cart";
 import { safeRedirectPath } from "@/lib/auth/redirect";
 import { notifyUser } from "@/lib/notifications/notify";
@@ -20,6 +22,15 @@ export async function GET(request: Request) {
     if (!error) {
       if (data.user) {
         await mergeGuestCartIntoUser(data.user.id);
+        // A box ticked at sign-up is only a PENDING choice until the email address is proven to be theirs — this confirmation click is
+        // that proof. Record it (with the wording they saw), then clear the flag so a later sign-in can't re-apply it after they've
+        // withdrawn.
+        const meta = data.user.user_metadata as { marketing_opt_in_pending?: unknown; marketing_notice_version?: unknown } | null;
+        if (meta?.marketing_opt_in_pending === true) {
+          const version = typeof meta.marketing_notice_version === "string" ? meta.marketing_notice_version : MARKETING_NOTICE_VERSION;
+          const { error: consentError } = await createAdminClient().rpc("set_marketing_consent", { p_user_id: data.user.id, p_opt_in: true, p_source: "signup", p_notice_version: version });
+          if (!consentError) await supabase.auth.updateUser({ data: { marketing_opt_in_pending: null, marketing_notice_version: null } });
+        }
         // The welcome email for the email/password path is sent from signUpAction itself, at the actual
         // moment of registration — this route also handles THAT SAME account's later confirmation-link
         // click, which must not re-send it. A brand-new Google OAuth account is created and signed in

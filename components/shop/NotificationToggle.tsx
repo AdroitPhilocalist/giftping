@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "@/components/ui/Toast";
 import { setChannelPreferenceAction } from "@/lib/account/notification-actions";
 
-type Category = "diary_reminders" | "order_updates" | "wishlist_alerts" | "promotions";
+type Category = "diary_reminders" | "order_updates" | "wishlist_alerts";
 
 function Switch({ label, on, disabled, onToggle }: { label: string; on: boolean; disabled: boolean; onToggle: () => void }) {
   return (
