@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeUrl } from "./email-layout";
-import { buildOrderCancelledEmail, buildDataExportEmail, buildOrderConfirmedEmail, buildPayoutPaidEmail, buildReturnUpdateEmail, buildShipmentEmail, buildVendorAccountEmail, buildVendorNewOrderEmail } from "./templates";
+import { buildOrderCancelledEmail, buildDataExportEmail, buildPriceDropEmail, buildOrderConfirmedEmail, buildPayoutPaidEmail, buildReturnUpdateEmail, buildShipmentEmail, buildVendorAccountEmail, buildVendorNewOrderEmail } from "./templates";
 
 const prefs = "https://giftping-lime.vercel.app/account/notifications";
 const order = { firstName: "Asha", orderNumber: "GP-100028", items: [{ name: "Premium Gift Hamper", quantity: 1, totalLabel: "₹2,499", detail: "Wrapping: Gold" }], totalLabel: "₹2,499", deliverTo: { name: "Asha Nair", line: "12 Marine Drive, Kochi, Kerala — 682031" }, orderUrl: "https://giftping-lime.vercel.app/orders/abc", preferencesUrl: prefs };
@@ -85,5 +85,18 @@ describe("email templates", () => {
     expect(e.html).toContain("change your password");
     expect(e.text).toContain("If it wasn't");
   });
+  it("price-drop email: singular vs digest wording, struck-through old price, link and opt-out", () => {
+    const one = buildPriceDropEmail({ firstName: "Asha", items: [{ name: "Luxe Memory Hamper", url: "https://x.test/products/luxe", fromLabel: "₹2,999", toLabel: "₹2,399", percentOff: 20 }], more: 0, wishlistUrl: "https://x.test/wishlist", preferencesUrl: prefs });
+    expect(one.subject).toBe("Price drop: Luxe Memory Hamper is now ₹2,399");
+    for (const s of ["20% off", "line-through", 'href="https://x.test/products/luxe"', "Turn wishlist alerts off", "See my wishlist"]) expect(one.html).toContain(s);
+    expect(one.text).toContain("₹2,999 -> ₹2,399");
+    const many = buildPriceDropEmail({ firstName: "Asha", items: [{ name: "A", url: "https://x.test/a", fromLabel: "₹10", toLabel: "₹8", percentOff: 20 }, { name: "B", url: "https://x.test/b", fromLabel: "₹10", toLabel: "₹9", percentOff: 10 }], more: 3, wishlistUrl: "https://x.test/wishlist", preferencesUrl: prefs });
+    expect(many.subject).toBe("Price drops on 5 items in your wishlist");
+    expect(many.html).toContain("and 3 more");
+  });
+  it("price-drop email escapes vendor-controlled product names and refuses a javascript: link", () => {
+    const e = buildPriceDropEmail({ firstName: "<b>A</b>", items: [{ name: `<img src=x onerror=alert(1)>`, url: "javascript:alert(1)", fromLabel: "₹1", toLabel: "₹0", percentOff: 99 }], more: 0, wishlistUrl: "https://x.test/w", preferencesUrl: prefs });
+    expect(e.html).not.toMatch(/<img src=x|<b>A<|javascript:/);
+    expect(e.html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+  });
 });
-

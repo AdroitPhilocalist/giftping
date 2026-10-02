@@ -1,8 +1,12 @@
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Download } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Input, Label } from "@/components/ui/Input";
 import { requireRole } from "@/lib/auth/session";
 import { getAdminDashboard } from "@/lib/db/admin-stats";
+import { getCustomerMetrics } from "@/lib/db/customer-stats";
 import { formatCurrency } from "@/lib/utils/format";
+import { localDateIn } from "@/lib/diary/recurrence";
 
 export const metadata = { title: "Dashboard — GiftPing Admin" };
 
@@ -12,9 +16,13 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
   const user = await requireRole("admin");
   const sp = await searchParams;
   const days = (RANGES as readonly number[]).includes(Number(sp.range)) ? (Number(sp.range) as 7 | 30 | 90) : 30;
-  const d = await getAdminDashboard(days);
+  const [d, c] = await Promise.all([getAdminDashboard(days), getCustomerMetrics(days)]);
   const { stats } = d;
   const peak = Math.max(1, ...stats.daily.map((x) => x.gmv));
+  const signupPeak = Math.max(1, ...c.dailySignups.map((x) => x.count));
+  const pct = (n: number) => `${Math.round(n * 100)}%`;
+  const today = localDateIn("Asia/Kolkata");
+  const monthStart = `${today.slice(0, 8)}01`; // the 1st of the current IST month — a sensible default range
 
   const attention = [
     d.waitingOnSuspended.length > 0 && { tone: "red", text: `${d.waitingOnSuspended.length} paid ${d.waitingOnSuspended.length === 1 ? "order is" : "orders are"} stuck with a suspended boutique — nobody is shipping ${d.waitingOnSuspended.length === 1 ? "it" : "them"}`, href: `/admin/orders/${d.waitingOnSuspended[0].orderId}`, cta: "Look after now" },
@@ -108,21 +116,54 @@ export default async function AdminDashboardPage({ searchParams }: { searchParam
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
-          <h2 className="font-heading text-lg text-brand-dark">Low stock</h2>
-          {d.lowStock.length === 0 ? <p className="mt-2 text-sm text-brand-dark/50">Everything live has healthy stock.</p> : (
-            <ul className="mt-2 space-y-1.5 text-sm">
-              {d.lowStock.map((p) => <li key={p.id} className="flex justify-between gap-3"><span className="truncate">{p.name} <span className="text-brand-dark/40">· {p.vendor}</span></span><span className={p.stock === 0 ? "font-medium text-red-700" : "text-brand-secondary-dark"}>{p.stock === 0 ? "Out" : `${p.stock} left`}</span></li>)}
-            </ul>
-          )}
-        </section>
-        <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
-          <h2 className="font-heading text-lg text-brand-dark">Customers</h2>
-          <p className="mt-2 font-heading text-2xl text-brand-dark">{d.newCustomers}</p>
-          <p className="text-sm text-brand-dark/60">new sign-ups in the last {days} days</p>
-        </section>
-      </div>
+      <section className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
+        <h2 className="font-heading text-lg text-brand-dark">Low stock</h2>
+        {d.lowStock.length === 0 ? <p className="mt-2 text-sm text-brand-dark/50">Everything live has healthy stock.</p> : (
+          <ul className="mt-2 space-y-1.5 text-sm">
+            {d.lowStock.map((p) => <li key={p.id} className="flex justify-between gap-3"><span className="truncate">{p.name} <span className="text-brand-dark/40">· {p.vendor}</span></span><span className={p.stock === 0 ? "font-medium text-red-700" : "text-brand-secondary-dark"}>{p.stock === 0 ? "Out" : `${p.stock} left`}</span></li>)}
+          </ul>
+        )}
+      </section>
+
+      <section aria-labelledby="customers-heading" className="space-y-3 rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
+        <div>
+          <h2 id="customers-heading" className="font-heading text-lg text-brand-dark">Customers</h2>
+          <p className="mt-1 text-sm text-brand-dark/60">Sign-ups for the last {days} days; buying habits are across all time, so a repeat purchase is spotted even when the first order was months ago. Counts only — no names or emails.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {tile("Total customers", c.totalCustomers.toLocaleString("en-IN"), `${c.newCustomers.toLocaleString("en-IN")} new in ${days} days`)}
+          {tile("Have bought", c.buyers.toLocaleString("en-IN"), c.totalCustomers > 0 ? `${pct(c.buyers / c.totalCustomers)} of all customers` : undefined)}
+          {tile("Repeat buyers", c.repeatBuyers.toLocaleString("en-IN"), c.buyers > 0 ? `${pct(c.repeatRate)} of buyers · ${c.ordersPerBuyer} orders each` : undefined)}
+          {tile("Orders from returning customers", c.periodOrders > 0 ? pct(c.returningShare) : "—", c.periodOrders > 0 ? `${c.returningOrders} of ${c.periodOrders} orders in ${days} days` : `no orders in ${days} days`)}
+        </div>
+        <div>
+          <p className="text-xs uppercase tracking-wide text-brand-dark/50">New sign-ups by day{c.newCustomers > 0 ? ` · ${c.newCustomersWhoBought} of ${c.newCustomers} have already placed an order` : ""}</p>
+          <div className="mt-2 flex h-20 items-end gap-px" role="img" aria-label={`Daily new customers for the last ${days} days`}>
+            {c.dailySignups.map((x) => (
+              <div key={x.date} title={`${x.date}: ${x.count} new ${x.count === 1 ? "customer" : "customers"}`} className="flex-1 rounded-t bg-brand-primary/60 transition-colors hover:bg-brand-primary" style={{ height: `${Math.max(x.count > 0 ? 6 : 1, (x.count / signupPeak) * 100)}%` }} />
+            ))}
+          </div>
+          <div className="mt-1 flex justify-between text-[10px] text-brand-dark/40"><span>{c.dailySignups[0]?.date}</span><span>{c.dailySignups.at(-1)?.date}</span></div>
+        </div>
+        {c.truncated ? <p className="text-xs text-brand-dark/50">This is a very large account base, so some figures are a lower bound.</p> : null}
+      </section>
+
+      <section aria-labelledby="report-heading" className="rounded-2xl border border-brand-dark/10 bg-brand-surface p-4">
+        <h2 id="report-heading" className="font-heading text-lg text-brand-dark">Financial report</h2>
+        <p className="mt-1 text-sm text-brand-dark/60">Gross merchandise value, commission earned, refunds issued and net platform revenue for any date range — downloads as a spreadsheet for accounting or GST filing.</p>
+        {/* A plain GET form straight to the download route: no JavaScript needed, and the browser's own "Save file" flow handles the download. */}
+        <form action="/api/admin/revenue-report" method="get" className="mt-3 flex flex-wrap items-end gap-3">
+          <div>
+            <Label htmlFor="report-from">From</Label>
+            <Input id="report-from" type="date" name="from" defaultValue={monthStart} max={today} className="w-auto" />
+          </div>
+          <div>
+            <Label htmlFor="report-to">To</Label>
+            <Input id="report-to" type="date" name="to" defaultValue={today} max={today} className="w-auto" />
+          </div>
+          <Button type="submit" size="sm"><Download className="h-4 w-4" /> Download CSV</Button>
+        </form>
+      </section>
     </div>
   );
 }

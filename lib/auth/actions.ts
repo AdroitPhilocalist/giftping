@@ -7,6 +7,8 @@ import { createClient } from "@/lib/db/server";
 import { mergeGuestCartIntoUser } from "@/lib/commerce/cart";
 import { safeRedirectPath } from "@/lib/auth/redirect";
 import { authRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
+import { notifyUser } from "@/lib/notifications/notify";
+import { buildWelcomeEmail } from "@/lib/notifications/templates";
 import {
   signUpSchema,
   signInSchema,
@@ -75,6 +77,18 @@ export async function signUpAction(_prev: ActionResult, formData: FormData): Pro
     // Generic message to the client; full detail goes to Sentry via the SDK's automatic
     // capture, never surfaced raw to avoid leaking internals (e.g. whether an email exists).
     return { error: "Couldn't create your account. Please check your details and try again." };
+  }
+
+  // Sent once, right here — signUpAction is only ever reached for a genuinely new account, so there's no
+  // "is this actually new" ambiguity the way there is in the OAuth callback (which also handles returning
+  // sign-ins and this same email-confirmation link, later, for the same account).
+  if (data.user) {
+    const appUrl = await getAppUrl();
+    await notifyUser({
+      userId: data.user.id, category: "account", type: "welcome", title: "Welcome to GiftPing",
+      message: "Glad you're here — explore the mall, or start your Personal Gifting Diary.", linkUrl: "/mall",
+      email: buildWelcomeEmail({ firstName: parsed.data.fullName.split(" ")[0], mallUrl: `${appUrl}/mall`, diaryUrl: `${appUrl}/diary`, preferencesUrl: `${appUrl}/account/notifications` }),
+    });
   }
 
   if (!data.session) {

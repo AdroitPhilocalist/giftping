@@ -37,6 +37,23 @@
   --gp-hero-scrim: rgb(12 42 29 / 0.72);
   --gp-bar-top: color-mix(in srgb, var(--gp-primary) 92%, white 8%); /* the header/announcement-strip panel's shared starting shade — see .gp-bar-gradient below */
   --gp-ornament: var(--gp-copper);
+  /* a warm brushed-gold shimmer (light gold → copper → a brighter gold highlight → copper → light gold), used only as a thin gilded edge around the
+     header pill (see .gp-header-inner::before below) — a "premium" touch the client asked for directly, kept to a single hairline rather than a flat
+     gold fill so it reads as a deliberate metallic accent, not a colour change to the whole bar. */
+  --gp-gold-edge: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--gp-copper) 65%, white 35%) 0%,
+    var(--gp-copper) 24%,
+    color-mix(in srgb, var(--gp-copper) 18%, white 82%) 50%,
+    var(--gp-copper) 76%,
+    color-mix(in srgb, var(--gp-copper) 65%, white 35%) 100%
+  );
+  /* the header/announcement-strip's opaque fill — a warm gold-tinted sheen along the top edge, a soft copper glow near the logo, a three-stop forest-green
+     diagonal underneath. Shared by .gp-bar-gradient and .gp-header-glass's default (see app/globals.css further down) so they can't drift apart. */
+  --gp-opaque-bar:
+    radial-gradient(38rem 100% at 6% 100%, color-mix(in srgb, var(--gp-copper) 30%, transparent), transparent 70%),
+    linear-gradient(180deg, rgb(255 244 224 / 0.18), transparent 45%),
+    linear-gradient(120deg, var(--gp-bar-top) 0%, var(--gp-primary) 45%, var(--gp-primary) 70%, var(--gp-primary-dark) 100%);
 
   /* motion */
   --gp-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -269,24 +286,28 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
    reliably line up at the boundary, a flat colour that matches the neighbour's own starting point always will. */
 .gp-bar-top { background: var(--gp-bar-top); }
 /* still forest green throughout, but with real depth: a soft warm glow low on the left (near the logo, echoing the copper accent rather than adding a new
-   colour), a bright sheen along the top edge, and a slightly richer three-stop diagonal underneath — instead of one flat fill. Only used by the now-unused
-   AnnouncementBar.tsx; the header itself uses .gp-header-glass below. */
+   colour), a warm gold-tinted sheen along the top edge (was plain white; a hint of copper mixed in reads as a metallic highlight rather than a generic
+   glossy one), and a slightly richer three-stop diagonal underneath — instead of one flat fill. Shared as one variable (--gp-opaque-bar, with the other
+   tokens near the top of this file) so .gp-bar-gradient (the now-unused AnnouncementBar.tsx) and .gp-header-glass's opaque default (below) can never
+   quietly drift apart the way two hand-copied copies once did. */
 .gp-bar-gradient {
-  background:
-    radial-gradient(38rem 100% at 6% 100%, color-mix(in srgb, var(--gp-copper) 20%, transparent), transparent 70%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 45%),
-    linear-gradient(120deg, var(--gp-bar-top) 0%, var(--gp-primary) 45%, var(--gp-primary) 70%, var(--gp-primary-dark) 100%);
+  background: var(--gp-opaque-bar);
 }
 
-/* The header at rest (components/layout/Navbar.tsx): a plain, low-alpha colour wash — no blur at all — so the actual photo behind it (the skylight, the
-   hanging lights, the ceiling) shows through completely sharp, just lightly tinted for text contrast, barely darker behind the logo/icons than in the
-   middle. Deliberately NOT using backdrop-filter: it sits on a `position: sticky` element (HeaderShell.tsx) that also transitions width/padding/border-
-   radius/box-shadow on scroll, and browsers are genuinely inconsistent about compositing backdrop-filter correctly against a sticky ancestor mid-
-   transition — on some engines/GPU paths it silently fails to sample anything and paints flat and grey instead of showing what's behind it, which is
-   worse than not using it at all. A plain background-colour gradient has no such risk and, at this low an alpha, looks near-identical anyway. Once
-   condensed on scroll (a much smaller pill, likely over ordinary page content by then, not a hero), it switches to .gp-bar-gradient's solid fill instead —
-   legibility matters more than the glass effect at that size. */
+/* The header (components/layout/Navbar.tsx) is opaque by default — the same solid fill as .gp-bar-gradient — because most pages (the mall page, the
+   diary, account pages, and generally anything without a photo bled up behind it) have nothing but the plain cream page background there, and a
+   low-alpha tint over a flat light colour barely darkens it at all: the bar and its white text nearly vanish (a real complaint, see
+   docs/progress/2026-09-29-header-page-aware-glass.md). Only pages that actually bleed a photo up behind the header (HomeHero.tsx, VendorHero.tsx — via
+   the -mt-[5.5rem] lg:-mt-[6.5rem] trick and a mounted <HeroHeaderFlag/> setting data-hero-header="true" on <html>) get the low-alpha glass tint below,
+   so the photo (skylight, hanging lights, boutique banner) still shows through sharp. Deliberately NOT using backdrop-filter for that glass tint: the
+   header transitions width/padding/border-radius/box-shadow on scroll, and browsers are genuinely inconsistent about compositing backdrop-filter
+   correctly against an ancestor mid-transition — on some engines/GPU paths it silently fails to sample anything and paints flat and grey instead of
+   showing what's behind it, which is worse than not using it at all. A plain background-colour gradient has no such risk. The :not([data-condensed])
+   guard means condensed-on-scroll always uses the opaque fill even on a hero page, same as it already did. */
 .gp-header-glass {
+  background: var(--gp-opaque-bar);
+}
+html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) .gp-header-glass {
   background: linear-gradient(
     100deg,
     rgb(6 26 17 / 0.4) 0%,
@@ -296,19 +317,13 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
     rgb(6 26 17 / 0.38) 100%
   );
 }
-.gp-header[data-condensed="true"] .gp-header-glass {
-  background:
-    radial-gradient(38rem 100% at 6% 100%, color-mix(in srgb, var(--gp-copper) 20%, transparent), transparent 70%),
-    linear-gradient(180deg, rgb(255 255 255 / 0.1), transparent 45%),
-    linear-gradient(120deg, var(--gp-bar-top) 0%, var(--gp-primary) 45%, var(--gp-primary) 70%, var(--gp-primary-dark) 100%);
-}
 
 /* The header (components/layout/HeaderShell.tsx). On phones/tablets it's still the flush, full-width bar sitting directly on the hero, matching the
    client's own mobile reference — condensing into an inset floating pill once the page has scrolled a little. From `lg` up, per the client's homepage
-   desktop reference, it floats as a rounded, inset pill from the very first paint instead of only once scrolled — same dark-green colour every time
-   (it never has to guess whether what's behind it is light or dark, so it reads just as clearly over a photographic hero as over the plain cream page
-   beneath everything else). The bar's outer box keeps its full height the whole time (the pill floats inside it and the empty margin around it lets
-   clicks fall through to the page), so nothing on the page ever jumps as it tightens further on scroll. */
+   desktop reference, it floats as a rounded, inset pill from the very first paint instead of only once scrolled. It DOES now guess whether what's
+   behind it is light or dark, via .gp-header-glass above and data-hero-header — the shape/size rules below are unaffected either way. The bar's outer
+   box keeps its full height the whole time (the pill floats inside it and the empty margin around it lets clicks fall through to the page), so nothing
+   on the page ever jumps as it tightens further on scroll. */
 .gp-header { height: 5.5rem; transition: height 0.5s var(--gp-ease); pointer-events: none; }
 .gp-header-inner {
   pointer-events: auto;
@@ -323,6 +338,17 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
   box-shadow: 0 2px 14px -4px rgb(6 26 17 / 0.3);
   transition: width 0.5s var(--gp-ease), margin 0.5s var(--gp-ease), padding 0.5s var(--gp-ease), border-radius 0.5s var(--gp-ease), border-color 0.5s var(--gp-ease), box-shadow 0.5s var(--gp-ease);
 }
+/* The flush mobile/tablet bar's own gilded touch: a thin gold hairline along the bottom edge — the full ring below (::before) is desktop-pill-only since
+   a ring running down both SIDES of an edge-to-edge bar would touch the viewport edges and look like a stray line, not a frame. */
+.gp-header-inner::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1.5px;
+  background: var(--gp-gold-edge);
+  pointer-events: none;
+}
 .gp-logo-mark { transition: width 0.55s var(--gp-ease), height 0.55s var(--gp-ease), transform 0.5s; }
 @media (min-width: 1024px) {
   .gp-header { height: 6.5rem; }
@@ -332,8 +358,26 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
     margin-top: 1rem;
     margin-inline: auto;
     border-radius: 999px;
-    border-color: color-mix(in srgb, var(--gp-copper) 20%, transparent);
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 16px 40px -18px rgb(6 26 17 / 0.5), 0 4px 16px -6px rgb(6 26 17 / 0.34);
+  }
+  /* A genuine gilded edge around the floating pill (the client's "premium/golden touch" request): a warm gold-to-copper gradient ring exactly 1px thick,
+     built with the standard gradient-border trick (a full gradient square, masked down to just its own padding-box ring via mask-composite) since a plain
+     `border` can't take a gradient AND keep border-radius — border-image ignores rounded corners entirely. Replaces the old flat, low-alpha copper
+     border-color (which is now unused). Sits on top of the pill (z-index isn't needed: the mask makes everything but the 1px ring itself fully
+     transparent, so it never covers the logo/links underneath), .gp-header-inner::after above is hidden here since this ring already covers the bottom
+     edge too. */
+  .gp-header-inner::after { display: none; }
+  .gp-header-inner::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: var(--gp-gold-edge);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
   }
 }
 .gp-header[data-condensed="true"] .gp-header-inner {
@@ -344,10 +388,14 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
   border-radius: 999px;
-  border-color: color-mix(in srgb, var(--gp-copper) 26%, transparent);
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 20px 44px -16px rgb(6 26 17 / 0.55), 0 4px 16px -4px rgb(6 26 17 / 0.38);
 }
 .gp-header[data-condensed="true"] .gp-logo-mark { width: 2.3rem; height: 2.3rem; }
+/* The condensed pill's own width caps at a fixed 75rem (see @media (min-width:1024px) above) no matter how wide the viewport is, so the full row
+   (logo + nav links + icons + the "My Diary" pill) can outgrow it on any desktop screen, not just narrow ones — the excess spills past the pill's
+   rounded edge onto the plain page, where the pill's translucent cream styling nearly vanishes (see components/layout/Navbar.tsx's diaryButton
+   comment). Hiding it once condensed costs nothing real: "/diary" is still one click away via the "Diaries" nav link and AccountMenu. */
+.gp-header[data-condensed="true"] .gp-diary-pill { display: none; }
 @media (max-width: 639px) {
   .gp-header[data-condensed="true"] .gp-header-inner { width: calc(100% - 0.75rem); padding-left: 0.85rem; padding-right: 0.6rem; }
 }

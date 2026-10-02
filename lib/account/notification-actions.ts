@@ -5,7 +5,7 @@ import { z } from "zod";
 import { getServerUser } from "@/lib/auth/session";
 import { createClient } from "@/lib/db/server";
 
-const schema = z.object({ category: z.enum(["diary_reminders", "order_updates", "promotions"]), channel: z.enum(["email", "push"]), enabled: z.boolean() });
+const schema = z.object({ category: z.enum(["diary_reminders", "order_updates", "wishlist_alerts", "promotions"]), channel: z.enum(["email", "push"]), enabled: z.boolean() });
 
 /** Runs as the user (RLS: notification_preferences is owner-only). No row means "on" — a shopper opts OUT, never in by accident. */
 export async function setChannelPreferenceAction(raw: z.input<typeof schema>): Promise<{ error?: string }> {

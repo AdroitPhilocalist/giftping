@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Briefcase, Cake, Gem, Heart, LayoutGrid, Play } from "lucide-react";
 import { AtriumScene } from "@/components/art/AtriumScene";
+import { HeroHeaderFlag } from "@/components/layout/HeroHeaderFlag";
 import { OrnamentDivider } from "@/components/ornaments/Divider";
 import { SearchBar } from "@/components/shop/SearchBar";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +26,7 @@ export async function HomeHero() {
 
   return (
     <>
+      <HeroHeaderFlag />
       {/* Cancels app/layout.tsx's <main> padding-top (added for the fixed header) and puts it straight back as the section's own padding — the photo,
           being absolute inset-0, fills the section including that padding and so bleeds all the way up behind the header; the actual headline content
           below is a normal in-flow child, so the section's padding still pushes it down to exactly the same visual position as before. */}

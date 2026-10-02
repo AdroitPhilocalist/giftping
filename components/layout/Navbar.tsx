@@ -19,8 +19,14 @@ import { getUnreadNotificationCount } from "@/lib/db/notifications";
 const iconButton = "relative rounded-full p-2 text-brand-on-primary/85 transition-colors duration-300 hover:bg-brand-on-primary/12 hover:text-brand-on-primary";
 const badge = "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ring-2 ring-brand-primary";
 // A quieter "ghost" pill rather than a solid fill — the client's own reference shows it this way, and it reads as a natural part of the bar rather than
-// competing with it; the copper accent still arrives on hover, so it isn't lost as an affordance.
-const diaryButton = "ml-1.5 hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-brand-on-primary/35 bg-brand-on-primary/[0.06] px-5 py-2.5 text-sm font-medium text-brand-on-primary transition-all duration-300 hover:border-brand-secondary hover:bg-brand-secondary hover:text-brand-on-secondary xl:inline-flex";
+// competing with it; the copper accent still arrives on hover, so it isn't lost as an affordance. Shown from `2xl` (not `xl`): at `xl`/narrower-desktop
+// widths (a very common laptop range, ~1280-1400px) the full row — logo, every nav link, all the icons, and this pill — doesn't actually fit, and with
+// no wrapping the excess silently spills past the header's own rounded edge onto the plain page, where this pill's translucent cream styling (meant to
+// be read against the dark bar) is nearly invisible (a real bug, reported directly, not a hypothetical). `.gp-diary-pill` below additionally hides it
+// once condensed on scroll, where the pill's own width caps at a fixed 75rem regardless of viewport (see .gp-header[data-condensed] .gp-header-inner)
+// and would overflow the same way at ANY desktop width. Nothing is lost by hiding it: "/diary" stays one click away via the "Diaries" nav link
+// (lib/nav.ts) and AccountMenu's own "My Diary" item — this pill is a redundant, decorative emphasis on the same destination, not the only way there.
+const diaryButton = "gp-diary-pill ml-1.5 hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-brand-on-primary/35 bg-brand-on-primary/[0.06] px-5 py-2.5 text-sm font-medium text-brand-on-primary transition-all duration-300 hover:border-brand-secondary hover:bg-brand-secondary hover:text-brand-on-secondary 2xl:inline-flex";
 
 export async function Navbar() {
   const user = await getServerUser();

@@ -1328,6 +1328,41 @@ export type Database = {
           },
         ]
       }
+      price_drop_events: {
+        Row: {
+          created_at: string
+          id: string
+          new_price: number
+          old_price: number
+          processed_at: string | null
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_price: number
+          old_price: number
+          processed_at?: string | null
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_price?: number
+          old_price?: number
+          processed_at?: string | null
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "price_drop_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_images: {
         Row: {
           alt_text: string | null
@@ -2733,6 +2768,12 @@ export type Database = {
           payout: number
           product_name: string
           quantity: number
+        }[]
+      }
+      suggest_product_ids: {
+        Args: { max_results?: number; search_text: string }
+        Returns: {
+          id: string
         }[]
       }
       validate_coupon: {

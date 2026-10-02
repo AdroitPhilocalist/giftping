@@ -14,7 +14,9 @@ import type { BuiltEmail } from "@/lib/notifications/email-layout";
  * haven't been deleted/anonymised, and Resend is configured. (Until a sending domain is verified, Resend itself will refuse any
  * address but the account owner's — that shows up as `failed`, never as a crash.)
  */
-export type NotificationCategory = "order_updates" | "diary_reminders" | "promotions" | "vendor_updates" | "wishlist_alerts";
+// "account" isn't one of the categories a user can toggle in Settings (lib/account/notification-categories.ts) — it's used only
+// for the one-time welcome email, which should never be opted out of since it's sent before any preference row could exist.
+export type NotificationCategory = "order_updates" | "diary_reminders" | "promotions" | "vendor_updates" | "wishlist_alerts" | "account";
 
 export type EmailOutcome = "none" | "sent" | "skipped_optout" | "skipped_no_provider" | "skipped_no_address" | "failed";
 export type PushChannelOutcome = "sent" | "not_subscribed" | "skipped_optout" | "skipped_no_provider" | "skipped" | "failed";

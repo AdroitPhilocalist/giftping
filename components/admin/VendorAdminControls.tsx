@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { toast } from "@/components/ui/Toast";
-import { removeVendorBrandingAction, setCommissionOverrideAction, setVendorSuspendedAction } from "@/lib/admin/vendor-actions";
+import { removeVendorBrandingAction, setCommissionOverrideAction, setVendorFeaturedAction, setVendorSuspendedAction } from "@/lib/admin/vendor-actions";
 import { messageVendorAction } from "@/lib/admin/vendor-message-actions";
 
-export function VendorAdminControls({ vendorId, name, status, commissionOverride, hasLogo = false, hasBanner = false }: { vendorId: string; name: string; status: string; commissionOverride: number | null; hasLogo?: boolean; hasBanner?: boolean }) {
+export function VendorAdminControls({ vendorId, name, status, commissionOverride, hasLogo = false, hasBanner = false, isFeatured = false }: { vendorId: string; name: string; status: string; commissionOverride: number | null; hasLogo?: boolean; hasBanner?: boolean; isFeatured?: boolean }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [suspending, setSuspending] = useState(false);
@@ -48,6 +48,9 @@ export function VendorAdminControls({ vendorId, name, status, commissionOverride
         </span>
       ) : null}
       <button type="button" onClick={() => { setSubject(""); setMessage(""); setMessageError(null); setMessaging(true); }} className="text-brand-dark/60 hover:text-brand-primary">Message</button>
+      <button type="button" disabled={pending} onClick={() => run(() => setVendorFeaturedAction(vendorId, !isFeatured), isFeatured ? "Removed from the featured showcase." : "Featured on the homepage and Boutiques menu.", (m) => toast.error(m))} className={isFeatured ? "font-medium text-brand-secondary-dark hover:underline" : "text-brand-dark/60 hover:text-brand-primary"}>
+        {isFeatured ? "★ Featured" : "Feature"}
+      </button>
       {status === "approved" ? (
         <button type="button" onClick={() => { setReason(""); setError(null); setSuspending(true); }} className="text-brand-dark/60 hover:text-red-700">Suspend</button>
       ) : status === "suspended" ? (

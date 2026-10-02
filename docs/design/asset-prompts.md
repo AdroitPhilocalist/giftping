@@ -122,6 +122,28 @@ All 17 Batch 2 files are live (occasion worlds, boutique fronts, diary desk, ord
 | `world-boutiques.png`, `world-atrium.png`, plus the occasion worlds | the "Handpicked Experiences" cards on /mall | plain green card with a lattice pattern |
 | `auth-welcome.png` | left panel of sign-in / sign-up on wide screens | the plain centred form |
 
+## Batch 3 — status (1 Oct): A and B and D delivered, C generated but not needed
+
+**A (7 robin poses), B (4 more occasion worlds, including a bonus `world-kids-baby`), and D (3 "how it
+works" icons) are all delivered and wired** — synced via `npm run images:sync`, reviewed one by one, all
+clean (no stray text/logos). Live on `/about` (the three steps), `/categories` (Housewarming/Thank You/
+Festivals/Kids & Baby now show photo cards instead of the plain icon fallback), and wherever each robin pose
+appears (empty wishlist, search, notifications bell, payment-confirmed moment, etc.).
+
+**C (8 diary stickers) was also generated, but turns out not to be needed** — `OccasionSticker`
+(`components/diary/art/OccasionSticker.tsx`) already solves this as a hand-drawn SVG component, built
+before this batch was requested. The 8 `sticker-*.png` files are synced into the manifest harmlessly but
+nothing in the app reads them. No action needed — just don't expect them to appear anywhere.
+
+**E (real product photography, 20 products) is still outstanding** — see the prompt list below; these go
+in a different folder (`ui-references/products/`) and a different script (`npm run seed:images` +
+`npm run seed:demo`), not `images:sync`.
+
+**Still flagged from Batch 2, not yet done**: `world-for-her`/`world-for-him` (real Dior/Chanel branding —
+a trademark risk, currently held back from the new `/categories` photo cards specifically because of this)
+and `world-corporate-gifting`/`world-birthday` (readable slogans, off-brand but not a legal risk) all still
+need regenerating with the "no readable text/brand names" line added to the prompt.
+
 ## Batch 3 — what would make the site feel even more like a place (each one has a slot already wired)
 
 The best additions so far (the mall map, the world banners) work because they are **pictures the page is built around**, not decoration. More of the same, in order of impact:

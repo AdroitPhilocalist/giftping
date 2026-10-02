@@ -8,6 +8,8 @@ export interface FilterState {
   recipient?: string;
   sort?: string;
   inStock?: string;
+  minPrice?: string;
+  maxPrice?: string;
 }
 type Patch = Partial<Record<keyof FilterState, string | undefined>>;
 
@@ -48,6 +50,19 @@ export function ShopFilters({ vendors, current, hrefFor }: { vendors: { slug: st
           {vendors.slice(0, 12).map((v) => <Link key={v.slug} href={toggle("vendor", v.slug)} aria-current={current.vendor === v.slug ? "true" : undefined} className="pill">{v.business_name}</Link>)}
         </Group>
       ) : null}
+      <Group title="Price">
+        <form method="get" className="flex items-center gap-2">
+          <input type="hidden" name="vendor" value={current.vendor ?? ""} />
+          <input type="hidden" name="occasion" value={current.occasion ?? ""} />
+          <input type="hidden" name="recipient" value={current.recipient ?? ""} />
+          <input type="hidden" name="sort" value={current.sort ?? ""} />
+          <input type="hidden" name="inStock" value={current.inStock ?? ""} />
+          <input type="number" name="minPrice" min={0} defaultValue={current.minPrice ?? ""} placeholder="Min ₹" aria-label="Minimum price" className="w-20 rounded-full border border-brand-secondary/30 bg-brand-surface px-3 py-1.5 text-xs text-brand-dark" />
+          <span className="text-brand-dark/40">–</span>
+          <input type="number" name="maxPrice" min={0} defaultValue={current.maxPrice ?? ""} placeholder="Max ₹" aria-label="Maximum price" className="w-20 rounded-full border border-brand-secondary/30 bg-brand-surface px-3 py-1.5 text-xs text-brand-dark" />
+          <button type="submit" className="pill">Go</button>
+        </form>
+      </Group>
       <Group title="Sort">
         {SORTS.map((o) => <Link key={o.value} href={hrefFor({ sort: o.value === "popularity" ? undefined : o.value })} aria-current={(current.sort ?? "popularity") === o.value ? "true" : undefined} className="pill">{o.label}</Link>)}
       </Group>

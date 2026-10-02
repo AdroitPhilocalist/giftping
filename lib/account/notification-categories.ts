@@ -2,5 +2,6 @@
 export const NOTIFICATION_CATEGORIES = [
   { key: "diary_reminders", label: "Diary reminders", hint: "A heads-up before the birthdays and anniversaries you've saved, with gift ideas." },
   { key: "order_updates", label: "Order updates", hint: "Payment, packing and delivery updates for your orders." },
+  { key: "wishlist_alerts", label: "Wishlist price drops", hint: "A note when something you've saved gets cheaper — at most one message per item a week." },
   { key: "promotions", label: "Offers & new arrivals", hint: "Occasional offers from GiftPing and its boutiques." },
 ] as const;

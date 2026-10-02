@@ -84,8 +84,23 @@
     "width": 1254,
     "height": 1254
   },
+  "robin-bell": {
+    "src": "/images/robin-bell.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "robin-celebrating": {
+    "src": "/images/robin-celebrating.webp",
+    "width": 1254,
+    "height": 1254
+  },
   "robin-flying-gift": {
     "src": "/images/robin-flying-gift.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "robin-heart": {
+    "src": "/images/robin-heart.webp",
     "width": 1254,
     "height": 1254
   },
@@ -104,6 +119,26 @@
     "width": 1254,
     "height": 1254
   },
+  "robin-reading": {
+    "src": "/images/robin-reading.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "robin-search": {
+    "src": "/images/robin-search.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "robin-sleeping": {
+    "src": "/images/robin-sleeping.webp",
+    "width": 1448,
+    "height": 1086
+  },
+  "robin-waving": {
+    "src": "/images/robin-waving.webp",
+    "width": 1254,
+    "height": 1254
+  },
   "shopfront-florist": {
     "src": "/images/shopfront-florist.webp",
     "width": 1536,
@@ -118,6 +153,61 @@
     "src": "/images/shopfront-perfume.webp",
     "width": 1536,
     "height": 1024
+  },
+  "step-browse": {
+    "src": "/images/step-browse.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "step-deliver": {
+    "src": "/images/step-deliver.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "step-personalise": {
+    "src": "/images/step-personalise.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "sticker-anniversary": {
+    "src": "/images/sticker-anniversary.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "sticker-birthday": {
+    "src": "/images/sticker-birthday.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "sticker-festival": {
+    "src": "/images/sticker-festival.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "sticker-graduation": {
+    "src": "/images/sticker-graduation.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "sticker-housewarming": {
+    "src": "/images/sticker-housewarming.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "sticker-other": {
+    "src": "/images/sticker-other.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "sticker-thank-you": {
+    "src": "/images/sticker-thank-you.webp",
+    "width": 1254,
+    "height": 1254
+  },
+  "sticker-wedding": {
+    "src": "/images/sticker-wedding.webp",
+    "width": 1254,
+    "height": 1254
   },
   "world-anniversary": {
     "src": "/images/world-anniversary.webp",
@@ -144,6 +234,11 @@
     "width": 1600,
     "height": 900
   },
+  "world-festivals": {
+    "src": "/images/world-festivals.webp",
+    "width": 1600,
+    "height": 900
+  },
   "world-for-her": {
     "src": "/images/world-for-her.webp",
     "width": 1600,
@@ -151,6 +246,21 @@
   },
   "world-for-him": {
     "src": "/images/world-for-him.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "world-housewarming": {
+    "src": "/images/world-housewarming.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "world-kids-baby": {
+    "src": "/images/world-kids-baby.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "world-thank-you": {
+    "src": "/images/world-thank-you.webp",
     "width": 1600,
     "height": 900
   },

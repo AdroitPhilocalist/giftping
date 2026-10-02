@@ -27,6 +27,8 @@ export default async function CategoryPage({
   if (!category) notFound();
 
   const page = Number(sp.page ?? "1") || 1;
+  const minPrice = sp.minPrice ? Number(sp.minPrice) : undefined;
+  const maxPrice = sp.maxPrice ? Number(sp.maxPrice) : undefined;
   const filters: ProductListFilters = {
     categorySlug: slug,
     vendorSlug: sp.vendor || undefined,
@@ -34,6 +36,8 @@ export default async function CategoryPage({
     recipientTag: sp.recipient || undefined,
     inStockOnly: sp.inStock === "true",
     sort: (sp.sort as ProductListFilters["sort"]) || "popularity",
+    minPrice: minPrice !== undefined && Number.isFinite(minPrice) ? minPrice : undefined,
+    maxPrice: maxPrice !== undefined && Number.isFinite(maxPrice) ? maxPrice : undefined,
     page,
   };
 
@@ -50,14 +54,16 @@ export default async function CategoryPage({
     if (sp.recipient) params.set("recipient", sp.recipient);
     if (sp.sort) params.set("sort", sp.sort);
     if (sp.inStock) params.set("inStock", sp.inStock);
+    if (sp.minPrice) params.set("minPrice", sp.minPrice);
+    if (sp.maxPrice) params.set("maxPrice", sp.maxPrice);
     if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
     return `/categories/${slug}${qs ? `?${qs}` : ""}`;
   }
 
   // every filter option is a link to this page with one thing changed
-  function hrefFor(patch: Partial<Record<"vendor" | "occasion" | "recipient" | "sort" | "inStock", string | undefined>>) {
-    const merged = { vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, ...patch };
+  function hrefFor(patch: Partial<Record<"vendor" | "occasion" | "recipient" | "sort" | "inStock" | "minPrice" | "maxPrice", string | undefined>>) {
+    const merged = { vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, minPrice: sp.minPrice, maxPrice: sp.maxPrice, ...patch };
     const params = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) if (v) params.set(k, v);
     const qs = params.toString();
@@ -79,7 +85,7 @@ export default async function CategoryPage({
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <ShopFilters vendors={vendors} current={{ vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock }} hrefFor={hrefFor} />
+            <ShopFilters vendors={vendors} current={{ vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, minPrice: sp.minPrice, maxPrice: sp.maxPrice }} hrefFor={hrefFor} />
           </aside>
 
           <div>

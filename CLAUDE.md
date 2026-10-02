@@ -99,22 +99,42 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
   mid-transition ancestor is a known cross-engine compositing risk, and macOS/Windows' "Reduce Transparency"
   setting makes several browsers substitute a flat colour for `backdrop-filter` specifically) — removed
   `backdrop-filter` entirely; (4) **the actual root cause** — `sticky` never let the photo reach behind the
-  header at all — fixed as described above. `.gp-header-glass` (`globals.css`) is now just a light dark-green
+  header at all — fixed as described above. `.gp-header-glass` (`globals.css`) is a light dark-green
   `background` gradient (~0.4 alpha at both ends, ~0.14 in the middle), no blur, no `backdrop-filter`: light
-  enough that the photo behind it stays completely sharp. **Trade-off, accepted deliberately**: this light a
-  tint reads clearly over the homepage's rich, dark-toned hero photo, but weakens contrast on non-hero pages
-  (`/mall` and similar read noticeably lower-contrast in the bar's middle) — not fixed with a page-aware
-  variant since it wasn't asked for. Once condensed on scroll (`data-condensed="true"`) it switches to a
-  solid opaque fill (`.gp-bar-gradient`) instead — legibility over whatever's now behind the smaller pill
-  matters more than the glass effect at that size. Mobile/tablet (below `lg`) are visually unaffected (still
+  enough that the photo behind it stays completely sharp. **This same-day log originally accepted a
+  trade-off here as deliberate** — this light a tint reads clearly over the homepage's photo but weakens
+  contrast on plain-background pages (`/mall` and similar) — **and it was later fixed for real** (client
+  feedback, 2026-09-29, see `docs/progress/2026-09-29-header-page-aware-glass.md`): the header is now
+  page-aware rather than one fixed tint everywhere. `.gp-header-glass` **defaults** to the opaque
+  `.gp-bar-gradient` fill (same as condensed-on-scroll) on every page, and only uses the light glass tint
+  above when `<html>` carries `data-hero-header="true"` — set by a small client component,
+  `components/layout/HeroHeaderFlag.tsx`, mounted only inside the sections that actually bleed a photo up
+  behind the header (`HomeHero.tsx`, `VendorHero.tsx`; see the `-mt-[5.5rem] lg:-mt-[6.5rem]` bleed pattern
+  two paragraphs up). A `:not([data-condensed="true"])` guard means scrolling still always wins. Any future
+  full-bleed hero on a new page needs both: the bleed pairing on its own section, **and** mounting
+  `<HeroHeaderFlag />` inside it, or its header will default to opaque instead of showing the photo through
+  a tint. `/diary` was deliberately left out of this — it has its own dark desk background that *could* be
+  bled the same way, but that risks the already heavily-tuned flip-book layout for a cosmetic-only gain; the
+  opaque default already fixes the contrast complaint there without touching it. Once condensed on scroll
+  (`data-condensed="true"`) it's the same solid opaque fill (`.gp-bar-gradient`) on every page regardless —
+  legibility over whatever's now behind the smaller pill matters more than the glass effect at that size.
+  Mobile/tablet (below `lg`) are visually unaffected (still
   the flush bar per the client's mobile mockup) despite also now being `fixed` rather than `sticky`, since
-  mobile has no hero to bleed under. `NavLinks.tsx`'s items are pipe-separated (`|`). "My Diary" is a quiet
+  mobile has no hero to bleed under. **A gilded edge** (client request, "a golden touch," 2026-09-29): a
+  `--gp-gold-edge` token (light-gold → copper → bright highlight → copper → light-gold, built from the
+  existing `--gp-copper` accent rather than a separate yellow, so it doesn't clash with the copper already
+  used for dividers/badges/the current-page underline) renders as a real 1.4px gradient ring around the
+  desktop pill via the standard `mask-composite: exclude` gradient-border trick (a plain `border` can't take
+  a gradient and keep `border-radius` — `border-image` ignores rounded corners), and as a thin bottom
+  hairline on the mobile flush bar (a full ring there would put a stray line down both screen edges). This
+  replaced the old, nearly-invisible flat copper `border-color`. `NavLinks.tsx`'s items are pipe-separated
+  (`|`). "My Diary" is a quiet
   outlined pill with a book icon. `HomeHero.tsx`'s "Watch Our Story" button is a solid cream/white pill with
   dark ink text (was wrongly outlined/transparent); "Explore the Mall" was already correct (solid forest
   green). **The announcement strip is no longer rendered** (`AnnouncementBar.tsx` still exists, just unused)
   — the reference has no room for one above a pill with its own top margin; every OTHER client reference
   mockup still shows one, a real, deliberate divergence worth reconciling with the client.
-- Chrome: `components/layout/` — AnnouncementBar, Logo (type-based until the real logo file exists), NavLinks (active underline), MobileMenu (Radix dialog), MobileTabBar, TrustStrip, Footer. Main nav lives in `lib/nav.ts`.
+- Chrome: `components/layout/` — AnnouncementBar, Logo (type-based until the real logo file exists), NavLinks (active underline), MobileMenu (Radix dialog), MobileTabBar, TrustStrip, Footer, HeroHeaderFlag (marks `<html data-hero-header>` from inside a hero section so the header knows to use its glass tint instead of the opaque default — see the navbar section above). Main nav lives in `lib/nav.ts`.
 - Artwork: `lib/content/imagery.ts` (`siteImage(key, themeId)`, manifest written by `npm run images:sync` from `ui-references/batch-1/`); until a file exists each component draws its placeholder from `components/art/` (AtriumScene, MallMapArt, ShopfrontArt, DiaryArt, GiftBoxArt, Robin). The mall's nine places live in `lib/mall.ts` (used by `/mall`). Above-the-fold entrances use the CSS `.rise` class; `Reveal` only hides content below the fold.
 - Gift-wrap style (`lib/commerce/wrap-styles.ts`) is cosmetic — flat fee, `orders.gift_wrap_style` written by the server after `place_order()`. "Shop by relationship" (`lib/relationships.ts`) maps people to real tag filters.
 - Mascot: a robin (empty states, "Ask GiftPing AI", decorative cards) — `<Robin pose="perched|flying-gift|on-gift|peeking">` shows the client's art and falls back to a drawing; the logo (`Logo`) does the same. Slots for occasion banners (`world-<slug>`), default boutique fronts (`shopfront-*`), `diary-desk` and `order-hero` exist too. All artwork comes from ChatGPT prompts in `docs/design/asset-prompts.md`; business facts pages state live in `lib/site.ts` (`legalReviewed` must be flipped only after legal review).
@@ -252,6 +272,7 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 /lib/catalog    → tags.ts (OCCASION_TAGS, RECIPIENT_TAGS, labelForTag — shared by vendor form + shop filters)
 /lib/notifications → notify.ts (notifyUser: in-app + optional email, preference-gated, NEVER throws — use it for every user-facing message), email-layout.ts +
                   templates.ts (pure, tested, HTML-escaped order/shipment/vendor emails)
+/lib/wishlist   → price-drops.ts (pure, tested: effectivePrice, classifyPriceDrop, buildDigests — the alert rules: ≥5% net drop, 14-day expiry, 7-day per-person/per-product cooldown, skip people who wishlisted AFTER the drop, one digest per person) and price-drop-job.ts (server: runs from the daily cron, `runPriceDropAlerts`). Events come from the `products_record_price_drop` trigger into the server-only `price_drop_events` queue (RLS on, no policies, no client grants). **A vendor edit to a live product sends it back to admin review, so a drop only becomes real once re-approved — the job leaves events queued until the product is live again instead of announcing a price nobody can buy.** Events are claimed (processed_at, atomically) BEFORE sending: at-most-once by design.
 /lib/integrations → resend.ts (fetch client; no-op without a key), razorpay.ts (REST client) + razorpay-signature.ts (pure HMAC checks), shiprocket.ts (REST client, cached JWT) +
                   shiprocket-status.ts / shiprocket-webhook.ts (pure, tested) built; msg91.ts, onesignal.ts, resend.ts not built yet ( no
                   cloudinary.ts or removebg.ts at all — both cut per the cost constraint above)
@@ -265,6 +286,12 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
 /lib/search     → index.ts — searchProducts(), wraps the search_products() Postgres RPC (Stage 1) and
                   re-joins ranked ids against the vendor/category-joined product-card shape (the RPC
                   itself returns raw unjoined rows). Swappable for Algolia later without touching callers.
+                  suggest.ts (pure, tested, shared by client + server: normaliseSuggestQuery, highlightParts, result types)
+                  and suggestions.ts (server: getSuggestions — search-as-you-type via the suggest_product_ids() RPC, which
+                  PREFIX-matches every typed word (`word:*`) because search_products()/websearch_to_tsquery only matches whole
+                  words, plus name-contains matches on categories and approved boutiques). Served by GET /api/search/suggest
+                  (public, searchRateLimit per IP); the client is components/shop/SearchBar.tsx (a combobox over a plain GET
+                  form, so Enter still searches without JS or if the lookup fails).
 /lib/diary      → recurrence.ts (pure date maths, Feb 29 → Feb 28, exact-day reminders), gifting-score.ts, suggestion-matcher.ts,
                   view.ts (dashboard view-model), reminder-email.ts (paper-look HTML email, HTML-escaped, safe-URL-only images), plans.ts (gift plan rules: Idea→Chosen→Ordered→Wrapped→Given),
                   memories.ts (last year's gift, year summary/review, "remembered" streak), present.ts (wording helpers), page-data.ts (rows → the plain shapes components take), ui-types.ts,

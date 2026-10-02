@@ -72,7 +72,7 @@ export default async function AdminVendorsPage() {
                 {vendor.support_email ?? "no email"} · {vendor.support_phone ?? "no phone"} · pickup {wh?.pincode ? `${wh.city ?? ""} ${wh.pincode}` : "not set"} · commission {d?.commission_rate == null ? "default" : `${Number(d.commission_rate)}% (override)`}
               </p>
               {vendor.status === "approved" || vendor.status === "suspended" ? (
-                <VendorAdminControls vendorId={vendor.id} name={vendor.business_name} status={vendor.status} commissionOverride={d?.commission_rate == null ? null : Number(d.commission_rate)} hasLogo={Boolean(vendor.logo_url)} hasBanner={Boolean(vendor.banner_url)} />
+                <VendorAdminControls vendorId={vendor.id} name={vendor.business_name} status={vendor.status} commissionOverride={d?.commission_rate == null ? null : Number(d.commission_rate)} hasLogo={Boolean(vendor.logo_url)} hasBanner={Boolean(vendor.banner_url)} isFeatured={Boolean(vendor.is_featured)} />
               ) : null}
             </li>
           );

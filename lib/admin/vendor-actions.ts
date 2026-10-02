@@ -61,6 +61,20 @@ export async function setVendorSuspendedAction(vendorId: string, suspended: bool
   return { ok: true };
 }
 
+/** Featured vendors surface on the homepage's showcase and the header's Boutiques mega-menu (lib/db/vendors.ts's getFeaturedVendors) — previously only settable by editing the seed data directly. */
+export async function setVendorFeaturedAction(vendorId: string, featured: boolean): Promise<{ ok: boolean; error?: string }> {
+  const g = await gate(); if ("error" in g) return { ok: false, error: g.error };
+  if (!id.safeParse(vendorId).success) return { ok: false, error: "Invalid vendor." };
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("vendors").update({ is_featured: featured }).eq("id", vendorId);
+  if (error) return { ok: false, error: "Couldn't update the vendor." };
+  await admin.from("audit_logs").insert({ actor_id: g.user.id, action: featured ? "vendor.featured" : "vendor.unfeatured", entity_type: "vendor", entity_id: vendorId, before_data: null, after_data: null });
+  revalidatePath("/admin/vendors");
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
 const rateSchema = z.union([z.literal(""), z.coerce.number().min(0, "Can't be negative").max(100, "Can't exceed 100")]);
 
 /** Blank clears the override (category → platform default applies). Only affects FUTURE orders: every order snapshots its own commission. */

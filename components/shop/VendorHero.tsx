@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ShopfrontArt } from "@/components/art/ShopfrontArt";
+import { HeroHeaderFlag } from "@/components/layout/HeroHeaderFlag";
 import type { SiteImage } from "@/lib/content/imagery";
 
 export interface VendorFeature {
@@ -31,6 +32,7 @@ export function VendorHero({
 }) {
   return (
     <section className="relative isolate -mt-[5.5rem] overflow-hidden pt-[5.5rem] lg:-mt-[6.5rem] lg:pt-[6.5rem]">
+      <HeroHeaderFlag />
       <div className="absolute inset-0" aria-hidden="true">
         {bannerUrl ? (
           <Image src={bannerUrl} alt="" fill priority sizes="100vw" className="object-cover object-center" />

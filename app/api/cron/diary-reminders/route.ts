@@ -2,6 +2,7 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/db/admin";
 import { runDiaryReminders } from "@/lib/diary/reminders";
+import { runPriceDropAlerts } from "@/lib/wishlist/price-drop-job";
 
 // Vercel Cron calls this with `Authorization: Bearer $CRON_SECRET`. Always dynamic; allow the long-running batch.
 export const dynamic = "force-dynamic";
@@ -26,13 +27,19 @@ async function handle(request: Request) {
   const started = Date.now();
   const admin = createAdminClient();
 
-  // Three independent jobs: one failing must not stop the others.
+  // Independent jobs: one failing must not stop the others.
   const result: Record<string, unknown> = {};
   try {
     result.diary = await runDiaryReminders({ appUrl, dryRun });
   } catch (error) {
     console.error("diary reminders failed", error);
     result.diary = { error: String((error as Error).message ?? error) };
+  }
+  try {
+    result.priceDrops = await runPriceDropAlerts({ dryRun });
+  } catch (error) {
+    console.error("price-drop alerts failed", error);
+    result.priceDrops = { error: String((error as Error).message ?? error) };
   }
   if (!dryRun) {
     const stale = await admin.rpc("cancel_stale_unpaid_orders", { p_hours: 48 });

@@ -1,4 +1,4 @@
-import { escapeHtml, renderEmailFrame, type BuiltEmail } from "./email-layout";
+import { escapeHtml, renderEmailFrame, safeUrl, type BuiltEmail } from "./email-layout";
 
 const row = (left: string, right: string) =>
   `<tr><td style="padding:8px 0;border-top:1px solid #eee">${left}</td><td align="right" style="padding:8px 0;border-top:1px solid #eee;white-space:nowrap">${right}</td></tr>`;
@@ -151,6 +151,24 @@ export interface AccountDeletedInput {
   appUrl: string;
 }
 
+// ---------------------------------------------------------------------------
+// Welcome (customer, sent once on registration — see lib/auth/actions.ts and app/auth/callback/route.ts)
+// ---------------------------------------------------------------------------
+export interface WelcomeEmailInput { firstName: string; mallUrl: string; diaryUrl: string; preferencesUrl: string }
+
+export function buildWelcomeEmail(i: WelcomeEmailInput): BuiltEmail {
+  const html = renderEmailFrame({
+    preheader: "Welcome to GiftPing — every gift tells a story.",
+    heading: `Welcome, ${escapeHtml(i.firstName)}`,
+    bodyHtml: `<p style="margin:0 0 12px;color:#555">Glad you're here. GiftPing is a mall of boutiques and GiftPing Originals, all in one place — browse by occasion, by who you're shopping for, or just wander in.</p>
+<p style="margin:0;color:#555">One thing worth a look early on: your <strong>Personal Gifting Diary</strong>. Save the birthdays and anniversaries that matter, and we'll remind you a week and a few days before — with gift ideas already picked out.</p>`,
+    cta: { label: "Explore the mall", url: i.mallUrl },
+    footerHtml: footer(i.preferencesUrl),
+  });
+  const text = [`Welcome, ${i.firstName}`, "", "GiftPing is a mall of boutiques and GiftPing Originals, all in one place.", "Worth a look early on: your Personal Gifting Diary — save the dates that matter and we'll remind you in advance with gift ideas.", "", `Explore the mall: ${i.mallUrl}`, `Your diary: ${i.diaryUrl}`].join("\n");
+  return { subject: "Welcome to GiftPing", html, text };
+}
+
 export function buildAccountDeletedEmail(i: AccountDeletedInput): BuiltEmail {
   const html = renderEmailFrame({
     preheader: "Your GiftPing account has been deleted",
@@ -283,4 +301,50 @@ export function buildDataExportEmail(i: DataExportInput): BuiltEmail {
   });
   const text = [`Hi ${i.firstName},`, "", `On ${i.whenLabel}, someone signed in to your account downloaded a copy of the personal data GiftPing holds about you.`, "If that was you, there's nothing to do. If it wasn't, change your password now and reply to this email.", `Account: ${i.accountUrl}`].join("\n");
   return { subject: "A copy of your GiftPing data was downloaded", html, text };
+}
+
+// ---------------------------------------------------------------------------
+// Wishlist price drops (customer) — one digest per person, not one email per item
+// ---------------------------------------------------------------------------
+export interface PriceDropEmailInput {
+  firstName: string;
+  items: { name: string; url: string; fromLabel: string; toLabel: string; percentOff: number }[];
+  /** drops beyond the items listed */
+  more: number;
+  wishlistUrl: string;
+  preferencesUrl: string;
+}
+
+export function buildPriceDropEmail(i: PriceDropEmailInput): BuiltEmail {
+  const count = i.items.length + i.more;
+  const rows = i.items
+    .map((it) =>
+      row(
+        `<a href="${escapeHtml(safeUrl(it.url))}" style="color:#1A4731;text-decoration:none">${escapeHtml(it.name)}</a>`,
+        `<span style="color:#999;text-decoration:line-through">${escapeHtml(it.fromLabel)}</span> <strong>${escapeHtml(it.toLabel)}</strong> <span style="color:#B75F22">(${it.percentOff}% off)</span>`,
+      ),
+    )
+    .join("");
+  const subject = count === 1 ? `Price drop: ${i.items[0].name} is now ${i.items[0].toLabel}` : `Price drops on ${count} items in your wishlist`;
+  const html = renderEmailFrame({
+    preheader: subject,
+    heading: count === 1 ? "A gift you saved just got cheaper" : `${count} gifts you saved just got cheaper`,
+    bodyHtml: `<p style="margin:0 0 8px;color:#555">Hi ${escapeHtml(i.firstName)},</p>
+<p style="margin:0 0 16px;color:#555">The price has dropped on ${count === 1 ? "an item" : "items"} in your wishlist:</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rows}</table>
+${i.more > 0 ? `<p style="margin:12px 0 0;color:#777;font-size:13px">…and ${i.more} more in your wishlist.</p>` : ""}`,
+    cta: { label: "See my wishlist", url: i.wishlistUrl },
+    footerHtml: `You're getting this because these items are in your GiftPing wishlist. Prices can change again, and stock is limited. <a href="${escapeHtml(safeUrl(i.preferencesUrl))}" style="color:#888">Turn wishlist alerts off</a>.`,
+  });
+  const text = [
+    `Hi ${i.firstName},`,
+    "",
+    count === 1 ? "A gift you saved just got cheaper:" : "Gifts you saved just got cheaper:",
+    ...i.items.map((it) => `- ${it.name}: ${it.fromLabel} -> ${it.toLabel} (${it.percentOff}% off) ${it.url}`),
+    ...(i.more > 0 ? [`...and ${i.more} more in your wishlist.`] : []),
+    "",
+    `Wishlist: ${i.wishlistUrl}`,
+    `Turn wishlist alerts off: ${i.preferencesUrl}`,
+  ].join("\n");
+  return { subject, html, text };
 }
