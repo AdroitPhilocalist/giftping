@@ -166,6 +166,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <div className="mt-6 border-t border-brand-dark/10 pt-6">
               <ProductBuyBox
                 productId={product.id}
+                productSlug={product.slug}
+                productName={product.name}
+                imageUrl={product.thumbnail_url}
                 basePrice={product.base_price}
                 salePrice={product.sale_price}
                 stockQuantity={product.stock_quantity}

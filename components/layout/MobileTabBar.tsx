@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Grid2x2, Heart, Home, ShoppingBag, User } from "lucide-react";
+import { Grid2x2, Heart, Home, User } from "lucide-react";
+import { BasketIcon } from "@/components/art/BasketIcon";
 import { cn } from "@/lib/utils/cn";
 
 const TABS = [
   { label: "Home", href: "/", icon: Home },
   { label: "Categories", href: "/categories", icon: Grid2x2 },
-  { label: "Cart", href: "/cart", icon: ShoppingBag },
+  { label: "Cart", href: "/cart", icon: BasketIcon },
   { label: "Wishlist", href: "/wishlist", icon: Heart },
   { label: "Account", href: "/account", icon: User },
 ] as const;

@@ -7,6 +7,7 @@ import { CheckoutSteps } from "@/components/shop/CheckoutSteps";
 import { FreeDeliveryNudge } from "@/components/shop/FreeDeliveryNudge";
 import { CartLineItem } from "@/components/shop/CartLineItem";
 import { GuestCartMerger } from "@/components/shop/GuestCartMerger";
+import { LiveBasket } from "@/components/shop/LiveBasket";
 import { Button } from "@/components/ui/Button";
 import { getCartView, hasUnmergedGuestCart } from "@/lib/commerce/cart";
 import { getCommerceSettings } from "@/lib/commerce/settings";
@@ -23,7 +24,14 @@ export default async function CartPage() {
       {needsMerge ? <GuestCartMerger /> : null}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-3">
-          <BasketArt full={cart.groups.length > 0} className="w-14 shrink-0 sm:w-16" />
+          {/* The shopper's REAL items, photos tucked into the basket — they drop in when the page opens and again whenever something is added. */}
+          <div className="w-32 shrink-0 sm:w-44">
+            {cart.groups.length > 0 ? (
+              <LiveBasket animateOnMount items={cart.groups.flatMap((g) => g.lines).map((l) => ({ id: l.id, name: l.name, imageUrl: l.imageUrl, quantity: l.quantity }))} />
+            ) : (
+              <BasketArt full={false} />
+            )}
+          </div>
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-secondary-dark">Your basket</p>
             <h1 className="mt-1 font-heading text-4xl text-brand-dark">

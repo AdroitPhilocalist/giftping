@@ -1,8 +1,16 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { AddedItem } from "@/lib/shop/basket";
 
 export const ADD_TO_CART_FLY_EVENT = "gp:add-to-cart";
+
+/** Sent with the event: where the gift starts, and (when known) what was added — so the header's mini-basket can show it before the cart is re-read. */
+export interface AddToCartFlyDetail {
+  x: number;
+  y: number;
+  added?: AddedItem;
+}
 
 // A small trusted, hand-authored SVG (no interpolated data) — a gift box with a ribbon, in theme tokens.
 // Built as a string because the flying element is created outside React's tree (see the comment below).
@@ -42,7 +50,7 @@ export function CartFlyLayer() {
       const layer = layerRef.current;
       const cartIcon = findCartIcon();
       if (!layer || !cartIcon) return;
-      const { x, y } = (e as CustomEvent<{ x: number; y: number }>).detail;
+      const { x, y } = (e as CustomEvent<AddToCartFlyDetail>).detail;
       const target = cartIcon.getBoundingClientRect();
 
       const el = document.createElement("div");

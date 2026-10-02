@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { Cake, Gift, Heart, HeartHandshake, Minus, Plus, ShoppingBag, Sparkles, Zap } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { DeliveryChecker } from "@/components/shop/DeliveryChecker";
-import { ADD_TO_CART_FLY_EVENT } from "@/components/motion/CartFlyLayer";
+import { ADD_TO_CART_FLY_EVENT, type AddToCartFlyDetail } from "@/components/motion/CartFlyLayer";
+import { canShowMiniBasket } from "@/lib/shop/mini-basket-env";
 import { Button } from "@/components/ui/Button";
 import { Textarea, Input, Label } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
@@ -29,12 +30,19 @@ const OCCASION_ICONS: Record<string, LucideIcon> = { Birthday: Cake, Anniversary
 
 export function ProductBuyBox({
   productId,
+  productSlug,
+  productName,
+  imageUrl,
   basePrice,
   salePrice,
   stockQuantity,
   variants,
 }: {
   productId: string;
+  /** with the name and photo, the header's mini-basket can show what was just added immediately */
+  productSlug?: string;
+  productName?: string;
+  imageUrl?: string | null;
   basePrice: number;
   salePrice: number | null;
   stockQuantity: number;
@@ -92,14 +100,24 @@ export function ProductBuyBox({
         return;
       }
       // Let the robin do its "into the basket" moment before anything else reacts — see CartFlyLayer.
-      if (flyFrom) window.dispatchEvent(new CustomEvent(ADD_TO_CART_FLY_EVENT, { detail: flyFrom }));
+      if (flyFrom) {
+        const detail: AddToCartFlyDetail = {
+          ...flyFrom,
+          ...(productSlug && productName ? { added: { slug: productSlug, name: productName, imageUrl: imageUrl ?? null, quantity: Math.min(quantity, maxQuantity), unitPrice: activePrice } } : {}),
+        };
+        window.dispatchEvent(new CustomEvent(ADD_TO_CART_FLY_EVENT, { detail }));
+      }
       if (afterAdd) {
         afterAdd();
         return;
       }
-      toast.success(result.message ?? "Added to your cart.", {
-        action: { label: "View cart", onClick: () => router.push("/cart") },
-      });
+      // With a real mouse on a desktop screen the header's mini-basket opens by itself and shows the gift landing — a toast on top would just repeat it.
+      // Everywhere else (touch, narrow screens) the toast stays the confirmation.
+      if (!flyFrom || !canShowMiniBasket()) {
+        toast.success(result.message ?? "Added to your cart.", {
+          action: { label: "View cart", onClick: () => router.push("/cart") },
+        });
+      }
       router.refresh();
     });
   }

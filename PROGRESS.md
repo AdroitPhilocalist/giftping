@@ -161,6 +161,20 @@ See `docs/progress/2026-10-02-admin-seo-tools.md`.
 **New: `docs/ideas/DELIGHT_AND_FEATURE_IDEAS.md`** — a menu of animation/interaction and business-feature ideas with IDs, effort, "needs", cost, and suggested sprints, so you can say
 "build A1 + A2". Includes an honest account of what already exists (more than I first listed: Ambience on occasion headers, GiftCardPreview, OrderStepper, wrap picker).
 
+## Sprint 1 — "The Basket" built (2 Oct)
+
+First sprint from `docs/ideas/DELIGHT_AND_FEATURE_IDEAS.md` (A1, A2, A5, A6; A8 not done). The cart is now genuinely a basket: **A1** the cart-page basket holds the shopper's real
+product photos (drop in on arrival, jiggle on add, quantity badges, "+N"); **A2** a basket icon in the header (and tab bar) with a **mini-basket** that opens on hover and automatically after
+adding to cart (desktop mouse only; touch keeps the link + toast), showing the just-added gift instantly and the full cart a moment later; **A6** a free-delivery ribbon with a bow that ties on unlock
+(cart page + mini-basket); **A5** the post-payment celebration is now a gift box that opens (lid lifts off, robin hops up, caption), skipped for reduced-motion. New: `lib/shop/basket.ts` (+23 tests),
+`LiveBasket`, `MiniBasket`, `DeliveryRibbon`, `BasketIcon`, `GET /api/cart/mini`, CSS in `globals.css`. **Verified live** (real DB, real clicks): the add→fly→panel sequence and timings, no toast on desktop,
+no double photo-drop when the real cart replaces the provisional one, auto-close timing, hover path, the cart page with 4 real items (images served by the optimiser at ~3–4 KB each), live re-layout on
+remove/increase, ribbon 90%→100% with jiggle + bow-tie + quantity badge, empty state, phone layout, and the unwrap scene mounted through the real event and inspected frame-by-frame at 2.4 s.
+431/431 tests, tsc/eslint/build clean. **Fixes found by testing:** the mini-basket data call takes ~1.4–2 s in this dev setup (remote DB) so the panel was stuck on "Opening…" — now provisional + deferred
+auto-close; a pointer merely sitting under the panel kept it open forever — now only real movement counts. **Not verified:** a real phone's speed/feel and a real touch device; real payment triggering the unwrap
+(exercised via the same window event PayNowButton fires); the reduced-motion path (coded, not exercised); the production latency of `/api/cart/mini` (dev numbers are inflated by DB distance but unproven).
+**Decision for you/client:** all copy still says "Cart" — say if you want "Basket" site-wide. See `docs/progress/2026-10-02-sprint-1-the-basket.md`.
+
 ## Stage 11 in progress
 
 Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). **Vendor logo + banner upload done** (with admin take-down). **Bulk CSV product upload done** (preview → all-or-nothing import as hidden drafts). **"Download my data" done. Dashboard alert for paid orders stuck with a suspended vendor done — Stage 11 (admin suite) is COMPLETE.** Next: Stage 12 (visual & motion polish), then Stage 13 (go-live). **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 

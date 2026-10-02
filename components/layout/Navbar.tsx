@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BookHeart, Heart, Search, ShoppingBag, User } from "lucide-react";
+import { BookHeart, Heart, Search, User } from "lucide-react";
 import { AccountMenu } from "@/components/layout/AccountMenu";
 import { HeaderShell } from "@/components/layout/HeaderShell";
 import { Logo } from "@/components/layout/Logo";
@@ -12,6 +12,7 @@ import { getFeaturedCategories } from "@/lib/db/categories";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getFeaturedVendors } from "@/lib/db/vendors";
 import { getCartCount } from "@/lib/commerce/cart";
+import { MiniBasket } from "@/components/layout/MiniBasket";
 import { getUnreadNotificationCount } from "@/lib/db/notifications";
 
 // The header is dark green (see .gp-header-inner in globals.css), so every icon/link inside it reads in cream, not the usual ink — hover fills with a soft
@@ -57,10 +58,7 @@ export async function Navbar() {
               <Heart className="h-5 w-5" />
               {wishlistCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{wishlistCount}</span> : null}
             </Link>
-            <Link id="gp-cart-icon" href="/cart" aria-label={cartCount > 0 ? `Cart, ${cartCount} items` : "Cart"} className={iconButton}>
-              <ShoppingBag className="h-5 w-5" />
-              {cartCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{cartCount > 99 ? "99+" : cartCount}</span> : null}
-            </Link>
+            <MiniBasket cartCount={cartCount} iconClass={iconButton} badgeClass={`${badge} bg-brand-secondary text-brand-on-secondary`} />
             <Link href="/diary" className={diaryButton}><BookHeart className="h-4 w-4" aria-hidden="true" />My Diary</Link>
             <MobileMenu signedIn={Boolean(user)} />
           </div>

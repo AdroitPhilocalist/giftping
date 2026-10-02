@@ -187,6 +187,78 @@ h1, h2, h3, .font-heading {
 }
 .gp-cart-bounce { animation: gp-cart-bounce 0.55s var(--gp-ease); }
 
+/* ── The basket (LiveBasket.tsx, MiniBasket.tsx, DeliveryRibbon.tsx, OrderCelebration's unwrap) ─────────────────────────────────────────────────────
+   Animations sit on an INNER element, never the one carrying the placement transform (CLAUDE.md's CSS gotcha: transform properties compose). All colours are
+   theme tokens; the global prefers-reduced-motion rule below collapses every duration to nothing. */
+@keyframes gp-basket-drop {
+  0% { transform: translateY(-78px) scale(0.88); opacity: 0; }
+  50% { transform: translateY(7px) scale(1.03); opacity: 1; }
+  74% { transform: translateY(-3px) scale(1); }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.gp-basket-drop { animation: gp-basket-drop 0.8s var(--gp-ease) both; transform-box: fill-box; transform-origin: 50% 100%; }
+
+@keyframes gp-basket-jiggle {
+  0%, 100% { transform: rotate(0); }
+  22% { transform: rotate(-3.2deg); }
+  48% { transform: rotate(2.6deg); }
+  72% { transform: rotate(-1.4deg); }
+}
+.gp-basket-jiggle { animation: gp-basket-jiggle 0.65s var(--gp-ease) 0.4s; }
+
+/* the mini-basket panel under the header's basket icon */
+@keyframes gp-mini-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.gp-mini-basket { animation: gp-mini-in 0.18s var(--gp-ease) both; transform-origin: top right; }
+
+/* the free-delivery ribbon: the fill grows, and the bow at its tip does a little "tie" when delivery unlocks */
+.gp-ribbon-fill { transition: width 0.9s var(--gp-ease); }
+@keyframes gp-ribbon-tie {
+  0% { transform: scale(0.4) rotate(-25deg); opacity: 0; }
+  60% { transform: scale(1.25) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.gp-ribbon-bow { animation: gp-ribbon-tie 0.6s var(--gp-ease) both; transform-box: fill-box; transform-origin: center; }
+
+/* the "unwrap" moment after a payment succeeds (OrderCelebration): box pops in → lid lifts off → robin rises out → caption */
+@keyframes gp-unwrap-pop {
+  0% { opacity: 0; transform: scale(0.55) translateY(26px); }
+  70% { opacity: 1; transform: scale(1.06) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.gp-unwrap-box { animation: gp-unwrap-pop 0.6s var(--gp-ease) both; }
+@keyframes gp-unwrap-lid {
+  0% { transform: translate(0, 0) rotate(0); opacity: 1; }
+  8% { transform: translate(0, 0) rotate(-2deg); }
+  16% { transform: translate(0, 0) rotate(2deg); }
+  24% { transform: translate(0, 0) rotate(-1deg); }
+  34% { transform: translate(0, 0) rotate(0); }
+  62% { transform: translate(8px, -30px) rotate(-5deg); opacity: 1; }
+  100% { transform: translate(52px, -84px) rotate(-18deg); opacity: 0; }
+}
+.gp-unwrap-lid { animation: gp-unwrap-lid 1.5s var(--gp-ease) 0.55s both; transform-box: fill-box; transform-origin: 20% 100%; }
+@keyframes gp-unwrap-robin {
+  0% { transform: translateY(62%) scale(0.9); opacity: 0; }
+  12% { opacity: 1; }
+  68% { transform: translateY(-16%) scale(1.05); }
+  100% { transform: translateY(-8%) scale(1); opacity: 1; }
+}
+.gp-unwrap-robin { animation: gp-unwrap-robin 1.1s var(--gp-ease) 1.3s both; }
+@keyframes gp-unwrap-glow {
+  0% { opacity: 0; transform: scale(0.4); }
+  45% { opacity: 0.42; }
+  100% { opacity: 0.2; transform: scale(1.15); }
+}
+.gp-unwrap-glow { animation: gp-unwrap-glow 1.4s var(--gp-ease) 1s both; }
+@keyframes gp-unwrap-caption {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.gp-unwrap-caption { animation: gp-unwrap-caption 0.5s var(--gp-ease) 1.9s both; }
+.gp-unwrap-stage[data-leaving="true"] { animation: gp-fade 0.4s var(--gp-ease) reverse forwards; }
+
 /* The custom robin cursor (RobinCursor.tsx) — activated only once JS confirms a fine pointer AND no
    reduced-motion preference; the class is added to <html> only then, so a slow/failed script load
    never leaves a visitor without any cursor at all. Text fields keep their native caret regardless,

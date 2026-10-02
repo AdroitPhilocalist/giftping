@@ -61,12 +61,12 @@ The brief was "interactive, animated, real-life feel." Honest state:
 
 | ID | Idea | What the customer sees | Effort | Wow | Status / Needs |
 |---|---|---|---|---|---|
-| **A1** | **Basket 2.0 — the basket really holds your gifts** | Add a product and its *actual photo* drops into a basket that fills up as you add more (nicely overlapping, count badge, gentle jiggle on each add). The cart page basket mirrors the real cart. | M | ★★★★★ | Partly built (basket art + fly animation). **Needs:** product photos — only some products have real ones; the rest show our gift-box placeholder (you deferred product photos). |
-| **A2** | **Mini-basket in the header** | Hover/tap the basket icon: a small basket drawer opens showing real items, total, a free-delivery ribbon, "Checkout". The add-to-cart gift now flies **into** the basket. | M | ★★★★ | Builds on A1. |
+| **A1** ✅ | **Basket 2.0 — the basket really holds your gifts** | Add a product and its *actual photo* drops into a basket that fills up as you add more (nicely overlapping, count badge, gentle jiggle on each add). The cart page basket mirrors the real cart. | M | ★★★★★ | **BUILT 2 Oct (Sprint 1)** — see `docs/progress/2026-10-02-sprint-1-the-basket.md`. All 57 demo products have a (seed) photo; real vendor products show a gift-box stand-in until they upload one. |
+| **A2** ✅ | **Mini-basket in the header** | Hover/tap the basket icon: a small basket drawer opens showing real items, total, a free-delivery ribbon, "Checkout". The add-to-cart gift now flies **into** the basket. | M | ★★★★ | **BUILT 2 Oct (Sprint 1).** Desktop mouse only; touch keeps the plain link + toast. |
 | **A3** | **Live personalisation preview on the product** | Type "Aarav" and see it engraved on the actual name plate (or printed on a mug) in real time, in the chosen font. | M–L | ★★★★★ | Not built. **Needs:** per-product "where does the text go" setup (a vendor/admin field) and 2–3 nice fonts. Great for personalised products only. |
 | **A4** | **Gift-wrap preview** | Picking a wrap colour re-dresses a little gift box on screen (ribbon colour, bow) along with the card text. | S–M | ★★★ | Wrap artwork exists; just not shown *on the gift*. |
-| **A5** | **"Unwrap" order confirmation** | After paying, a gift box on screen opens, the robin pops out, details slide in. | S–M | ★★★★ | Celebration exists; this upgrades it. |
-| **A6** | **Free-delivery ribbon fills as you shop** | A ribbon around the basket fills toward the free-delivery amount. | S | ★★★ | `FreeDeliveryNudge` exists (text). |
+| **A5** ✅ | **"Unwrap" order confirmation** | After paying, a gift box on screen opens, the robin pops out, details slide in. | S–M | ★★★★ | **BUILT 2 Oct (Sprint 1).** |
+| **A6** ✅ | **Free-delivery ribbon fills as you shop** | A ribbon around the basket fills toward the free-delivery amount. | S | ★★★ | **BUILT 2 Oct (Sprint 1)** — ribbon with a bow that ties at the unlock; also in the mini-basket. |
 | **A7** | **"Complete the gift" add-ons** | At the basket: tick-box add a greeting card, gift wrap, chocolates — each animates into the basket. | M | ★★★ | Also lifts average order value. **Needs:** a decision on which add-ons exist and who fulfils them. |
 | **A8** | **Wishlist heart burst + "move to basket"** | The heart pops with a tiny burst; moving a wishlist item flies it into the basket. | S | ★★ | |
 
@@ -133,7 +133,7 @@ Real-service testing (Razorpay payment, Shiprocket booking, a real Resend email)
 
 | Bundle | Contains | Effort | Why this order |
 |---|---|---|---|
-| **Sprint 1 — "The Basket"** | A1, A2, A6, A5 (+A8 if time) | ~1–1.5 weeks | The client's own idea, half-built, and the most demo-able change. Do first. Check product photos first (see A1). |
+| **Sprint 1 — "The Basket"** ✅ *done 2 Oct* | A1, A2, A6, A5 (A8 not done — still available) | ~1–1.5 weeks est. | The client's own idea and the most demo-able change. |
 | **Sprint 2 — "Make it personal"** | A3, A4, B1 | ~1.5–2 weeks | Personalisation preview + gift-finder are unusual and sell *gifts*, not just products. |
 | **Sprint 3 — "The mall as a place"** | B3, B4, B6, B7, B8 | ~2 weeks | Makes it feel like walking through a mall without needing new layered art. |
 | **Sprint 4 — "Cinematic"** | B2 (+B5), optionally D1 | ~2–3 weeks | Only after you/the client choose the direction and layered artwork exists. |
@@ -146,7 +146,7 @@ Real-service testing (Razorpay payment, Shiprocket booking, a real Resend email)
 
 ## 5. Decisions & inputs I'll need from you (so nothing blocks later)
 
-1. **Product photos** — for A1 (and honestly the whole shop). Which products matter most for the demo?
+1. **Product photos** — A1 now works with the demo catalogue's seed photos; real photography still matters for the client demo and launch. Which products matter most?
 2. **Layered artwork** — foreground/mid/background versions of the atrium hero for B2/B5 (or a decision to skip them).
 3. **Festival delivery cutoffs** — for B7's countdown (e.g. "order by 20 Oct for Diwali").
 4. **Rewards and referral rules** — for E1/E2.

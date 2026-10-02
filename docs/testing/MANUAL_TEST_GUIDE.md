@@ -348,6 +348,18 @@ Sign in as `test-admin@giftping.test`.
 
 ---
 
+### The basket *(new — Sprint 1; best tested on a real desktop AND a real phone)*
+
+- [ ] **Header icon**: the cart icon in the header (and the Cart tab on a phone) is now a little woven basket, with the count badge.
+- [ ] **Add to cart, desktop with a mouse**: on a product page click *Add to cart* → the gift box flies to the basket icon, the icon bounces, and about half a second later a **mini-basket opens under the icon** already showing the item you just added ("Added to your basket", "Updating your basket…"), then fills in your full cart. **No toast** appears on desktop. It closes itself a few seconds after loading, unless you move the mouse over it.
+- [ ] **Hover**: hover the basket icon any time → the mini-basket opens with your photos, names, quantities, prices, the free-delivery ribbon and **View basket / Checkout** buttons. Move away or press **Esc** → it closes. Clicking the icon itself still goes to the full cart page. With an empty cart it says so and links to the mall.
+- [ ] **Phone / touch**: tapping the basket icon or the Cart tab goes straight to the cart page; adding to cart shows the normal "Added" toast with a *View cart* button (no hover panel).
+- [ ] **Cart page basket** (`/cart`): the basket at the top shows your **real product photos** peeking over its rim (newest on the right), a small number badge on any item with quantity above 1, and "+N" when more than five items. On arriving, the photos drop in. Change a quantity or add something → the basket jiggles; remove things → it re-arranges. Empty cart → the empty basket with the robin.
+- [ ] **Free-delivery ribbon** (cart page per boutique, and in the mini-basket): it fills as the boutique's subtotal grows, with a bow at its tip; once past the free-delivery amount it reads "Free delivery unlocked" and the bow ties with a little flourish. Test by adjusting quantities around the threshold (₹999 by default).
+- [ ] **Order "unwrap"**: complete a real test payment → on the order page a gift box pops in, the lid lifts off and flies away, the robin hops up, sparks burst, and the caption "Payment confirmed — thank you for your order!" appears, then it fades after ~4 seconds. The page underneath is never blocked. (The diary's "mark gift as given" keeps its quicker robin-and-sparks pop.)
+- [ ] **Reduce motion**: with your device set to "reduce motion", none of the above animates; the unwrap scene is skipped and only a screen-reader announcement is made.
+- [ ] **Slow connection**: throttle to Slow 3G and add to cart — the mini-basket still opens immediately with the new item and says "Updating your basket…" until the rest arrives; it never closes before it has shown something useful.
+
 ### Admin SEO tools *(new)*
 
 - [ ] **Admin → SEO** (`/admin/seo`): six "Main pages" editors (Homepage, Mall, Occasions, Boutiques, About, Contact), a "Where text is missing" panel, and a "Handled automatically" list.
