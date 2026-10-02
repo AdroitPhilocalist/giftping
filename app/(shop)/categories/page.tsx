@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/site-seo";
 import { CategoryCard } from "@/components/shop/CategoryCard";
 import { getActiveCategories } from "@/lib/db/categories";
 import { siteImage } from "@/lib/content/imagery";
@@ -8,6 +10,8 @@ import { getActiveTheme } from "@/lib/theme/active";
 // category with no artwork at all) until those two are regenerated — see PROGRESS.md's "Next" list, and don't lift this without checking the
 // replacement image is actually clean.
 const BRAND_VISIBLE_IMAGES = new Set(["for-her", "for-him"]);
+
+export const generateMetadata = (): Promise<Metadata> => pageMetadata("categories");
 
 export default async function CategoriesPage() {
   const [categories, theme] = await Promise.all([getActiveCategories(), getActiveTheme()]);

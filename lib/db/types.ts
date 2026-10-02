@@ -2237,6 +2237,41 @@ export type Database = {
           },
         ]
       }
+      site_seo: {
+        Row: {
+          meta_description: string | null
+          meta_title: string | null
+          noindex: boolean
+          page_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          meta_description?: string | null
+          meta_title?: string | null
+          noindex?: boolean
+          page_key: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          meta_description?: string | null
+          meta_title?: string | null
+          noindex?: boolean
+          page_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "site_seo_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_themes: {
         Row: {
           created_at: string

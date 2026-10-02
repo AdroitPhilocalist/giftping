@@ -21,14 +21,21 @@ import { getCommerceSettings } from "@/lib/commerce/settings";
 import { getReturnWindowDays } from "@/lib/commerce/returns";
 import { labelForTag } from "@/lib/catalog/tags";
 import { formatCurrency } from "@/lib/utils/format";
+import { baseOpenGraph } from "@/lib/seo/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
+  const title = product.meta_title || product.name;
+  const description = product.meta_description || product.short_description || undefined;
+  const path = `/products/${slug}`;
   return {
-    title: product.meta_title || product.name,
-    description: product.meta_description || product.short_description || undefined,
+    title,
+    description,
+    alternates: { canonical: path },
+    // the product's own photo when it has one, so a shared link shows the actual gift rather than the generic mall picture
+    openGraph: { ...baseOpenGraph(), title, description, url: path, ...(product.thumbnail_url ? { images: [{ url: product.thumbnail_url, alt: product.name }] } : {}) },
   };
 }
 

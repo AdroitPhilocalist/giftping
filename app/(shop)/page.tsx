@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DiaryBand } from "@/components/home/DiaryBand";
@@ -16,6 +17,9 @@ import { getTrendingProducts } from "@/lib/db/products";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getHomeBanners } from "@/lib/db/banners";
+import { pageMetadata } from "@/lib/seo/site-seo";
+
+export const generateMetadata = (): Promise<Metadata> => pageMetadata("home");
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ account?: string }> }) {
   const user = await getServerUser();

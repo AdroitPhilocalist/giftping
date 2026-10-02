@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/site-seo";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
@@ -11,10 +13,7 @@ import { siteImage } from "@/lib/content/imagery";
 import { MALL_ZONES } from "@/lib/mall";
 import { getActiveTheme } from "@/lib/theme/active";
 
-export const metadata = {
-  title: "The Mall Directory — GiftPing",
-  description: "Explore the GiftPing mall: Birthday World, Wedding Pavilion, Boutique Avenue and more — every place a doorway to thoughtful gifting.",
-};
+export const generateMetadata = (): Promise<Metadata> => pageMetadata("mall");
 
 /** A destination's picture: the occasion "world" banner for its category (world-birthday…), or world-<zone id> for places that aren't a category (world-boutiques). */
 function zoneArt(id: string, href: string, themeId: string) {

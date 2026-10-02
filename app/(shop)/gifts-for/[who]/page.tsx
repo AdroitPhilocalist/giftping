@@ -17,7 +17,7 @@ import { getActiveTheme } from "@/lib/theme/active";
 
 export async function generateMetadata({ params }: { params: Promise<{ who: string }> }): Promise<Metadata> {
   const rel = getRelationship((await params).who);
-  return rel ? { title: `${rel.title} — GiftPing`, description: rel.line } : {};
+  return rel ? { title: `${rel.title} — GiftPing`, description: rel.line, alternates: { canonical: `/gifts-for/${rel.slug}` } } : {};
 }
 
 export default async function GiftsForPage({ params, searchParams }: { params: Promise<{ who: string }>; searchParams: Promise<{ page?: string }> }) {

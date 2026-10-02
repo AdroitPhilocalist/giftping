@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/site-seo";
 import Link from "next/link";
 import { Mail, PackageSearch, Phone, RotateCcw } from "lucide-react";
 import { PageHero } from "@/components/pages/PageHero";
 import { SITE } from "@/lib/site";
 
-export const metadata = { title: "Contact — GiftPing", description: "Get help with an order, a return, or anything else." };
+export const generateMetadata = (): Promise<Metadata> => pageMetadata("contact");
 
 export default function ContactPage() {
   const cards = [

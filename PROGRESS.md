@@ -144,6 +144,23 @@ consent end to end (Supabase SMTP rate limit); the settings switch was never vie
 **Needs doing before launch (not built):** Resend paid plan + verified domain + DMARC; set `MARKETING_UNSUBSCRIBE_SECRET` in Vercel (never rotate);
 bounce/complaint webhook → withdraw consent; legal review (then flip `SITE.legalReviewed`); optional re-permission prompt for existing customers; age/guardian question.
 
+## Admin SEO tools + sitemap/robots built (2 Oct); ideas menu written
+
+Marketing campaigns committed first (`3f88b1e`). Then the spec's admin SEO/metadata item (gap-analysis #11 — I had wrongly left it out of my "four items left" count).
+**Found while building:** the Meta title/description fields in the category admin (built earlier) were saved but **read by nothing** — `/categories/[slug]` and boutique pages
+set no metadata at all, and there was no `metadataBase`, sitemap or robots. Now: `/admin/seo` (editor per fixed page — Homepage, Mall, Occasions, Boutiques, About, Contact — with a live
+Google-style preview, length guidance, a "hide from search" switch, reset-to-default, and a "where text is missing" panel); `site_seo` table (overrides only; no row = default);
+`app/sitemap.ts` (live products/boutiques/occasions/main pages; read with the anon session so RLS decides what's listed) and `app/robots.ts` (private areas blocked, **non-production deploys fully
+blocked**); per-page canonical + share cards; category/boutique/product metadata; filtered category URLs noindex. Fixed a real bug on the way: the layout's `openGraph` made every page without
+its own share card show the HOME title. **Verified live:** robots/sitemap output (92 URLs, counts match the DB, nothing private), head tags on 8 page types, the full admin cycle in the browser
+(too-long refused → save → live `<title>`/og:title change → noindex → sitemap exclusion → reset → row deleted), category SEO fields now reach the page. 408/408 tests (23 new), tsc/eslint/build clean.
+**Not verified:** how Google/Facebook actually render the tags (no external debugger from here); the preview-deployment robots behaviour (needs a Vercel preview). **Real content gap surfaced:**
+6 occasion pages (Birthday, Anniversary, Wedding, Corporate Gifting, For Her, For Him) have no description at all. **Not done (idea E12):** product structured data (JSON-LD) for rich results.
+See `docs/progress/2026-10-02-admin-seo-tools.md`.
+
+**New: `docs/ideas/DELIGHT_AND_FEATURE_IDEAS.md`** — a menu of animation/interaction and business-feature ideas with IDs, effort, "needs", cost, and suggested sprints, so you can say
+"build A1 + A2". Includes an honest account of what already exists (more than I first listed: Ambience on occasion headers, GiftCardPreview, OrderStepper, wrap picker).
+
 ## Stage 11 in progress
 
 Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). **Vendor logo + banner upload done** (with admin take-down). **Bulk CSV product upload done** (preview → all-or-nothing import as hidden drafts). **"Download my data" done. Dashboard alert for paid orders stuck with a suspended vendor done — Stage 11 (admin suite) is COMPLETE.** Next: Stage 12 (visual & motion polish), then Stage 13 (go-live). **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 

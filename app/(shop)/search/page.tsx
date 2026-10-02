@@ -6,6 +6,8 @@ import { searchProducts } from "@/lib/search";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 
+export const metadata = { title: "Search — GiftPing" };
+
 export default async function SearchPage({
   searchParams,
 }: {

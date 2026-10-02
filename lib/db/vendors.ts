@@ -51,7 +51,7 @@ export async function getVendorsForCategory(categoryId: string) {
   return Array.from(seen.values()).sort((a, b) => a.business_name.localeCompare(b.business_name));
 }
 
-export async function getVendorBySlug(slug: string) {
+export const getVendorBySlug = cache(async function getVendorBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("vendors")
@@ -62,4 +62,4 @@ export async function getVendorBySlug(slug: string) {
 
   if (error) throw error;
   return data;
-}
+});

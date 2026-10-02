@@ -27,7 +27,7 @@ export const getFeaturedCategories = cache(async function getFeaturedCategories(
   return data;
 });
 
-export async function getCategoryBySlug(slug: string) {
+export const getCategoryBySlug = cache(async function getCategoryBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("categories")
@@ -38,4 +38,4 @@ export async function getCategoryBySlug(slug: string) {
 
   if (error) throw error;
   return data;
-}
+});

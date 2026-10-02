@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductGrid } from "@/components/shop/ProductGrid";
@@ -11,6 +12,30 @@ import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { siteImage } from "@/lib/content/imagery";
 import { getActiveTheme } from "@/lib/theme/active";
+import { SEO_LIMITS, truncateText } from "@/lib/seo/pages";
+import { baseOpenGraph } from "@/lib/seo/site";
+
+// Filter/sort variations of a category are the same content under many URLs — keep them out of the index and point search engines at the plain page.
+const FILTER_PARAMS = ["sort", "vendor", "occasion", "recipient", "inStock", "minPrice", "maxPrice"] as const;
+
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<Record<string, string | undefined>> }): Promise<Metadata> {
+  const { slug } = await params;
+  const sp = await searchParams;
+  const category = await getCategoryBySlug(slug);
+  if (!category) return {};
+  // The admin's own SEO text (set in /admin/categories) wins; otherwise build something sensible from what the category already says.
+  const title = category.meta_title?.trim() || `${category.name} — GiftPing`;
+  const description =
+    category.meta_description?.trim() || truncateText(category.description, SEO_LIMITS.descriptionIdeal) || `Explore ${category.name} gifts from GiftPing's boutiques.`;
+  const path = `/categories/${slug}`;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { ...baseOpenGraph(), title, description, url: path },
+    ...(FILTER_PARAMS.some((k) => sp[k]) ? { robots: { index: false, follow: true } } : {}),
+  };
+}
 
 export default async function CategoryPage({
   params,

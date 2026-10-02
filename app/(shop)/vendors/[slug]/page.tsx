@@ -1,5 +1,6 @@
 import { defaultShopfrontImage } from "@/lib/content/imagery";
 import { getActiveTheme } from "@/lib/theme/active";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Gift, ShieldCheck, Sparkles, Store, Star, Heart } from "lucide-react";
@@ -13,6 +14,24 @@ import { getVendorBySlug } from "@/lib/db/vendors";
 import { listProducts } from "@/lib/db/products";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
+import { SEO_LIMITS, truncateText } from "@/lib/seo/pages";
+import { baseOpenGraph } from "@/lib/seo/site";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const vendor = await getVendorBySlug(slug);
+  if (!vendor) return {};
+  const title = `${vendor.business_name} — GiftPing`;
+  const description = truncateText(vendor.short_description || vendor.description, SEO_LIMITS.descriptionIdeal) || `Shop ${vendor.business_name} on GiftPing.`;
+  const path = `/vendors/${slug}`;
+  const image = vendor.banner_url || vendor.logo_url;
+  return {
+    title,
+    description,
+    alternates: { canonical: path },
+    openGraph: { ...baseOpenGraph(), title, description, url: path, ...(image ? { images: [{ url: image, alt: vendor.business_name }] } : {}) },
+  };
+}
 
 /**
  * The four "why shop here" claims under a boutique's info block, and the first three of them again as the

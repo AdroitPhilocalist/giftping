@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/site-seo";
 import Image from "next/image";
 import { Ambience } from "@/components/shop/Ambience";
 import { VendorCard } from "@/components/shop/VendorCard";
@@ -5,7 +7,7 @@ import { getApprovedVendors } from "@/lib/db/vendors";
 import { siteImage } from "@/lib/content/imagery";
 import { getActiveTheme } from "@/lib/theme/active";
 
-export const metadata = { title: "Boutique Avenue — GiftPing" };
+export const generateMetadata = (): Promise<Metadata> => pageMetadata("vendors");
 
 export default async function VendorsPage() {
   const [vendors, theme] = await Promise.all([getApprovedVendors(), getActiveTheme()]);

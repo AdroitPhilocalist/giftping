@@ -1,3 +1,5 @@
+import { SEO_PAGES } from "@/lib/seo/pages";
+import { baseOpenGraph, siteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
 import { DM_Sans, Newsreader } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
@@ -31,10 +33,16 @@ const dmSans = DM_Sans({
   display: "swap",
 });
 
+// The home page's own title/description come from lib/seo/pages.ts (admin-editable in /admin/seo); this is the site-wide fallback and the base every
+// relative canonical / share-card URL resolves against.
 export const metadata: Metadata = {
-  title: "GiftPing — Your Companion for Every Occasion",
-  description:
-    "A premium virtual gifting mall. Discover in-house and partner-vendor gifts for every occasion, and keep a personal Gifting Diary so you never miss a moment that matters.",
+  metadataBase: new URL(siteUrl()),
+  title: SEO_PAGES[0].title,
+  description: SEO_PAGES[0].description,
+  // No title/description here on purpose: a page that sets no share card of its own inherits this object whole, and a title here would show on
+  // every such page as the HOME page's. Next fills the share title from each page's own <title> when this has none.
+  openGraph: baseOpenGraph(),
+  twitter: { card: "summary_large_image" },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

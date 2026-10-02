@@ -1,3 +1,5 @@
+import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/site-seo";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BellRing, HeartHandshake, Store } from "lucide-react";
@@ -10,7 +12,7 @@ import { siteImage } from "@/lib/content/imagery";
 import { PageHero } from "@/components/pages/PageHero";
 import { Button } from "@/components/ui/Button";
 
-export const metadata = { title: "About Us — GiftPing", description: "GiftPing is a gifting mall: independent boutiques, our own Originals, and a diary that remembers the moments that matter." };
+export const generateMetadata = (): Promise<Metadata> => pageMetadata("about");
 
 const PILLARS = [
   { icon: Store, title: "A mall, not a warehouse", text: "Walk through boutiques run by people who care about their craft, alongside our own GiftPing Originals. Every shop has its own personality." },

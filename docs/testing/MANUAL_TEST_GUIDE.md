@@ -348,6 +348,18 @@ Sign in as `test-admin@giftping.test`.
 
 ---
 
+### Admin SEO tools *(new)*
+
+- [ ] **Admin → SEO** (`/admin/seo`): six "Main pages" editors (Homepage, Mall, Occasions, Boutiques, About, Contact), a "Where text is missing" panel, and a "Handled automatically" list.
+- [ ] **Edit a page**: on Contact, type a custom title and description — the Google-style preview updates as you type and the counters read "Good length" / "May be cut off" / "Too long". Save is disabled until something changes. A title over 70 characters is refused.
+- [ ] **It reaches the live page**: after Save, open `/contact` → View Source (or hover the browser tab): the `<title>` and `<meta name="description">` are yours. Paste the page link into a chat app or Facebook's sharing debugger to see the share card.
+- [ ] **Hide from search**: tick "Hide this page from search engines", Save → `/contact` now has `<meta name="robots" content="noindex">` and disappears from `/sitemap.xml`. Untick → it returns.
+- [ ] **Reset to default** restores the built-in wording and the page shows it again.
+- [ ] **Occasion pages**: in Admin → Categories, give "Birthday" a Meta title and Meta description → `/categories/birthday` uses them (they used to be ignored). Clear them → it falls back to "Birthday — GiftPing".
+- [ ] **Filtered occasion pages** (e.g. `/categories/birthday?sort=price_asc`) are marked noindex, with the plain page as the canonical address.
+- [ ] **`/robots.txt`** disallows admin, vendor portal (`/vendor/`), cart, checkout, accounts, diary; it must NOT disallow `/vendors/…` boutique pages or `/products/…`. **`/sitemap.xml`** lists products, boutiques, occasions and the main pages, and never a hidden product or a suspended boutique (suspend one in Admin → Vendors and confirm its page drops out).
+- [ ] **Non-production**: a Vercel *preview* deployment's `/robots.txt` should read `Disallow: /` (only the real production site is indexable).
+
 ### Marketing email campaigns & consent *(new — test this thoroughly, it has legal weight)*
 
 - [ ] **Sign-up checkbox**: `/sign-up` shows an **unticked** "Email me offers, new arrivals and gifting ideas…" box with the explanation under it. Create an
