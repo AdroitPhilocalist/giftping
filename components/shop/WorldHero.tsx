@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { Ambience, ambienceFor } from "@/components/shop/Ambience";
 import { GiftBoxArt } from "@/components/art/GiftBoxArt";
 import { Robin } from "@/components/art/Robin";
@@ -15,9 +16,11 @@ export function WorldHero({ slug, image, lead, tail, description, name, siblings
   return (
     <section className="relative isolate overflow-hidden bg-brand-accent/70">
       {image ? (
-        <div className="absolute inset-y-0 right-0 hidden w-[62%] [mask-image:linear-gradient(to_right,transparent_0%,black_45%)] md:block" aria-hidden="true">
-          <Image src={image.src} alt="" fill priority sizes="60vw" className="world-photo object-cover" />
-        </div>
+        <ViewTransition name={`world-${slug}`} share="gp-door" default="none">
+          <div className="absolute inset-y-0 right-0 hidden w-[62%] [mask-image:linear-gradient(to_right,transparent_0%,black_45%)] md:block" aria-hidden="true">
+            <Image src={image.src} alt="" fill priority sizes="60vw" className="world-photo object-cover" />
+          </div>
+        </ViewTransition>
       ) : (
         <Jaali className="opacity-[0.07]" />
       )}

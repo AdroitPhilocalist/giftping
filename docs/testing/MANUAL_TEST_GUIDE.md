@@ -428,16 +428,24 @@ Sign in as `test-admin@giftping.test`.
       scroll a little.
 - [ ] **Gold edge**: look closely at the header pill on desktop — there should be a thin warm gold/copper
       gradient ring around it, and a thin gold line along the bottom of the header on mobile widths.
-- [ ] **"My Diary" pill**: on a normal laptop-width browser window, this button should be **hidden**
-      entirely (that's correct — it only shows on very wide screens, and always hides once you scroll/the
-      header shrinks). You can still reach the diary via the "Diaries" link in the main nav or the account
-      menu at any width.
+- [ ] **Diary button**: a drawn leather diary on a cream, gold-ringed pill sits at the right of the header
+      on EVERY page and width. On a wide window (1440px+) at rest it shows a caption ("Never forget a date /
+      My Diary"); when you scroll, or on a narrower window or phone, only the book chip remains. It must never
+      push past the header's rounded edge. "Diaries" is no longer a text link in the nav.
 - [ ] **Resize the browser window** narrower (phone width) on the homepage, a product page, cart, checkout,
       and the diary — confirm nothing overlaps, clips awkwardly, or requires horizontal scrolling.
 - [ ] If your OS has a "reduce motion" accessibility setting, turn it on and reload the homepage — the robin
       cursor and cart-fly animation should not appear at all (this is intentional, not a missing feature).
 
 ---
+
+## 13. Sprint 3 — the mall as a place
+
+1. **Mall map** (`/mall`, desktop): hover numbers 2, 7, 5 — a robin flies there and the card under the map shows the place, a live count, a quote, three thumbnails and "Step inside". Move the mouse off the map: the robin stays. "Take a Tour" walks it through all nine places. **Phone:** first tap on a number shows the card; second tap goes in.
+2. **Shop-door transition** (use a normal browser window): on `/vendors` click a boutique — its shopfront picture should grow into the boutique's banner; browser Back should shrink it. Same from `/categories` into an occasion. If it just changes page, tell me which browser. (With "reduce motion" on, it should never animate.)
+3. **Waving robin:** `/sign-in`, `/sign-up`, `/reset-password` each show it above the form.
+4. **Festival mode:** `/admin/themes` → preview "Diwali". Home shows a maroon look, a "36 days to Diwali — order by 4 Nov" ribbon, rising lamps; the cart shows a one-line note; checkout, sign-in and the portals show no lamps. Stop the preview. **Confirm the Diwali date and the 4-day cut-off with the client before scheduling it for real.**
+5. **Shop-window cards:** on `/vendors` and `/categories` (desktop mouse), cards lean toward the cursor and a warm light follows it. On a phone nothing tilts.
 
 ## Reporting a bug
 

@@ -1,7 +1,6 @@
 import type { CSSProperties } from "react";
-import "./shop.css";
 
-export type AmbienceKind = "petals" | "confetti" | "hearts" | "sparks";
+export type AmbienceKind = "petals" | "confetti" | "hearts" | "sparks" | "diyas";
 
 /** What drifts across an occasion's header: confetti for birthdays, hearts for anniversaries, petals for weddings and "for her", gold sparks otherwise. */
 export function ambienceFor(slug: string): AmbienceKind {
@@ -27,6 +26,13 @@ function Shape({ kind }: { kind: AmbienceKind }) {
       return <svg viewBox="0 0 20 20" className="h-full w-full"><path d="M10 18C3 12.5 1 9 3 5.5 5 2.3 9 3 10 6c1-3 5-3.700 7-.5 2 3.500 0 7-7 12.500z" fill="currentColor" /></svg>;
     case "confetti":
       return <svg viewBox="0 0 20 20" className="h-full w-full"><rect x="4" y="2" width="7" height="16" rx="1.500" fill="currentColor" /></svg>;
+    case "diyas": // a little clay lamp with a flame — the bowl takes the cycling colour, the flame is always warm gold
+      return (
+        <svg viewBox="0 0 20 20" className="h-full w-full">
+          <path d="M2 12h16c0 4-3.500 6.500-8 6.500S2 16 2 12z" fill="currentColor" />
+          <path d="M10 1.500c2.400 2.600 3 4.600 1.800 6.500-.500.800-1.300 1.200-1.800 1.200s-1.300-.400-1.800-1.200C7 6.100 7.600 4.100 10 1.500z" fill="color-mix(in srgb, var(--gp-copper) 35%, #ffd36b)" /> {/* theme-safe: a flame is always gold */}
+        </svg>
+      );
     default:
       return <svg viewBox="0 0 20 20" className="h-full w-full"><path d="M10 0l2.200 7.800L20 10l-7.800 2.200L10 20l-2.200-7.800L0 10l7.800-2.200z" fill="currentColor" /></svg>;
   }

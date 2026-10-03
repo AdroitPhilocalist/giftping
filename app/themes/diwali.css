@@ -1,0 +1,17 @@
+/* DIWALI — warm ivory canvas, deep maroon bars, marigold-gold accent. Colours only; nothing on any page changes. Contrast checked: the accent (#a85a08) on the
+   ivory canvas is ~5:1, ivory text on the maroon bar is ~14:1. Scheduled/previewed from /admin/themes; the countdown and floating diyas come with it
+   (lib/festivals/calendar.ts, components/festival/). */
+:root[data-theme="diwali"] {
+  --gp-canvas: #fff7e8;
+  --gp-surface: #fffcf4;
+  --gp-peach: #fbe6bd;
+  --gp-glow: rgb(244 175 60 / 0.2);
+  --gp-ink: #2a140a;
+  --gp-primary: #4a1118;
+  --gp-primary-dark: #2e0a0f;
+  --gp-on-primary: #fff3df;
+  --gp-copper: #a85a08;
+  --gp-copper-dark: #864606;
+  --gp-on-copper: #fffaf0;
+  --gp-hero-scrim: rgb(46 10 15 / 0.7);
+}

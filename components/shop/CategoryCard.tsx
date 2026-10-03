@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { ArrowRight, Briefcase, Cake, Flower2, Gem, Gift, Heart, Watch } from "lucide-react";
+import { TiltCard } from "@/components/motion/TiltCard";
 import type { SiteImage } from "@/lib/content/imagery";
 
 const ICONS: Record<string, typeof Gift> = { birthday: Cake, anniversary: Heart, wedding: Gem, "corporate-gifting": Briefcase, "for-her": Flower2, "for-him": Watch };
@@ -16,11 +18,17 @@ export function CategoryCard({ category, image }: { category: { slug: string; na
 
   if (image) {
     return (
+      <TiltCard className="h-full">
       <Link
         href={`/categories/${category.slug}`}
         className="group relative flex h-full min-h-[15rem] flex-col overflow-hidden rounded-card border border-brand-dark/[0.06] p-5 pb-6 text-brand-on-primary shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift"
       >
-        <Image src={image.src} alt="" fill sizes="(min-width: 1024px) 33vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+        {/* the card's picture is the "door": it grows into the world's header photo (components/shop/WorldHero.tsx) */}
+        <ViewTransition name={`world-${category.slug}`} share="gp-door" default="none">
+          <span className="absolute inset-0 overflow-hidden" aria-hidden="true">
+            <Image src={image.src} alt="" fill sizes="(min-width: 1024px) 33vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
+          </span>
+        </ViewTransition>
         <span className="absolute inset-0 bg-gradient-to-t from-brand-primary-dark/90 via-brand-primary-dark/40 to-brand-primary-dark/10" aria-hidden="true" />
         <span className="relative flex h-12 w-12 items-center justify-center rounded-full bg-brand-secondary text-brand-on-secondary shadow-card transition-transform duration-500 group-hover:scale-105">
           <Icon className="h-5 w-5" strokeWidth={1.5} aria-hidden="true" />
@@ -31,10 +39,12 @@ export function CategoryCard({ category, image }: { category: { slug: string; na
           Explore <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
         </p>
       </Link>
+      </TiltCard>
     );
   }
 
   return (
+    <TiltCard className="h-full">
     <Link
       href={`/categories/${category.slug}`}
       className="group flex h-full flex-col rounded-card border border-brand-dark/[0.06] bg-brand-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift"
@@ -48,5 +58,6 @@ export function CategoryCard({ category, image }: { category: { slug: string; na
         Explore <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
       </p>
     </Link>
+    </TiltCard>
   );
 }

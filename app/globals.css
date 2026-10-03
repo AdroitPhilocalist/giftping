@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./themes/demo-night.css";
 @import "./themes/demo-jewel.css";
+@import "./themes/diwali.css";
 
 /* ============================================================================
    GiftPing design tokens — see docs/design/DESIGN_DIRECTION.md
@@ -523,3 +524,46 @@ html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) .gp-header
 @keyframes gp-menu-in { from { opacity: 0; transform: scale(0.95) translateY(-6px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes gp-menu-out { from { opacity: 1; transform: scale(1) translateY(0); } to { opacity: 0; transform: scale(0.96) translateY(-3px); } }
 @media (prefers-reduced-motion: reduce) { .gp-mega-panel, .gp-menu-pop, .gp-menu-pop[data-state="closed"] { animation: none; } }
+
+/* "Entering a shop" (React <ViewTransition share="gp-door">): a boutique's shopfront / an occasion's picture grows into the page's own header photo, and shrinks
+   back on the way out. Only those named pictures animate; the rest of the page uses the browser's quick default cross-fade. A browser without View Transitions
+   just navigates normally. Reduced motion: no animation at all. */
+::view-transition-group(.gp-door) { animation-duration: 560ms; animation-timing-function: var(--gp-ease); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 260ms; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* ---- Site-wide pieces that live outside shop.css ----------------------------------------------------------------------------------------------------------
+   shop.css is a `@layer components` file. A component that the ROOT layout renders must not import it: its CSS then loads before globals.css, `components`
+   becomes the lowest layer (below Tailwind's base reset), and every `.pill` / `.gift-tag` on the site loses to the reset (padding 0, no border). Found the hard
+   way (the filter chips went unstyled). So anything the root layout or auth layout uses is styled HERE. */
+
+/* Festival mode (components/festival/; the ribbon is on pages, the floating lamps in the root layout): floating decoration above the page, below the header (z-40), rising like lanterns instead of falling. */
+.gp-festival-fx { position: fixed; inset: 0; z-index: 30; pointer-events: none; overflow: hidden; }
+.gp-festival-fx .ambient > i { top: auto; bottom: -8%; animation-name: shop-rise; }
+@keyframes shop-rise {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  12% { opacity: var(--o, 0.6); }
+  85% { opacity: var(--o, 0.6); }
+  100% { transform: translate3d(var(--sway, 3rem), -118vh, 0) rotate(calc(var(--rot, 300deg) * 0.15)); opacity: 0; }
+}
+.gp-festival-ribbon { background-image: radial-gradient(28rem 100% at 8% 50%, color-mix(in srgb, var(--gp-copper) 38%, transparent), transparent 70%), radial-gradient(24rem 100% at 96% 50%, color-mix(in srgb, var(--gp-copper) 24%, transparent), transparent 70%); }
+.gp-festival-days { width: 3.4rem; height: 3.4rem; place-items: center; align-content: center; gap: 0.1rem; border-radius: 999px; background: var(--gp-copper); color: var(--gp-on-copper); box-shadow: 0 0 0 2px var(--gp-primary), 0 0 0 3.5px color-mix(in srgb, var(--gp-copper) 70%, white); }
+
+/* The waving robin at the sign-in door: a gentle sway from the feet, on an inner element. */
+.gp-robin-wave { transform-origin: 50% 95%; animation: gp-robin-wave 3.2s ease-in-out infinite; }
+@keyframes gp-robin-wave { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(4deg) translateY(-2px); } }
+
+/* the accent on the festival ribbon: plain copper is ~2.4:1 on a deep maroon bar, so lift it toward white (~7:1) */
+.gp-festival-gold { color: color-mix(in srgb, var(--gp-copper) 40%, white); }
+
+/* The drifting ambience (components/shop/Ambience.tsx) — here, not in shop.css, because the root layout renders it for festival mode (see the note above). */
+.ambient { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.ambient > i { position: absolute; top: -10%; left: var(--x); width: var(--s, 1.2rem); height: var(--s, 1.2rem); opacity: 0; animation: shop-drift var(--dur, 14s) linear var(--delay, 0s) infinite; }
+@keyframes shop-drift {
+  0% { transform: translate3d(0, -10%, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: var(--o, 0.75); }
+  90% { opacity: var(--o, 0.75); }
+  100% { transform: translate3d(var(--sway, 3rem), 130%, 0) rotate(var(--rot, 300deg)); opacity: 0; }
+}

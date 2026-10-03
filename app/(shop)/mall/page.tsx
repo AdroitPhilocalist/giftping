@@ -3,7 +3,6 @@ import { pageMetadata } from "@/lib/seo/site-seo";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Play } from "lucide-react";
-import { Robin } from "@/components/art/Robin";
 import { SectionHeading } from "@/components/home/SectionHeading";
 import { MallDirectory } from "@/components/mall/MallDirectory";
 import { Reveal } from "@/components/motion/Reveal";
@@ -11,6 +10,7 @@ import { Jaali } from "@/components/ornaments/Jaali";
 import { Button } from "@/components/ui/Button";
 import { siteImage } from "@/lib/content/imagery";
 import { MALL_ZONES } from "@/lib/mall";
+import { getPlaceSummaries } from "@/lib/mall-summaries";
 import { getActiveTheme } from "@/lib/theme/active";
 
 export const generateMetadata = (): Promise<Metadata> => pageMetadata("mall");
@@ -22,7 +22,7 @@ function zoneArt(id: string, href: string, themeId: string) {
 }
 
 export default async function MallPage() {
-  const theme = await getActiveTheme();
+  const [theme, summaries] = await Promise.all([getActiveTheme(), getPlaceSummaries()]);
   const themeId = theme.id;
   const image = siteImage("mall-map", theme.id);
   // hovering a place shows its "interior": the occasion world picture (or world-<id> for places that are not a category)
@@ -51,14 +51,7 @@ export default async function MallPage() {
             </div>
           </Reveal>
         </div>
-        <MallDirectory image={image} previews={previews} />
-        <Reveal className="mt-10 hidden items-end gap-3 lg:absolute lg:bottom-8 lg:left-8 lg:mt-0 lg:flex">
-          <Robin className="float-slow w-20" />
-          <div className="mb-2 max-w-[13rem] rounded-card border border-brand-dark/[0.06] bg-brand-surface p-3 text-sm shadow-card">
-            <p className="font-medium text-brand-dark">Hi there! 👋</p>
-            <p className="mt-0.5 text-xs text-brand-dark/65">Not sure where to start? Try Birthday World — it&apos;s our most loved.</p>
-          </div>
-        </Reveal>
+        <MallDirectory image={image} previews={previews} summaries={summaries} />
       </section>
 
       <section className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">

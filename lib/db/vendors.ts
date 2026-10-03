@@ -1,6 +1,5 @@
 import { cache } from "react";
 import { createClient } from "@/lib/db/server";
-import { worldOrClause, type WorldTag } from "@/lib/catalog/tags";
 
 export async function getApprovedVendors() {
   const supabase = await createClient();
@@ -33,18 +32,18 @@ export const getFeaturedVendors = cache(async function getFeaturedVendors(limit 
 
 /** Distinct vendors with at least one active product in the given category — used to populate
  * the vendor filter chips/dropdown on a category page without listing irrelevant vendors. */
-export async function getVendorsForCategory(categoryId: string, world?: WorldTag | null) {
+export async function getVendorsForCategory(categoryId: string) {
   const supabase = await createClient();
-  const base = supabase
+  const { data, error } = await supabase
     .from("products")
-    .select("vendor:vendors!inner( id, business_name, slug )")
+    .select("vendor:vendors!inner( id, business_name, slug, logo_url )")
+    .eq("category_id", categoryId)
     .eq("status", "active")
     .eq("vendor.status", "approved");
-  const { data, error } = await (world ? base.or(worldOrClause(categoryId, world)) : base.eq("category_id", categoryId));
 
   if (error) throw error;
 
-  const seen = new Map<string, { id: string; business_name: string; slug: string }>();
+  const seen = new Map<string, { id: string; business_name: string; slug: string; logo_url: string | null }>();
   for (const row of data ?? []) {
     const vendor = Array.isArray(row.vendor) ? row.vendor[0] : row.vendor;
     if (vendor) seen.set(vendor.slug, vendor);

@@ -189,7 +189,10 @@ box instead of stopping at the edge. **Not verified:** touch dragging on a real 
 catalogue. **Dev data:** Personalised Name Plate and Engraved Wooden Keepsake Box now have engraving set up (demo).
 
 ## Occasion worlds de-duplicated + the Diary button (3 Oct)
-See `docs/progress/2026-10-03-occasion-worlds-and-diary-button.md`. Birthday/Anniversary/Wedding/For Her… are now true "worlds" (category OR tag: Birthday 8 → 38 gifts) and the filter that repeated the world's own choice is hidden. "Diaries" is gone from the nav; the Diary has its own drawn-book button, always visible (caption ≥1440px, book-only when condensed/narrower). Tests 481/481.
+See `docs/progress/2026-10-03-occasion-worlds-and-diary-button.md`. Birthday/Anniversary/Wedding/For Her… are "worlds": the filter that repeated the world's own choice is hidden (the category-OR-tag union that briefly made Birthday show 38 gifts was reverted — back to the 8 filed under it). "Diaries" is gone from the nav; the Diary has its own drawn-book button, always visible (caption ≥1440px, book-only when condensed/narrower). Tests 481/481.
+
+## Sprint 3 — "The mall as a place" built (3 Oct)
+See `docs/progress/2026-10-03-sprint-3-the-mall-as-a-place.md`. B3 mall map (flying robin + live place cards), B4 shop-door view transitions (**morph not watched — hidden test pane aborts view transitions; check once in a real window**), B6 waving robin at sign-in, B7 festival mode (Diwali theme + countdown + floating lamps; **dates and the 4-day cut-off are assumptions to confirm**), B8 tilting shop-window cards. Tests 491/491.
 
 ## Stage 11 in progress
 

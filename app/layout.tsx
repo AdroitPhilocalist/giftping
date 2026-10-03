@@ -11,6 +11,9 @@ import { headers } from "next/headers";
 import { TooltipProvider } from "@/components/ui/Tooltip";
 import { ThemePreviewStrip } from "@/components/admin/ThemePreviewStrip";
 import { CartFlyLayer } from "@/components/motion/CartFlyLayer";
+import { FestivalFx } from "@/components/festival/FestivalFx";
+import { Ambience } from "@/components/shop/Ambience";
+import { festivalForTheme } from "@/lib/festivals/calendar";
 import { RobinCursor } from "@/components/motion/RobinCursor";
 import { siteImage } from "@/lib/content/imagery";
 import { getActiveTheme } from "@/lib/theme/active";
@@ -48,6 +51,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const user = await getServerUser();
   const [theme, previewId] = await Promise.all([getActiveTheme(), getThemePreviewOverride()]);
+  const festival = festivalForTheme(theme.id);
   const oneSignalAppId = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
   const requestHeaders = await headers();
   // OneSignal's SDK refuses to run anywhere but the site address configured in its dashboard, so on localhost it only throws console errors.
@@ -76,6 +80,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {previewId ? <ThemePreviewStrip label={resolveTheme(previewId).label} /> : null}
           <RobinCursor markSrc={siteImage("robin-perched", theme.id)?.src ?? null} />
           <CartFlyLayer />
+          {festival ? <FestivalFx><Ambience kind={festival.ambience} count={12} /></FestivalFx> : null}
         </TooltipProvider>
       </body>
     </html>

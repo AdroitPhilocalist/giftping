@@ -7,6 +7,8 @@ import { CheckoutSteps } from "@/components/shop/CheckoutSteps";
 import { FreeDeliveryNudge } from "@/components/shop/FreeDeliveryNudge";
 import { CartLineItem } from "@/components/shop/CartLineItem";
 import { GuestCartMerger } from "@/components/shop/GuestCartMerger";
+import { FestivalCountdown } from "@/components/festival/FestivalCountdown";
+import { getActiveTheme } from "@/lib/theme/active";
 import { LiveBasket } from "@/components/shop/LiveBasket";
 import { Button } from "@/components/ui/Button";
 import { getCartView, hasUnmergedGuestCart } from "@/lib/commerce/cart";
@@ -17,7 +19,7 @@ import { formatCurrency } from "@/lib/utils/format";
 export const metadata = { title: "Your Cart — GiftPing" };
 
 export default async function CartPage() {
-  const [cart, needsMerge, settings, returnDays] = await Promise.all([getCartView(), hasUnmergedGuestCart(), getCommerceSettings(), getReturnWindowDays()]);
+  const [cart, needsMerge, settings, returnDays, theme] = await Promise.all([getCartView(), hasUnmergedGuestCart(), getCommerceSettings(), getReturnWindowDays(), getActiveTheme()]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -42,6 +44,8 @@ export default async function CartPage() {
         </div>
         {cart.groups.length > 0 ? <CheckoutSteps current={0} /> : null}
       </div>
+
+      {cart.groups.length > 0 ? <div className="mt-6"><FestivalCountdown themeId={theme.id} variant="note" /></div> : null}
 
       {cart.groups.length === 0 ? (
         <div className="mt-10 flex flex-col items-center gap-3 rounded-card border border-brand-secondary/20 bg-gradient-to-b from-brand-accent/60 to-brand-surface p-10 text-center shadow-card sm:p-16">

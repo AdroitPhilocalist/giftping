@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ViewTransition } from "react";
 import { ArrowRight } from "lucide-react";
+import { TiltCard } from "@/components/motion/TiltCard";
 import { ShopfrontArt } from "@/components/art/ShopfrontArt";
 import { VendorLogo } from "@/components/shop/VendorLogo";
 import { defaultShopfrontImage } from "@/lib/content/imagery";
@@ -23,10 +25,13 @@ export async function VendorCard({
   const look = streetLook(vendor.slug);
   const front = vendor.banner_url ? null : defaultShopfrontImage(vendor.slug, (await getActiveTheme()).id);
   return (
+    <TiltCard className="h-full">
     <Link
       href={`/vendors/${vendor.slug}`}
       className="shopfront group block overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift"
     >
+      {/* the shopfront is the "door": on the way in, this exact picture grows into the boutique page's banner (components/shop/VendorHero.tsx) */}
+      <ViewTransition name={`shop-${vendor.slug}`} share="gp-door" default="none">
       <div className="relative h-40 overflow-hidden bg-gradient-to-b from-brand-primary-dark to-brand-primary">
         <span className={`awning awning--${look.awning}`} aria-hidden="true" />
         <span className="open-sign" aria-hidden="true">Open</span>
@@ -41,6 +46,7 @@ export async function VendorCard({
         </div>
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-brand-primary-dark/60 to-transparent" />
       </div>
+      </ViewTransition>
       <div className="relative px-5 pb-5 pt-9">
         <VendorLogo url={vendor.logo_url} name={vendor.business_name} sizeClass="h-14 w-14" className="absolute -top-7 left-5 bg-brand-surface shadow-card ring-4 ring-brand-surface" />
         <h3 className="font-heading text-xl text-brand-dark">{vendor.business_name}</h3>
@@ -50,5 +56,6 @@ export async function VendorCard({
         </p>
       </div>
     </Link>
+    </TiltCard>
   );
 }

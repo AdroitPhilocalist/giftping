@@ -1,79 +1,136 @@
 import Link from "next/link";
+import { Baby, Briefcase, Cake, Check, ChevronDown, ChevronRight, Flower2, Gem, Gift, Heart, Home as HomeIcon, IndianRupee, Package, SlidersHorizontal, Store, Users, Watch } from "lucide-react";
+import { VendorLogo } from "@/components/shop/VendorLogo";
 import { OCCASION_TAGS, RECIPIENT_TAGS, labelForTag } from "@/lib/catalog/tags";
+import { CLEAR_ALL, PRICE_PRESETS, activePricePreset, appliedFilters, type FilterPatch, type FilterState } from "@/lib/shop/filters";
+import { cn } from "@/lib/utils/cn";
 import "./shop.css";
 
-export interface FilterState {
-  vendor?: string;
-  occasion?: string;
-  recipient?: string;
-  sort?: string;
-  inStock?: string;
-  minPrice?: string;
-  maxPrice?: string;
-}
-type Patch = Partial<Record<keyof FilterState, string | undefined>>;
+export type { FilterState } from "@/lib/shop/filters";
 
-const SORTS = [
-  { value: "popularity", label: "Popular" },
-  { value: "price_asc", label: "Price ↑" },
-  { value: "price_desc", label: "Price ↓" },
-  { value: "newest", label: "Newest" },
-  { value: "rating", label: "Top rated" },
-];
+type Vendor = { slug: string; business_name: string; logo_url?: string | null };
+type Hide = "occasion" | "recipient" | undefined;
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
+const TAG_ICONS: Record<string, typeof Gift> = {
+  "for-her": Flower2, "for-him": Watch, "for-parents": Users, "for-kids": Baby, "for-colleagues": Briefcase,
+  birthday: Cake, anniversary: Heart, wedding: Gem, housewarming: HomeIcon, "thank-you": Gift,
+};
+
+/** A collapsible section: a small round icon, the title, a dot when something in it is applied, and a chevron. Plain <details> — no JavaScript. */
+function Section({ title, icon: Icon, active = false, defaultOpen = true, children }: { title: string; icon: typeof Gift; active?: boolean; defaultOpen?: boolean; children: React.ReactNode }) {
   return (
-    <div>
-      <p className="mb-2 font-heading text-[0.95rem] italic text-brand-dark/80">{title}</p>
-      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] lg:flex-wrap lg:overflow-visible [&::-webkit-scrollbar]:hidden">{children}</div>
-    </div>
+    <details open={defaultOpen} className="group/sec border-t border-dashed border-brand-secondary/30 py-4 first:border-t-0 first:pt-1">
+      <summary className="flex cursor-pointer list-none items-center gap-2.5 rounded-lg [&::-webkit-details-marker]:hidden">
+        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-accent text-brand-secondary-dark"><Icon className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" /></span>
+        <span className="flex-1 font-heading text-[1.02rem] text-brand-dark">{title}</span>
+        {active ? <span className="h-1.5 w-1.5 rounded-full bg-brand-secondary" aria-label="has a filter applied" /> : null}
+        <ChevronDown className="h-4 w-4 text-brand-dark/40 transition-transform duration-300 group-open/sec:rotate-180" aria-hidden="true" />
+      </summary>
+      <div className="mt-3">{children}</div>
+    </details>
+  );
+}
+
+function Chip({ href, selected, icon: Icon, children }: { href: string; selected: boolean; icon?: typeof Gift; children: React.ReactNode }) {
+  const Glyph = selected ? Check : Icon;
+  return (
+    <Link href={href} aria-current={selected ? "true" : undefined} className="gf-chip">
+      {Glyph ? <Glyph className="h-3.5 w-3.5" strokeWidth={selected ? 2.4 : 1.7} aria-hidden="true" /> : null}
+      {children}
+    </Link>
   );
 }
 
 /**
- * Filters as tags you tap: every option is a plain link to the same page with one thing changed, so it is server-rendered, works without JavaScript and can be
- * shared. Tapping the active one clears it. On a phone each group scrolls sideways; on a desktop they sit on a paper tag beside the products.
+ * The filter sections, as plain links to the same page with one thing changed — server-rendered, shareable, works without JavaScript. Tapping the chosen option
+ * again clears it. Used inside the desktop panel (`ShopFilters`) and inside the phone's bottom sheet (`FilterDrawer`).
  */
-export function ShopFilters({ vendors, current, hrefFor, hide }: { vendors: { slug: string; business_name: string }[]; current: FilterState; hrefFor: (patch: Patch) => string; hide?: "occasion" | "recipient" }) {
+export function FilterSections({ vendors, current, hrefFor, hide }: { vendors: Vendor[]; current: FilterState; hrefFor: (patch: FilterPatch) => string; hide?: Hide }) {
   const toggle = (key: keyof FilterState, value: string) => hrefFor({ [key]: current[key] === value ? undefined : value });
+  const preset = activePricePreset(current);
+  const customPrice = preset === -1 && Boolean(current.minPrice || current.maxPrice);
+  const inStock = current.inStock === "true";
   return (
-    <section aria-label="Filter and sort" className="relative space-y-5 rounded-card border border-brand-secondary/20 bg-brand-surface p-5 pt-6 shadow-card">
-      <span className="gift-tag-hole !-top-1.5" aria-hidden="true" />
-      {/* Inside the Birthday world an "Occasion" filter would just repeat the world's own choice (and show nothing selected beside it), so the group the world already answers is left out. */}
+    <div>
+      {/* Inside the Birthday world an "Occasion" group would only repeat the world's own choice, so the group a world already answers is left out. */}
       {hide === "recipient" ? null : (
-        <Group title="For">
-          {RECIPIENT_TAGS.map((t) => <Link key={t} href={toggle("recipient", t)} aria-current={current.recipient === t ? "true" : undefined} className="pill">{labelForTag(t)}</Link>)}
-        </Group>
+        <Section title="Who is it for?" icon={Users} active={Boolean(current.recipient)}>
+          <div className="flex flex-wrap gap-2">
+            {RECIPIENT_TAGS.map((t) => <Chip key={t} href={toggle("recipient", t)} selected={current.recipient === t} icon={TAG_ICONS[t]}>{labelForTag(t)}</Chip>)}
+          </div>
+        </Section>
       )}
       {hide === "occasion" ? null : (
-        <Group title="Occasion">
-          {OCCASION_TAGS.map((t) => <Link key={t} href={toggle("occasion", t)} aria-current={current.occasion === t ? "true" : undefined} className="pill">{labelForTag(t)}</Link>)}
-        </Group>
+        <Section title="Occasion" icon={Cake} active={Boolean(current.occasion)}>
+          <div className="flex flex-wrap gap-2">
+            {OCCASION_TAGS.map((t) => <Chip key={t} href={toggle("occasion", t)} selected={current.occasion === t} icon={TAG_ICONS[t]}>{labelForTag(t)}</Chip>)}
+          </div>
+        </Section>
       )}
       {vendors.length > 0 ? (
-        <Group title="Boutique">
-          {vendors.slice(0, 12).map((v) => <Link key={v.slug} href={toggle("vendor", v.slug)} aria-current={current.vendor === v.slug ? "true" : undefined} className="pill">{v.business_name}</Link>)}
-        </Group>
+        <Section title="Boutique" icon={Store} active={Boolean(current.vendor)}>
+          <ul className="gf-scroll -mx-1 max-h-56 space-y-0.5 overflow-y-auto px-1">
+            {vendors.slice(0, 30).map((v) => {
+              const on = current.vendor === v.slug;
+              return (
+                <li key={v.slug}>
+                  <Link href={toggle("vendor", v.slug)} aria-current={on ? "true" : undefined} className="gf-row">
+                    <span className="gf-radio" aria-hidden="true" />
+                    <VendorLogo url={v.logo_url ?? null} name={v.business_name} sizeClass="h-6 w-6" iconClass="h-3 w-3" className="shrink-0" />
+                    <span className="min-w-0 flex-1 truncate">{v.business_name}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
       ) : null}
-      <Group title="Price">
-        <form method="get" className="flex items-center gap-2">
+      <Section title="Price" icon={IndianRupee} active={Boolean(current.minPrice || current.maxPrice)}>
+        <div className="flex flex-wrap gap-2">
+          {PRICE_PRESETS.map((p, i) => (
+            <Chip key={p.label} href={hrefFor({ minPrice: preset === i ? undefined : p.min?.toString(), maxPrice: preset === i ? undefined : p.max?.toString() })} selected={preset === i}>{p.label}</Chip>
+          ))}
+        </div>
+        <form method="get" className="mt-3 flex items-center gap-1.5">
           <input type="hidden" name="vendor" value={current.vendor ?? ""} />
           <input type="hidden" name="occasion" value={current.occasion ?? ""} />
           <input type="hidden" name="recipient" value={current.recipient ?? ""} />
           <input type="hidden" name="sort" value={current.sort ?? ""} />
           <input type="hidden" name="inStock" value={current.inStock ?? ""} />
-          <input type="number" name="minPrice" min={0} defaultValue={current.minPrice ?? ""} placeholder="Min ₹" aria-label="Minimum price" className="w-20 rounded-full border border-brand-secondary/30 bg-brand-surface px-3 py-1.5 text-xs text-brand-dark" />
-          <span className="text-brand-dark/40">–</span>
-          <input type="number" name="maxPrice" min={0} defaultValue={current.maxPrice ?? ""} placeholder="Max ₹" aria-label="Maximum price" className="w-20 rounded-full border border-brand-secondary/30 bg-brand-surface px-3 py-1.5 text-xs text-brand-dark" />
-          <button type="submit" className="pill">Go</button>
+          <label className="gf-money"><span aria-hidden="true">₹</span><input type="number" name="minPrice" min={0} inputMode="numeric" defaultValue={current.minPrice ?? ""} placeholder="Min" aria-label="Minimum price in rupees" /></label>
+          <span className="shrink-0 text-brand-dark/35" aria-hidden="true">–</span>
+          <label className="gf-money"><span aria-hidden="true">₹</span><input type="number" name="maxPrice" min={0} inputMode="numeric" defaultValue={current.maxPrice ?? ""} placeholder="Max" aria-label="Maximum price in rupees" /></label>
+          <button type="submit" aria-label="Apply price range" className={cn("gf-apply", customPrice && "gf-apply--on")}><ChevronRight className="h-4 w-4" aria-hidden="true" /></button>
         </form>
-      </Group>
-      <Group title="Sort">
-        {SORTS.map((o) => <Link key={o.value} href={hrefFor({ sort: o.value === "popularity" ? undefined : o.value })} aria-current={(current.sort ?? "popularity") === o.value ? "true" : undefined} className="pill">{o.label}</Link>)}
-      </Group>
-      <Group title="Availability">
-        <Link href={toggle("inStock", "true")} aria-current={current.inStock === "true" ? "true" : undefined} className="pill">In stock only</Link>
-      </Group>
+      </Section>
+      <div className="border-t border-dashed border-brand-secondary/30 pt-4">
+        <Link href={toggle("inStock", "true")} role="switch" aria-checked={inStock} aria-current={inStock ? "true" : undefined} className="gf-switch-row">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-accent text-brand-secondary-dark"><Package className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" /></span>
+          <span className="flex-1 font-heading text-[1.02rem] text-brand-dark">In stock only</span>
+          <span className="gf-switch" aria-hidden="true"><i /></span>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/** The desktop panel: a paper gift tag with a header (how many filters are on, and Clear all) over the sections. */
+export function ShopFilters({ vendors, current, hrefFor, hide }: { vendors: Vendor[]; current: FilterState; hrefFor: (patch: FilterPatch) => string; hide?: Hide }) {
+  const count = appliedFilters(current, vendors).length;
+  return (
+    <section aria-label="Filters" className="relative rounded-card border border-brand-secondary/20 bg-brand-surface shadow-card">
+      <span className="gift-tag-hole !-top-1.5" aria-hidden="true" />
+      <header className="flex items-center justify-between gap-3 border-b border-brand-secondary/20 px-5 pb-3.5 pt-6">
+        <h2 className="flex items-center gap-2 font-heading text-xl text-brand-dark">
+          <SlidersHorizontal className="h-4.5 w-4.5 text-brand-secondary-dark" strokeWidth={1.7} aria-hidden="true" />
+          Filters
+          {count > 0 ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-secondary px-1.5 font-sans text-[11px] font-semibold text-brand-on-secondary">{count}</span> : null}
+        </h2>
+        {count > 0 ? <Link href={hrefFor(CLEAR_ALL)} className="text-xs font-medium text-brand-secondary-dark underline-offset-2 hover:underline">Clear all</Link> : null}
+      </header>
+      <div className="gf-scroll px-5 py-3 lg:max-h-[calc(100vh-15rem)] lg:overflow-y-auto">
+        <FilterSections vendors={vendors} current={current} hrefFor={hrefFor} hide={hide} />
+      </div>
     </section>
   );
 }

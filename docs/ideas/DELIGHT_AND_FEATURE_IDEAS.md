@@ -76,12 +76,12 @@ The brief was "interactive, animated, real-life feel." Honest state:
 |---|---|---|---|---|---|
 | **B1** ✅ | **Gift-finder quiz** | "Who's it for? What do they love? Budget?" — animated cards, robin reacts, then a curated shelf. Also feeds the marketing segments and the diary. | M | ★★★★ | Not built. Uses existing tags/relationships. **BUILT 3 Oct (Sprint 2)** at `/gift-finder`, reusing the diary's suggestion engine. |
 | **B2** | **Cinematic mall entrance** | Scrolling from the homepage "walks you in" through the atrium: layers move at different speeds, lights warm up, shop doors come into view. | L | ★★★★★ | Spec'd originally, never built. **Needs:** your direction on the sequence **and** artwork split into layers (foreground/mid/background) — one flat image can only fake it. |
-| **B3** | **Interactive mall map** | The map is live: hover/tap a shopfront and it glows, the robin walks the path to it, a card shows the boutique. | M | ★★★★ | `mall-map` image exists. **Needs:** hotspot positions (I can place them). |
-| **B4** | **"Entering the shop" transitions** | Going from the mall to a boutique feels like opening a door (smooth, shared-element transition) instead of a page flash. | M | ★★★★ | View Transitions; needs a fallback for older browsers. |
+| **B3 ✅** | **Interactive mall map** | The map is live: hover/tap a shopfront and it glows, the robin walks the path to it, a card shows the boutique. | M | ★★★★ | `mall-map` image exists. **Needs:** hotspot positions (I can place them). |
+| **B4 ✅** | **"Entering the shop" transitions** | Going from the mall to a boutique feels like opening a door (smooth, shared-element transition) instead of a page flash. | M | ★★★★ | View Transitions; needs a fallback for older browsers. |
 | **B5** | **Parallax atrium hero** | The homepage hero has depth: layers drift as you scroll or tilt the phone. | M | ★★★ | Same layered-art dependency as B2. |
-| **B6** | **Robin as a guide** | The robin reacts to context: peeks into an empty basket, naps on a quiet diary, flies a gift across when you add one, waves hello at sign-in. | M | ★★★★ | 11 poses exist; may want 3–4 more (you'd generate). |
-| **B7** | **Festival mode** | When Diwali/Rakhi/etc. is scheduled, the whole site changes: palette (exists), floating diyas/petals, a countdown ("order by 20 Oct for Diwali delivery"), festive banner. | S–M | ★★★★ | Theme system + `Ambience` exist. **Needs:** a decision on the delivery-cutoff rule per festival. |
-| **B8** | **Shop-window cards** | Boutique/product cards tilt slightly toward the cursor and light up like lit windows. | S | ★★★ | Desktop only. |
+| **B6 ✅** | **Robin as a guide** | The robin reacts to context: peeks into an empty basket, naps on a quiet diary, flies a gift across when you add one, waves hello at sign-in. | M | ★★★★ | 11 poses exist; may want 3–4 more (you'd generate). |
+| **B7 ✅** | **Festival mode** | When Diwali/Rakhi/etc. is scheduled, the whole site changes: palette (exists), floating diyas/petals, a countdown ("order by 20 Oct for Diwali delivery"), festive banner. | S–M | ★★★★ | Theme system + `Ambience` exist. **Needs:** a decision on the delivery-cutoff rule per festival. |
+| **B8 ✅** | **Shop-window cards** | Boutique/product cards tilt slightly toward the cursor and light up like lit windows. | S | ★★★ | Desktop only. |
 | **B9** | **Search flourishes** | Robin "searching" animation while results load; recent searches; trending chips. | S | ★★ | Autocomplete already built. |
 
 ### C. The Gifting Diary  *(the signature feature — small touches go a long way)*
@@ -135,7 +135,7 @@ Real-service testing (Razorpay payment, Shiprocket booking, a real Resend email)
 |---|---|---|---|
 | **Sprint 1 — "The Basket"** ✅ *done 2 Oct* | A1, A2, A6, A5 (A8 not done — still available) | ~1–1.5 weeks est. | The client's own idea and the most demo-able change. |
 | **Sprint 2 — "Make it personal"** ✅ *done 3 Oct* | A3, A4, B1 | ~1.5–2 weeks est. | Personalisation preview + gift-finder are unusual and sell *gifts*, not just products. |
-| **Sprint 3 — "The mall as a place"** | B3, B4, B6, B7, B8 | ~2 weeks | Makes it feel like walking through a mall without needing new layered art. |
+| **Sprint 3 — "The mall as a place"** ✅ *done 3 Oct* | B3, B4, B6, B7, B8 | ~2 weeks | Makes it feel like walking through a mall without needing new layered art. |
 | **Sprint 4 — "Cinematic"** | B2 (+B5), optionally D1 | ~2–3 weeks | Only after you/the client choose the direction and layered artwork exists. |
 | **Diary polish** (anytime, small) | C1, C2, then C3 | S, S, L | Strengthens the signature feature; C3 is highly shareable. |
 | **Quick business wins** (anytime) | E12, then E1 + E2 | S, M, M | E12 is nearly free SEO. Rewards/referral need the client's rules first. |

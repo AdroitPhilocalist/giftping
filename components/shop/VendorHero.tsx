@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ViewTransition } from "react";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
 import { ShopfrontArt } from "@/components/art/ShopfrontArt";
@@ -18,12 +19,14 @@ export interface VendorFeature {
  * used: the vendor's own uploaded photo, then a curated stock front, then the drawn shopfront.
  */
 export function VendorHero({
+  slug,
   name,
   tagline,
   bannerUrl,
   fallbackImage,
   features,
 }: {
+  slug: string;
   name: string;
   tagline: string | null;
   bannerUrl: string | null;
@@ -33,6 +36,7 @@ export function VendorHero({
   return (
     <section className="relative isolate -mt-[5.5rem] overflow-hidden pt-[5.5rem] lg:-mt-[6.5rem] lg:pt-[6.5rem]">
       <HeroHeaderFlag />
+      <ViewTransition name={`shop-${slug}`} share="gp-door" default="none">
       <div className="absolute inset-0" aria-hidden="true">
         {bannerUrl ? (
           <Image src={bannerUrl} alt="" fill priority sizes="100vw" className="object-cover object-center" />
@@ -43,6 +47,7 @@ export function VendorHero({
         )}
         <div className="gp-hero-scrim absolute inset-0" />
       </div>
+      </ViewTransition>
 
       <div className="relative flex min-h-[24rem] flex-col justify-end px-4 pb-10 pt-28 sm:px-6 lg:min-h-[28rem] lg:px-8 lg:pb-12">
         <div className="mx-auto w-full max-w-7xl">

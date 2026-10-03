@@ -8,7 +8,7 @@ describe("theme registry", () => {
     expect(THEMES[DEFAULT_THEME_ID].kind).toBe("native");
   });
   it("falls back to native for unknown, empty or hostile ids", () => {
-    for (const bad of [undefined, null, "", "diwali", "__proto__", "constructor", "native ", "<script>"]) expect(resolveTheme(bad as string).id, String(bad)).toBe("native");
+    for (const bad of [undefined, null, "", "not-a-theme", "__proto__", "constructor", "native ", "<script>"]) expect(resolveTheme(bad as string).id, String(bad)).toBe("native");
     expect(isThemeId("toString")).toBe(false);
   });
   it("resolves known ids", () => {

@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import { Briefcase, Cake, ChevronRight, DoorOpen, Flower2, Gem, Gift, Heart, Pause, Play, Store, Watch } from "lucide-react";
 import { MallMapArt } from "@/components/art/MallMapArt";
+import { Robin } from "@/components/art/Robin";
+import { ProductImage } from "@/components/shop/ProductImage";
+import type { PlaceSummary } from "@/lib/mall-summaries";
+import "../shop/shop.css";
 import { IMAGE_POSITIONS, MALL_ZONES, PLAN_POSITIONS, type ZoneIcon } from "@/lib/mall";
 import { cn } from "@/lib/utils/cn";
 
@@ -18,10 +23,29 @@ const DEFAULT_PREVIEW = "atrium";
  * `image` is the client's illustrated map once it exists; until then the drawn plan is used and both share the same nine places.
  * `previews` maps a place to a picture of its "interior" (the occasion world images); hovering a place cross-fades to it under the map.
  */
-export function MallDirectory({ image, previews }: { image: { src: string; width: number; height: number } | null; previews: Record<string, string> }) {
+export function MallDirectory({ image, previews, summaries }: { image: { src: string; width: number; height: number } | null; previews: Record<string, string>; summaries: Record<string, PlaceSummary> }) {
   const [active, setActive] = useState<string | null>(null);
   const [touring, setTouring] = useState(false);
   const positions = image ? IMAGE_POSITIONS : PLAN_POSITIONS;
+
+  // The robin flies to whichever place was touched last and STAYS there when the pointer moves off (otherwise it would dart back to the entrance every time the
+  // mouse crosses a gap between two numbers). It faces the way it is flying. Adjusted during render — React's documented pattern — so no effect sets state.
+  const [perch, setPerch] = useState({ id: "entrance", facing: 1 });
+  if (active && active !== perch.id) {
+    setPerch({ id: active, facing: positions[active].x < positions[perch.id].x ? -1 : 1 });
+  }
+  const perched = MALL_ZONES.find((z) => z.id === perch.id) ?? MALL_ZONES[0];
+  const summary = summaries[perched.id];
+  // On a touch screen the first tap on a number shows its card and only a second tap goes in (there is no hover to preview with).
+  const tappedOnce = useRef<string | null>(null);
+  const enter = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
+    if (!window.matchMedia("(hover: none)").matches) return;
+    if (tappedOnce.current !== id) {
+      e.preventDefault();
+      tappedOnce.current = id;
+      touch(id);
+    }
+  };
 
   useEffect(() => {
     if (!touring) return;
@@ -52,6 +76,12 @@ export function MallDirectory({ image, previews }: { image: { src: string; width
             ) : (
               <MallMapArt activeId={active} className="absolute inset-0 h-full w-full" />
             )}
+            {/* the robin, flying to whichever place you touch. The outer box travels (left/top, eased); the flip and the hop are on inner elements. */}
+            <div aria-hidden="true" className="gp-map-robin" style={{ left: `${positions[perch.id].x}%`, top: `${positions[perch.id].y}%` }}>
+              <div style={{ transform: `scaleX(${perch.facing})` }}>
+                <div key={perch.id} className="gp-map-robin-hop"><Robin pose="flying-gift" title="" /></div>
+              </div>
+            </div>
             {MALL_ZONES.map((z) => {
               const p = positions[z.id];
               const on = active === z.id;
@@ -64,6 +94,7 @@ export function MallDirectory({ image, previews }: { image: { src: string; width
                   onMouseLeave={() => touch(null)}
                   onFocus={() => touch(z.id)}
                   onBlur={() => touch(null)}
+                  onClick={(e) => enter(e, z.id)}
                   style={{ left: `${p.x}%`, top: `${p.y}%` }}
                   className={cn(
                     "absolute z-10 flex h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-brand-primary text-sm font-semibold text-brand-on-primary shadow-lift ring-2 ring-brand-surface transition-all duration-300 focus-visible:outline-none focus-visible:ring-brand-secondary sm:h-10 sm:w-10",
@@ -97,9 +128,34 @@ export function MallDirectory({ image, previews }: { image: { src: string; width
               </div>
             </div>
           ) : null}
-          <p className="mt-3 min-h-10 text-center text-sm text-brand-dark/65" aria-live="polite">
-            {current ? <><strong className="font-heading text-base text-brand-dark">{current.title}</strong> — {current.sub}</> : "Hover a number, or take the tour."}
-          </p>
+          <div className="mt-4 min-h-[9.5rem] rounded-card border border-brand-dark/[0.06] bg-brand-surface p-4 shadow-card" aria-live="polite">
+            <div key={perched.id} className="rise">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-heading text-lg leading-tight text-brand-dark">{perched.n}. {perched.title}</p>
+                  <p className="mt-0.5 text-sm text-brand-dark/65">{perched.sub}</p>
+                </div>
+                {summary ? <span className="shrink-0 rounded-full bg-brand-accent px-3 py-1 text-xs font-medium text-brand-secondary-dark">{summary.label}</span> : null}
+              </div>
+              <p className="mt-2 text-[13px] italic text-brand-dark/60">“{perched.guide}”</p>
+              <div className="mt-3 flex items-center justify-between gap-3">
+                {summary && summary.items.length > 0 ? (
+                  <ul className="flex gap-2">
+                    {summary.items.map((item) => (
+                      <li key={item.id}>
+                        <Link href={item.href} title={item.name} aria-label={item.name} className="block h-12 w-12 overflow-hidden rounded-xl ring-1 ring-brand-dark/10 transition-transform duration-300 hover:-translate-y-0.5">
+                          <ProductImage src={item.image} alt="" sizes="48px" className="h-full w-full" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <span />}
+                <Link href={perched.href} className="inline-flex items-center gap-1 rounded-button bg-brand-secondary px-4 py-2 text-sm font-medium text-brand-on-secondary shadow-card transition-transform duration-300 hover:-translate-y-px">
+                  {perched.id === "entrance" ? "Back to the front door" : "Step inside"} <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

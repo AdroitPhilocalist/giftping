@@ -23,6 +23,8 @@ export const DEFAULT_ANNOUNCEMENT = "Gift happiness. Create memories. Celebrate 
 
 export const THEMES: Record<string, ThemeDef> = {
   native: { id: "native", label: "GiftPing (native)", kind: "native", announcement: DEFAULT_ANNOUNCEMENT },
+  // Festivals — scheduled/previewed in /admin/themes. A festival that also has an entry in lib/festivals/calendar.ts gets the countdown and floating ambience.
+  diwali: { id: "diwali", label: "Diwali", kind: "festival", announcement: "Light up someone's Diwali — gifts that glow." },
   // Test themes: they exist to prove that a complete restyle is only variables. They are never offered for scheduling.
   "demo-night": { id: "demo-night", label: "Demo · Night", kind: "demo", announcement: DEFAULT_ANNOUNCEMENT },
   "demo-jewel": { id: "demo-jewel", label: "Demo · Jewel", kind: "demo", announcement: "A festive-style makeover — colours only, no page changed." },

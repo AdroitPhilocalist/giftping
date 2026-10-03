@@ -10,9 +10,12 @@ export function labelForTag(tag: string): string {
 }
 
 /**
- * An occasion/recipient "world" (Birthday, Anniversary, For Her…) is a category AND a tag with the same name. A shopper walking into the Birthday world expects every
- * birthday gift — not only the products a boutique happened to file under the "Birthday" category — so the world shows the union, and its own tag filter would be a
- * second copy of the same choice. Only slugs in the controlled vocabularies qualify (also what keeps the value safe to place in a PostgREST filter).
+ * An occasion/recipient "world" (Birthday, Anniversary, For Her…) is a category AND a tag with the same name. Inside that world the matching tag filter would only
+ * repeat the world's own choice, so the filter panel leaves that group out (the OTHER group stays — "Birthday gifts for him" is useful). Only slugs in the controlled
+ * vocabularies qualify.
+ *
+ * NB: the world lists the products FILED UNDER the category, not everything carrying the tag. Showing the union was tried and reverted: the demo catalogue tags 38
+ * of 57 products "birthday", so the union made Birthday World look like the whole shop (8 → 38 gifts). Revisit once real vendors have curated their tags.
  */
 export type WorldTag = { kind: "occasion"; tag: string } | { kind: "recipient"; tag: string };
 
@@ -20,10 +23,4 @@ export function worldTagFor(slug: string): WorldTag | null {
   if ((OCCASION_TAGS as readonly string[]).includes(slug)) return { kind: "occasion", tag: slug };
   if ((RECIPIENT_TAGS as readonly string[]).includes(slug)) return { kind: "recipient", tag: slug };
   return null;
-}
-
-/** The PostgREST `or` clause for "in this category, or carries the world's tag". */
-export function worldOrClause(categoryId: string, world: WorldTag): string {
-  const column = world.kind === "occasion" ? "occasion_tags" : "recipient_tags";
-  return `category_id.eq.${categoryId},${column}.cs.{${world.tag}}`;
 }

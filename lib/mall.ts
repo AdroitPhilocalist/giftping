@@ -12,18 +12,20 @@ export interface MallZone {
   sub: string;
   href: string;
   icon: ZoneIcon;
+  /** what the robin says when it flies to this place */
+  guide: string;
 }
 
 export const MALL_ZONES: MallZone[] = [
-  { id: "entrance", n: 1, title: "Grand Entrance", sub: "Welcome to GiftPing", href: "/", icon: "door" },
-  { id: "birthday", n: 2, title: "Birthday World", sub: "Celebrate their special day", href: "/categories/birthday", icon: "cake" },
-  { id: "wedding", n: 3, title: "Wedding Pavilion", sub: "For their forever moments", href: "/categories/wedding", icon: "gem" },
-  { id: "anniversary", n: 4, title: "Anniversary Lane", sub: "Celebrate love, again", href: "/categories/anniversary", icon: "heart" },
-  { id: "boutiques", n: 5, title: "Boutique Avenue", sub: "Curated brand stores", href: "/vendors", icon: "store" },
-  { id: "for-her", n: 6, title: "Gifts for Her", sub: "Elegant, thoughtful, hers", href: "/categories/for-her", icon: "flower" },
-  { id: "for-him", n: 7, title: "Gifts for Him", sub: "Timeless picks he'll love", href: "/categories/for-him", icon: "watch" },
-  { id: "corporate", n: 8, title: "Corporate Lounge", sub: "Gifting that builds bonds", href: "/categories/corporate-gifting", icon: "briefcase" },
-  { id: "atrium", n: 9, title: "The Gift Atrium", sub: "Our signature picks", href: "/categories", icon: "gift" },
+  { id: "entrance", n: 1, title: "Grand Entrance", sub: "Welcome to GiftPing", href: "/", icon: "door", guide: "Welcome in! Hover a number and I'll fly you there." },
+  { id: "birthday", n: 2, title: "Birthday World", sub: "Celebrate their special day", href: "/categories/birthday", icon: "cake", guide: "Birthday World is our most loved — confetti included." },
+  { id: "wedding", n: 3, title: "Wedding Pavilion", sub: "For their forever moments", href: "/categories/wedding", icon: "gem", guide: "Wedding Pavilion: gifts for their forever moments." },
+  { id: "anniversary", n: 4, title: "Anniversary Lane", sub: "Celebrate love, again", href: "/categories/anniversary", icon: "heart", guide: "Anniversary Lane — for the ones you love, again." },
+  { id: "boutiques", n: 5, title: "Boutique Avenue", sub: "Curated brand stores", href: "/vendors", icon: "store", guide: "Boutique Avenue: every shop is a small business we love." },
+  { id: "for-her", n: 6, title: "Gifts for Her", sub: "Elegant, thoughtful, hers", href: "/categories/for-her", icon: "flower", guide: "Gifts for Her — elegant, thoughtful, hers." },
+  { id: "for-him", n: 7, title: "Gifts for Him", sub: "Timeless picks he'll love", href: "/categories/for-him", icon: "watch", guide: "Gifts for Him — timeless picks he'll actually use." },
+  { id: "corporate", n: 8, title: "Corporate Lounge", sub: "Gifting that builds bonds", href: "/categories/corporate-gifting", icon: "briefcase", guide: "The Corporate Lounge: gifting that builds bonds." },
+  { id: "atrium", n: 9, title: "The Gift Atrium", sub: "Our signature picks", href: "/categories", icon: "gift", guide: "The Gift Atrium: our signature picks, all in one place." },
 ];
 
 export type Point = { x: number; y: number };

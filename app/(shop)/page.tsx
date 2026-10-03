@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { VendorCard } from "@/components/shop/VendorCard";
+import { FestivalCountdown } from "@/components/festival/FestivalCountdown";
+import { getActiveTheme } from "@/lib/theme/active";
 import { HeroBanners } from "@/components/shop/HeroBanners";
 import { getFeaturedVendors } from "@/lib/db/vendors";
 import { getTrendingProducts } from "@/lib/db/products";
@@ -25,11 +27,12 @@ export const generateMetadata = (): Promise<Metadata> => pageMetadata("home");
 export default async function Home({ searchParams }: { searchParams: Promise<{ account?: string }> }) {
   const user = await getServerUser();
   const accountDeleted = (await searchParams).account === "deleted";
-  const [vendors, trending, wishlistIds, banners] = await Promise.all([
+  const [vendors, trending, wishlistIds, banners, theme] = await Promise.all([
     getFeaturedVendors(),
     getTrendingProducts(),
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
     getHomeBanners(user ? (user.role === "vendor" || user.role === "admin" ? user.role : "customer") : "guest"),
+    getActiveTheme(),
   ]);
 
   return (
@@ -41,6 +44,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ a
       ) : null}
 
       <HomeHero />
+      <FestivalCountdown themeId={theme.id} />
       <HeroBanners banners={banners} />
       <DiscoverCards />
       <RelationshipCards />

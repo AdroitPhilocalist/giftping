@@ -79,6 +79,7 @@ export default async function VendorStorefrontPage({
   return (
     <div>
       <VendorHero
+        slug={vendor.slug}
         name={vendor.business_name}
         tagline={vendor.short_description}
         bannerUrl={vendor.banner_url}
