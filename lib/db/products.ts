@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/db/server";
+import { worldOrClause, type WorldTag } from "@/lib/catalog/tags";
 
 const PRODUCT_CARD_SELECT = `
   id, name, slug, short_description, base_price, sale_price, thumbnail_url,
@@ -10,6 +11,8 @@ const PRODUCT_CARD_SELECT = `
 
 export interface ProductListFilters {
   categorySlug?: string;
+  /** With `categorySlug`: also include every product carrying that occasion/recipient tag (an occasion "world"). */
+  world?: WorldTag | null;
   vendorSlug?: string;
   occasionTag?: string;
   recipientTag?: string;
@@ -39,7 +42,8 @@ export async function listProducts(filters: ProductListFilters = {}) {
       .select("id")
       .eq("slug", filters.categorySlug)
       .maybeSingle();
-    query = query.eq("category_id", category?.id ?? "00000000-0000-0000-0000-000000000000");
+    const categoryId = category?.id ?? "00000000-0000-0000-0000-000000000000";
+    query = filters.world ? query.or(worldOrClause(categoryId, filters.world)) : query.eq("category_id", categoryId);
   }
 
   if (filters.vendorSlug) {

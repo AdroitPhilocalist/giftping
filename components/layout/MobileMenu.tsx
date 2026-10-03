@@ -13,7 +13,6 @@ const NAV_ICONS: Record<string, typeof Gift> = {
   "Explore Mall": Compass,
   Occasions: Gift,
   Boutiques: Store,
-  Diaries: BookHeart,
   "Corporate Gifting": Briefcase,
   "About Us": Info,
 };

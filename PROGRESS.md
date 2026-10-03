@@ -188,6 +188,9 @@ because the gallery frame changes shape (now square for engravable products); th
 box instead of stopping at the edge. **Not verified:** touch dragging on a real phone; vendor usability beyond me; non-Latin glyphs in the preview fonts (the text itself is kept exactly); ranking on a real-sized
 catalogue. **Dev data:** Personalised Name Plate and Engraved Wooden Keepsake Box now have engraving set up (demo).
 
+## Occasion worlds de-duplicated + the Diary button (3 Oct)
+See `docs/progress/2026-10-03-occasion-worlds-and-diary-button.md`. Birthday/Anniversary/Wedding/For Her… are now true "worlds" (category OR tag: Birthday 8 → 38 gifts) and the filter that repeated the world's own choice is hidden. "Diaries" is gone from the nav; the Diary has its own drawn-book button, always visible (caption ≥1440px, book-only when condensed/narrower). Tests 481/481.
+
 ## Stage 11 in progress
 
 Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). **Vendor logo + banner upload done** (with admin take-down). **Bulk CSV product upload done** (preview → all-or-nothing import as hidden drafts). **"Download my data" done. Dashboard alert for paid orders stuck with a suspended vendor done — Stage 11 (admin suite) is COMPLETE.** Next: Stage 12 (visual & motion polish), then Stage 13 (go-live). **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 

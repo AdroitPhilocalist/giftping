@@ -1,4 +1,4 @@
-/** The main navigation — one list used by the desktop header, the mobile menu and (partly) the footer. */
+/** The main navigation — one list used by the desktop header, the mobile menu and (partly) the footer. The Diary is deliberately NOT in it: it has its own button (components/layout/DiaryButton.tsx). */
 export interface NavItem {
   label: string;
   href: string;
@@ -8,7 +8,6 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Explore Mall", href: "/mall" },
   { label: "Occasions", href: "/categories" },
   { label: "Boutiques", href: "/vendors" },
-  { label: "Diaries", href: "/diary" },
   { label: "Corporate Gifting", href: "/categories/corporate-gifting" },
   { label: "About Us", href: "/about" },
 ];

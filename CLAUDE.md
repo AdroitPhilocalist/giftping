@@ -128,8 +128,10 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
   a gradient and keep `border-radius` — `border-image` ignores rounded corners), and as a thin bottom
   hairline on the mobile flush bar (a full ring there would put a stray line down both screen edges). This
   replaced the old, nearly-invisible flat copper `border-color`. `NavLinks.tsx`'s items are pipe-separated
-  (`|`). "My Diary" is a quiet
-  outlined pill with a book icon. `HomeHero.tsx`'s "Watch Our Story" button is a solid cream/white pill with
+  (`|`). The Diary is NOT a nav
+  text link: `components/layout/DiaryButton.tsx` (+ `components/art/DiaryBookIcon.tsx`, a drawn leather diary on a cream, gold-ringed pill) is always on
+  the bar — caption from 1440px at rest, book chip alone when condensed or narrower (the caption needs ~190px; at 1280px it overflowed the pill).
+  Occasion/recipient categories (`lib/catalog/tags.ts` `worldTagFor`) are "worlds" showing category OR tag, with the redundant filter group hidden. `HomeHero.tsx`'s "Watch Our Story" button is a solid cream/white pill with
   dark ink text (was wrongly outlined/transparent); "Explore the Mall" was already correct (solid forest
   green). **The announcement strip is no longer rendered** (`AnnouncementBar.tsx` still exists, just unused)
   — the reference has no room for one above a pill with its own top margin; every OTHER client reference

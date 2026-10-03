@@ -34,17 +34,22 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
  * Filters as tags you tap: every option is a plain link to the same page with one thing changed, so it is server-rendered, works without JavaScript and can be
  * shared. Tapping the active one clears it. On a phone each group scrolls sideways; on a desktop they sit on a paper tag beside the products.
  */
-export function ShopFilters({ vendors, current, hrefFor }: { vendors: { slug: string; business_name: string }[]; current: FilterState; hrefFor: (patch: Patch) => string }) {
+export function ShopFilters({ vendors, current, hrefFor, hide }: { vendors: { slug: string; business_name: string }[]; current: FilterState; hrefFor: (patch: Patch) => string; hide?: "occasion" | "recipient" }) {
   const toggle = (key: keyof FilterState, value: string) => hrefFor({ [key]: current[key] === value ? undefined : value });
   return (
     <section aria-label="Filter and sort" className="relative space-y-5 rounded-card border border-brand-secondary/20 bg-brand-surface p-5 pt-6 shadow-card">
       <span className="gift-tag-hole !-top-1.5" aria-hidden="true" />
-      <Group title="For">
-        {RECIPIENT_TAGS.map((t) => <Link key={t} href={toggle("recipient", t)} aria-current={current.recipient === t ? "true" : undefined} className="pill">{labelForTag(t)}</Link>)}
-      </Group>
-      <Group title="Occasion">
-        {OCCASION_TAGS.map((t) => <Link key={t} href={toggle("occasion", t)} aria-current={current.occasion === t ? "true" : undefined} className="pill">{labelForTag(t)}</Link>)}
-      </Group>
+      {/* Inside the Birthday world an "Occasion" filter would just repeat the world's own choice (and show nothing selected beside it), so the group the world already answers is left out. */}
+      {hide === "recipient" ? null : (
+        <Group title="For">
+          {RECIPIENT_TAGS.map((t) => <Link key={t} href={toggle("recipient", t)} aria-current={current.recipient === t ? "true" : undefined} className="pill">{labelForTag(t)}</Link>)}
+        </Group>
+      )}
+      {hide === "occasion" ? null : (
+        <Group title="Occasion">
+          {OCCASION_TAGS.map((t) => <Link key={t} href={toggle("occasion", t)} aria-current={current.occasion === t ? "true" : undefined} className="pill">{labelForTag(t)}</Link>)}
+        </Group>
+      )}
       {vendors.length > 0 ? (
         <Group title="Boutique">
           {vendors.slice(0, 12).map((v) => <Link key={v.slug} href={toggle("vendor", v.slug)} aria-current={current.vendor === v.slug ? "true" : undefined} className="pill">{v.business_name}</Link>)}

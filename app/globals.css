@@ -463,11 +463,43 @@ html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) .gp-header
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 20px 44px -16px rgb(6 26 17 / 0.55), 0 4px 16px -4px rgb(6 26 17 / 0.38);
 }
 .gp-header[data-condensed="true"] .gp-logo-mark { width: 2.3rem; height: 2.3rem; }
-/* The condensed pill's own width caps at a fixed 75rem (see @media (min-width:1024px) above) no matter how wide the viewport is, so the full row
-   (logo + nav links + icons + the "My Diary" pill) can outgrow it on any desktop screen, not just narrow ones — the excess spills past the pill's
-   rounded edge onto the plain page, where the pill's translucent cream styling nearly vanishes (see components/layout/Navbar.tsx's diaryButton
-   comment). Hiding it once condensed costs nothing real: "/diary" is still one click away via the "Diaries" nav link and AccountMenu. */
-.gp-header[data-condensed="true"] .gp-diary-pill { display: none; }
+/* The Diary button (components/layout/DiaryButton.tsx) is always on the bar. Wide + at rest: the drawn book standing out of a copper pill with a caption.
+   Condensed on scroll, or below xl: the caption folds away and only the book chip remains — so it can never push the row past the pill's rounded edge
+   (the bug that made the old text pill hide itself) yet is never hidden either. */
+.gp-diary-btn {
+  position: relative; display: inline-flex; align-items: center; gap: 0.55rem; flex-shrink: 0; overflow: visible;
+  margin-left: 0.35rem; height: 2.5rem; padding: 0 0.4rem; border-radius: 999px;
+  color: var(--gp-primary); white-space: nowrap;
+  /* a cream pill: the copper-and-gold book needs a light ground to stand out of — copper on copper (the first try) vanished */
+  background: linear-gradient(135deg, var(--gp-surface), color-mix(in srgb, var(--gp-surface) 82%, var(--gp-copper) 18%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 6px 16px -6px rgb(0 0 0 / 0.55);
+  transition: transform 0.35s var(--gp-ease), box-shadow 0.35s var(--gp-ease), padding 0.4s var(--gp-ease);
+}
+.gp-diary-btn::before { /* the gold-foil ring, same gradient-border trick as the header pill */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.3px; background: var(--gp-gold-edge);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none;
+}
+.gp-diary-btn::after { /* a slow shimmer sweeping across, so the eye finds it */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(105deg, transparent 38%, color-mix(in srgb, var(--gp-copper) 30%, transparent) 50%, transparent 62%) -120% 0 / 60% 100% no-repeat;
+  animation: gp-diary-shimmer 6s ease-in-out 2s infinite;
+}
+@keyframes gp-diary-shimmer { 0%, 70% { background-position: -120% 0; } 100% { background-position: 220% 0; } }
+.gp-diary-btn:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 10px 22px -6px rgb(0 0 0 / 0.6); }
+.gp-diary-btn:focus-visible { outline: 2px solid var(--gp-on-primary); outline-offset: 3px; }
+.gp-diary-btn[aria-current="page"] { box-shadow: 0 0 0 3px color-mix(in srgb, var(--gp-copper) 70%, transparent), 0 6px 16px -6px rgb(0 0 0 / 0.55); }
+.gp-diary-book { position: relative; display: block; width: 2.15rem; height: 2.5rem; margin-top: -0.7rem; margin-bottom: -0.3rem; flex-shrink: 0; }
+.gp-diary-book-tilt { transform-box: fill-box; transform-origin: 50% 90%; transform: rotate(-7deg); transition: transform 0.45s var(--gp-ease); }
+.gp-diary-btn:hover .gp-diary-book-tilt { transform: rotate(0deg) translateY(-2px); }
+.gp-diary-sparkle { transform-box: fill-box; transform-origin: center; animation: gp-diary-twinkle 3.2s ease-in-out infinite; }
+@keyframes gp-diary-twinkle { 0%, 100% { transform: scale(0.45) rotate(0); opacity: 0.5; } 50% { transform: scale(1) rotate(45deg); opacity: 1; } }
+.gp-diary-text { display: none; flex-direction: column; line-height: 1.05; padding-right: 0.7rem; text-align: left; }
+.gp-diary-kicker { font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gp-copper-dark); }
+.gp-diary-name { font-family: var(--gp-font-display); font-size: 1.02rem; font-weight: 600; }
+/* the caption needs ~190px: measured to fit from 1440px up (a 1280px laptop overflowed the pill by ~45px) — below that the book chip alone */
+@media (min-width: 1440px) { .gp-diary-text { display: flex; } .gp-diary-btn { padding-left: 0.55rem; } }
+.gp-header[data-condensed="true"] .gp-diary-text { display: none; }
+.gp-header[data-condensed="true"] .gp-diary-btn { padding: 0 0.4rem; height: 2.3rem; }
 @media (max-width: 639px) {
   .gp-header[data-condensed="true"] .gp-header-inner { width: calc(100% - 0.75rem); padding-left: 0.85rem; padding-right: 0.6rem; }
 }

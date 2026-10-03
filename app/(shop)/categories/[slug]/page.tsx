@@ -8,6 +8,7 @@ import { Pagination } from "@/components/shop/Pagination";
 import { getActiveCategories, getCategoryBySlug } from "@/lib/db/categories";
 import { getVendorsForCategory } from "@/lib/db/vendors";
 import { listProducts, type ProductListFilters } from "@/lib/db/products";
+import { worldTagFor } from "@/lib/catalog/tags";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { siteImage } from "@/lib/content/imagery";
@@ -51,11 +52,14 @@ export default async function CategoryPage({
   const [category, user, theme, allCategories] = await Promise.all([getCategoryBySlug(slug), getServerUser(), getActiveTheme(), getActiveCategories()]);
   if (!category) notFound();
 
+  // Birthday/Anniversary/For Her… are worlds: every gift carrying that tag, not just the ones filed under the category (see worldTagFor)
+  const worldTag = worldTagFor(slug);
   const page = Number(sp.page ?? "1") || 1;
   const minPrice = sp.minPrice ? Number(sp.minPrice) : undefined;
   const maxPrice = sp.maxPrice ? Number(sp.maxPrice) : undefined;
   const filters: ProductListFilters = {
     categorySlug: slug,
+    world: worldTag,
     vendorSlug: sp.vendor || undefined,
     occasionTag: sp.occasion || undefined,
     recipientTag: sp.recipient || undefined,
@@ -68,7 +72,7 @@ export default async function CategoryPage({
 
   const [{ products, total, totalPages }, vendors, wishlistIds] = await Promise.all([
     listProducts(filters),
-    getVendorsForCategory(category.id),
+    getVendorsForCategory(category.id, worldTag),
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
   ]);
 
@@ -110,7 +114,7 @@ export default async function CategoryPage({
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[260px_1fr]">
           <aside className="lg:sticky lg:top-24 lg:self-start">
-            <ShopFilters vendors={vendors} current={{ vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, minPrice: sp.minPrice, maxPrice: sp.maxPrice }} hrefFor={hrefFor} />
+            <ShopFilters vendors={vendors} hide={worldTag && !sp[worldTag.kind] ? worldTag.kind : undefined} current={{ vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, minPrice: sp.minPrice, maxPrice: sp.maxPrice }} hrefFor={hrefFor} />
           </aside>
 
           <div>
