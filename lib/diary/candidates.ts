@@ -16,6 +16,9 @@ export async function loadCandidatePool(client: SupabaseClient<Database>): Promi
     .from("products")
     .select("id, name, slug, thumbnail_url, tags, occasion_tags, recipient_tags, base_price, sale_price, average_rating, review_count, category:categories(name), vendor:vendors(business_name)")
     .eq("status", "active")
+    // If the catalogue ever outgrows this slice, keep the best-reviewed products and make the slice deterministic (it used to be an arbitrary 500).
+    .order("review_count", { ascending: false })
+    .order("id", { ascending: true })
     .limit(500);
 
   const byId: CandidatePool["byId"] = new Map();

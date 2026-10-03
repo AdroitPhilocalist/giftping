@@ -7,6 +7,8 @@ import type { LucideIcon } from "lucide-react";
 import { DeliveryChecker } from "@/components/shop/DeliveryChecker";
 import { ADD_TO_CART_FLY_EVENT, type AddToCartFlyDetail } from "@/components/motion/CartFlyLayer";
 import { canShowMiniBasket } from "@/lib/shop/mini-basket-env";
+import { usePersonalizationPreview } from "@/components/shop/PersonalizationPreview";
+import { normaliseEngraving, type EngravingConfig } from "@/lib/personalization/engraving";
 import { Button } from "@/components/ui/Button";
 import { Textarea, Input, Label } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
@@ -37,7 +39,10 @@ export function ProductBuyBox({
   salePrice,
   stockQuantity,
   variants,
+  engraving,
 }: {
+  /** the product's live-engraving setup, if it offers one — adds a text field whose words appear on the photo as they're typed */
+  engraving?: EngravingConfig | null;
   productId: string;
   /** with the name and photo, the header's mini-basket can show what was just added immediately */
   productSlug?: string;
@@ -68,6 +73,9 @@ export function ProductBuyBox({
   const [giftMessage, setGiftMessage] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const preview = usePersonalizationPreview();
+  const engravingText = preview?.text ?? "";
+  const [engravingError, setEngravingError] = useState<string | null>(null);
 
   const selectedVariants = variantGroups
     .map(([name, options]) => options.find((o) => o.id === selected[name]))
@@ -84,12 +92,23 @@ export function ProductBuyBox({
   const maxQuantity = Math.max(1, maxPurchasable(availableStock));
 
   function addToCart(afterAdd?: () => void, flyFrom?: { x: number; y: number }) {
+    // Check the engraving text FIRST, with the product's own rules, so the shopper gets instant, specific feedback (the server checks again regardless).
+    if (engraving) {
+      const checked = normaliseEngraving(engravingText, engraving);
+      if (!checked.ok) {
+        setEngravingError(checked.error);
+        preview?.requestPhoto();
+        document.getElementById("engraving")?.focus();
+        return;
+      }
+    }
     startTransition(async () => {
       const result = await addToCartAction({
         productId,
         variantIds: selectedVariants.map((v) => v.id),
         quantity: Math.min(quantity, maxQuantity),
         personalization: {
+          engraving: engraving ? engravingText : undefined,
           recipientName,
           giftMessage,
           occasion: occasion ? (occasion as (typeof OCCASIONS)[number]) : undefined,
@@ -167,6 +186,40 @@ export function ProductBuyBox({
           </div>
         </div>
       ))}
+
+      {engraving ? (
+        <section className="rounded-card border border-brand-secondary/40 bg-brand-surface p-5 shadow-card" aria-labelledby="engraving-heading">
+          <div className="flex items-end justify-between gap-3">
+            <h3 id="engraving-heading" className="font-heading text-lg text-brand-dark">
+              {engraving.label}
+              {engraving.required ? <span className="ml-1 text-sm text-brand-secondary-dark" aria-hidden="true">*</span> : <span className="ml-2 text-xs font-sans font-normal text-brand-dark/50">optional</span>}
+            </h3>
+            <span className="mb-0.5 text-xs text-brand-dark/50" aria-live="polite">{[...engravingText].length}/{engraving.maxLength}</span>
+          </div>
+          <Input
+            id="engraving"
+            className="mt-2"
+            value={engravingText}
+            maxLength={engraving.maxLength + 10}
+            placeholder="Type it here — watch it appear on the photo"
+            autoComplete="off"
+            aria-required={engraving.required}
+            aria-invalid={engravingError ? true : undefined}
+            aria-describedby={engravingError ? "engraving-error" : "engraving-help"}
+            onFocus={() => preview?.requestPhoto()}
+            onChange={(e) => {
+              preview?.setText(e.target.value);
+              preview?.requestPhoto();
+              if (engravingError) setEngravingError(null);
+            }}
+          />
+          {engravingError ? (
+            <p id="engraving-error" role="alert" className="mt-1.5 text-xs font-medium text-red-700">{engravingError}</p>
+          ) : (
+            <p id="engraving-help" className="mt-1.5 text-xs text-brand-dark/55">Shown on the photo as a preview — the boutique carries it out exactly as you type it.</p>
+          )}
+        </section>
+      ) : null}
 
       <section className="rounded-card border border-brand-secondary/25 bg-brand-accent/40 p-5" aria-labelledby="personalise-heading">
         <h3 id="personalise-heading" className="flex items-center gap-2 font-heading text-lg text-brand-dark">

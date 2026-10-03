@@ -348,6 +348,16 @@ Sign in as `test-admin@giftping.test`.
 
 ---
 
+### Personalisation, wrap preview and the gift finder *(new — Sprint 2; test on a real desktop AND a real phone)*
+
+- [ ] **Vendor setup**: as a vendor, open one of your products with a photo → "Personalised text on the photo (optional)". Tick it; name the field, set a max length, pick a lettering style, decide if it's required. **Drag the box** to where the text should go, drag the round handle to resize (it must stop at the photo's edge without shoving the box), and try the arrow keys and "Fine-tune with sliders". Type a long name in "Try a name" — it should shrink to fit and warn if it exceeds your limit. Save → the product goes back "In review" like any edit. Reopen the product: your setup is exactly as you left it. **On a phone, try dragging with your finger.**
+- [ ] **Shopper**: once approved, open the product → a field with your label and "0/N". Type a name → it appears **on the photo** in your style, resizing to fit; start typing while viewing another photo → it jumps to the main photo; open Zoom → the text is in the same place. The photo frame stays square at every window size (resize the window to check the text never moves relative to the product).
+- [ ] **Rules**: leave a required field empty and press Add to cart → an inline message, the field is focused, nothing is added. Type more than the limit / `<b>x</b>` / an emoji → refused with a clear message. Names in Hindi, Tamil etc. are accepted (the preview may use a plain fallback font; the text itself is kept exactly).
+- [ ] **It travels**: after adding, the cart line, checkout summary and the order page show `Engraving: “…”`. As the vendor, the order in your portal shows a highlighted **Engrave: “…”** line, and the new-order email lists it in bold under the product.
+- [ ] **Wrap preview**: at checkout tick "Add gift wrapping" → below the picker is a large preview of the chosen wrap with a handwritten card tucked in. Type a gift message and pick other wraps — it should switch smoothly, and the card should read "Dear <first name of the selected address>," plus your message.
+- [ ] **Gift finder** (`/gift-finder`, also the homepage band "Not sure what to give?" and the footer): answer the four questions — choosing an answer moves on by itself; Back works; the last step lets you pick up to three interests (the rest grey out) or none. You get a shelf of products with reasons under each and a "Best match" badge; nothing over your budget ever appears. "Change my answers" reopens with your choices; "Start over" resets. Copy the results URL into a private window — the same gifts appear. Try "A friend / Just because / any budget / no interests" (you still get popular picks), and a budget where little fits.
+- [ ] **Edge cases**: hand-edit the URL to rubbish (`?who=zzz`, `?budget=-1`) → a normal page, never an error. Turn JavaScript off → all four questions show on one page and the button still works.
+
 ### The basket *(new — Sprint 1; best tested on a real desktop AND a real phone)*
 
 - [ ] **Header icon**: the cart icon in the header (and the Cart tab on a phone) is now a little woven basket, with the count badge.

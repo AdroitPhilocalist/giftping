@@ -1,3 +1,4 @@
+import { personalizationSummary } from "@/lib/commerce/personalization";
 import { WRAP_STYLES, wrapStyleLabel } from "@/lib/commerce/wrap-styles";
 import { Gift } from "lucide-react";
 import { OrderFulfilment } from "@/components/vendor/OrderFulfilment";
@@ -53,11 +54,9 @@ export default async function VendorOrdersPage() {
                             {item.product_name} × {item.quantity}
                           </p>
                           {item.variant_label ? <p className="text-xs text-brand-dark/60">{item.variant_label}</p> : null}
-                          {p.recipientName || p.occasion || p.giftMessage ? (
-                            <p className="text-xs text-brand-dark/60">
-                              {[p.recipientName && `For ${p.recipientName}`, p.occasion, p.giftMessage && `“${p.giftMessage}”`].filter(Boolean).join(" · ")}
-                            </p>
-                          ) : null}
+                          {/* The text to engrave/print must be carried out EXACTLY, so it gets its own prominent line rather than hiding in the summary. */}
+                          {p.engraving ? <p className="mt-1 inline-block rounded-md bg-brand-secondary/15 px-2 py-0.5 text-sm font-semibold text-brand-secondary-dark">Engrave: “{p.engraving}”</p> : null}
+                          {personalizationSummary({ ...p, engraving: undefined }) ? <p className="text-xs text-brand-dark/60">{personalizationSummary({ ...p, engraving: undefined })}</p> : null}
                         </div>
                         <Badge>{item.fulfilment_status}</Badge>
                       </li>

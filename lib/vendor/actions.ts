@@ -1,5 +1,6 @@
 "use server";
 
+import { toPersonalizationOptions } from "@/lib/personalization/engraving";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/db/server";
 import { createAdminClient } from "@/lib/db/admin";
@@ -127,6 +128,8 @@ export async function saveProductAction(
     tags: parseFreeTags(input.tags),
     occasion_tags: input.occasionTags,
     recipient_tags: input.recipientTags,
+    // Live engraving setup (null/[] when the section is switched off). Clamped again on the way in; the database bounds its shape too.
+    personalization_options: toPersonalizationOptions(input.engraving?.enabled ? { label: input.engraving.label.trim(), maxLength: input.engraving.maxLength, required: input.engraving.required, style: input.engraving.style, x: input.engraving.x, y: input.engraving.y, w: input.engraving.w, h: input.engraving.h, rotate: input.engraving.rotate } : null) as never,
   };
 
   let id = productId;

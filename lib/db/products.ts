@@ -109,6 +109,16 @@ export const getProductBySlug = cache(async function getProductBySlug(slug: stri
   return data;
 });
 
+/** Full product cards for specific ids, in the order given (an `.in()` filter doesn't keep it). Missing/hidden ids are simply absent. */
+export async function getProductCardsByIds(ids: string[]) {
+  if (ids.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").select(PRODUCT_CARD_SELECT).in("id", ids);
+  if (error) throw error;
+  const byId = new Map((data ?? []).map((p) => [p.id, p]));
+  return ids.flatMap((id) => (byId.has(id) ? [byId.get(id)!] : []));
+}
+
 export async function getRelatedProducts(productId: string, categoryId: string | null, limit = 4) {
   const supabase = await createClient();
   let query = supabase

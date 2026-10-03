@@ -92,14 +92,14 @@ ${i.trackingUrl ? `<p style="margin:12px 0 0"><a href="${escapeHtml(i.trackingUr
 export interface VendorNewOrderInput {
   vendorName: string;
   orderNumber: string;
-  items: { name: string; quantity: number }[];
+  items: { name: string; quantity: number; /** text the boutique must engrave/print, exactly as the customer typed it */ engraving?: string | null }[];
   earningsLabel: string | null;
   dashboardUrl: string;
   preferencesUrl: string;
 }
 
 export function buildVendorNewOrderEmail(i: VendorNewOrderInput): BuiltEmail {
-  const list = i.items.map((it) => `<li>${escapeHtml(it.name)} × ${it.quantity}</li>`).join("");
+  const list = i.items.map((it) => `<li>${escapeHtml(it.name)} × ${it.quantity}${it.engraving ? `<br/><strong style="color:#B75F22">Engrave: “${escapeHtml(it.engraving)}”</strong>` : ""}</li>`).join("");
   const html = renderEmailFrame({
     preheader: `New paid order ${i.orderNumber}`,
     heading: "You have a new order",
@@ -109,7 +109,7 @@ ${i.earningsLabel ? `<p style="margin:0;color:#555">Your earnings: <strong>${esc
     cta: { label: "Accept and ship", url: i.dashboardUrl },
     footerHtml: footer(i.preferencesUrl),
   });
-  const text = [`Hi ${i.vendorName},`, "", `Order ${i.orderNumber} has been paid and is waiting for you.`, ...i.items.map((it) => `- ${it.name} × ${it.quantity}`), ...(i.earningsLabel ? [`Your earnings: ${i.earningsLabel}`] : []), "", `Accept and ship: ${i.dashboardUrl}`].join("\n");
+  const text = [`Hi ${i.vendorName},`, "", `Order ${i.orderNumber} has been paid and is waiting for you.`, ...i.items.map((it) => `- ${it.name} × ${it.quantity}${it.engraving ? ` — ENGRAVE: “${it.engraving}”` : ""}`), ...(i.earningsLabel ? [`Your earnings: ${i.earningsLabel}`] : []), "", `Accept and ship: ${i.dashboardUrl}`].join("\n");
   return { subject: `New order ${i.orderNumber} — ready for you to accept`, html, text };
 }
 

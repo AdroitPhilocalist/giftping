@@ -2,7 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { EngravingPlacementEditor } from "@/components/vendor/EngravingPlacementEditor";
+import { DEFAULT_ENGRAVING, ENGRAVING_STYLES, normaliseEngraving, type EngravingConfig, type EngravingPlacement } from "@/lib/personalization/engraving";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, Trash2 } from "lucide-react";
 import { saveProductAction } from "@/lib/vendor/actions";
@@ -26,10 +28,13 @@ export function ProductForm({
   productId,
   categories,
   defaultValues,
+  primaryImageUrl,
 }: {
   productId: string | null;
   categories: { id: string; name: string }[];
   defaultValues?: Partial<ProductFormInput>;
+  /** the product's main photo — the engraving editor draws on it (null until a photo has been uploaded) */
+  primaryImageUrl?: string | null;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -39,6 +44,7 @@ export function ProductForm({
     register,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormInput, unknown, ProductInput>({
     resolver: zodResolver(productSchema),
@@ -49,8 +55,28 @@ export function ProductForm({
       recipientTags: [],
       variants: [],
       ...defaultValues,
+      engraving: { enabled: false, ...DEFAULT_ENGRAVING, ...defaultValues?.engraving },
     },
   });
+  const [sample, setSample] = useState("Aarav Nair");
+  const eng = useWatch({ control, name: "engraving" });
+  const num = (v: unknown, d: number) => (typeof v === "number" && Number.isFinite(v) ? v : typeof v === "string" && v.trim() !== "" && Number.isFinite(Number(v)) ? Number(v) : d);
+  // The live config the editor draws from (the form holds strings for number inputs, so coerce).
+  const engConfig: EngravingConfig = {
+    label: (eng?.label ?? DEFAULT_ENGRAVING.label) || DEFAULT_ENGRAVING.label,
+    maxLength: num(eng?.maxLength, DEFAULT_ENGRAVING.maxLength),
+    required: eng?.required ?? true,
+    style: (eng?.style ?? DEFAULT_ENGRAVING.style) as EngravingConfig["style"],
+    x: num(eng?.x, DEFAULT_ENGRAVING.x),
+    y: num(eng?.y, DEFAULT_ENGRAVING.y),
+    w: num(eng?.w, DEFAULT_ENGRAVING.w),
+    h: num(eng?.h, DEFAULT_ENGRAVING.h),
+    rotate: num(eng?.rotate, 0),
+  };
+  const applyPlacement = (p: EngravingPlacement) => {
+    for (const k of ["x", "y", "w", "h", "rotate"] as const) setValue(`engraving.${k}`, p[k], { shouldDirty: true });
+  };
+  const sampleCheck = normaliseEngraving(sample, { label: engConfig.label, maxLength: engConfig.maxLength, required: false });
   // keyName: useFieldArray otherwise uses "id" as its internal key, which would clobber each variant's real DB id.
   const variants = useFieldArray({ control, name: "variants", keyName: "fieldKey" });
 
@@ -171,6 +197,54 @@ export function ProductForm({
           <Label htmlFor="tags">Search keywords (comma separated)</Label>
           <Input id="tags" placeholder="hamper, premium, leather" {...register("tags")} />
         </div>
+      </Section>
+
+      <Section title="Personalised text on the photo (optional)">
+        <p className="text-sm text-brand-dark/60">For products a customer can have a name or short line put on (an engraved plate, a printed box). Shoppers type their text and watch it appear on your photo before they buy; you then receive the exact words with the order.</p>
+        <label className="flex items-center gap-2 text-sm font-medium text-brand-dark">
+          <input type="checkbox" className="h-4 w-4 accent-brand-primary" {...register("engraving.enabled")} />
+          This product can be personalised with text
+        </label>
+        {eng?.enabled ? (
+          <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="eng-label">What should the field be called?</Label>
+                <Input id="eng-label" maxLength={40} placeholder="Name on the plate" {...register("engraving.label")} />
+                <FieldError message={errors.engraving?.label?.message} />
+              </div>
+              <div>
+                <Label htmlFor="eng-max">Longest text allowed (characters)</Label>
+                <Input id="eng-max" type="number" min={3} max={60} {...register("engraving.maxLength")} />
+                <FieldError message={errors.engraving?.maxLength?.message} />
+              </div>
+              <div>
+                <Label htmlFor="eng-style">Lettering style</Label>
+                <Select id="eng-style" {...register("engraving.style")}>
+                  {ENGRAVING_STYLES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
+                </Select>
+              </div>
+              <label className="flex items-center gap-2 self-end pb-2 text-sm text-brand-dark">
+                <input type="checkbox" className="h-4 w-4 accent-brand-primary" {...register("engraving.required")} />
+                Customers must enter text
+              </label>
+            </div>
+
+            {primaryImageUrl ? (
+              <div className="space-y-3">
+                <div className="max-w-md">
+                  <Label htmlFor="eng-sample">Try a name (to test how it fits)</Label>
+                  <Input id="eng-sample" value={sample} onChange={(e) => setSample(e.target.value)} maxLength={80} />
+                  {!sampleCheck.ok ? <p className="mt-1 text-xs text-brand-secondary-dark">{sampleCheck.error} (Customers will be stopped at this limit.)</p> : <p className="mt-1 text-xs text-brand-dark/50">Try the longest name you expect — it shrinks to fit the box.</p>}
+                </div>
+                <EngravingPlacementEditor imageUrl={primaryImageUrl} config={engConfig} sample={sample} onChange={applyPlacement} />
+                <FieldError message={errors.engraving?.x?.message} />
+              </div>
+            ) : (
+              <p className="rounded-xl bg-brand-accent/60 p-3 text-sm text-brand-dark">Add a main photo first (it can be added once the product is saved), then come back here to place the text on it.</p>
+            )}
+          </div>
+        ) : null}
       </Section>
 
       <Section title="Variants (optional)">

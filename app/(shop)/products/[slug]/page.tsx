@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronRight, Gift, RotateCcw, ShieldCheck, Star, Store, Truck } from "lucide-react";
 import { DiaryBand } from "@/components/home/DiaryBand";
 import { SectionHeading } from "@/components/home/SectionHeading";
+import { PersonalizationPreviewProvider } from "@/components/shop/PersonalizationPreview";
 import { ProductGallery } from "@/components/shop/ProductGallery";
 import { ProductBuyBox } from "@/components/shop/ProductBuyBox";
 import { ProductCard } from "@/components/shop/ProductCard";
@@ -21,6 +22,7 @@ import { getCommerceSettings } from "@/lib/commerce/settings";
 import { getReturnWindowDays } from "@/lib/commerce/returns";
 import { labelForTag } from "@/lib/catalog/tags";
 import { formatCurrency } from "@/lib/utils/format";
+import { parsePersonalizationOptions } from "@/lib/personalization/engraving";
 import { baseOpenGraph } from "@/lib/seo/site";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -53,6 +55,8 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     getReturnWindowDays(),
   ]);
 
+  // Live engraving: the boutique's own setup for this product (null for most products). Parsed defensively — the stored JSON is vendor-editable.
+  const engraving = parsePersonalizationOptions(product.personalization_options);
   const images = product.images.length > 0
     ? [...product.images].sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || a.sort_order - b.sort_order)
     : product.thumbnail_url
@@ -138,9 +142,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <span className="text-brand-dark" aria-current="page">{product.name}</span>
         </nav>
 
+        <PersonalizationPreviewProvider>
         <div className="mt-5 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:gap-14">
           <div className="lg:sticky lg:top-28 lg:self-start">
-            <ProductGallery images={images} productName={product.name} />
+            <ProductGallery images={images} productName={product.name} engraving={engraving} />
           </div>
 
           <div>
@@ -165,6 +170,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
             <div className="mt-6 border-t border-brand-dark/10 pt-6">
               <ProductBuyBox
+                engraving={engraving}
                 productId={product.id}
                 productSlug={product.slug}
                 productName={product.name}
@@ -192,6 +198,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             ) : null}
           </div>
         </div>
+        </PersonalizationPreviewProvider>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

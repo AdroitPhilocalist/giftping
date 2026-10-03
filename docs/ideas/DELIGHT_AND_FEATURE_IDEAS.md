@@ -63,8 +63,8 @@ The brief was "interactive, animated, real-life feel." Honest state:
 |---|---|---|---|---|---|
 | **A1** ✅ | **Basket 2.0 — the basket really holds your gifts** | Add a product and its *actual photo* drops into a basket that fills up as you add more (nicely overlapping, count badge, gentle jiggle on each add). The cart page basket mirrors the real cart. | M | ★★★★★ | **BUILT 2 Oct (Sprint 1)** — see `docs/progress/2026-10-02-sprint-1-the-basket.md`. All 57 demo products have a (seed) photo; real vendor products show a gift-box stand-in until they upload one. |
 | **A2** ✅ | **Mini-basket in the header** | Hover/tap the basket icon: a small basket drawer opens showing real items, total, a free-delivery ribbon, "Checkout". The add-to-cart gift now flies **into** the basket. | M | ★★★★ | **BUILT 2 Oct (Sprint 1).** Desktop mouse only; touch keeps the plain link + toast. |
-| **A3** | **Live personalisation preview on the product** | Type "Aarav" and see it engraved on the actual name plate (or printed on a mug) in real time, in the chosen font. | M–L | ★★★★★ | Not built. **Needs:** per-product "where does the text go" setup (a vendor/admin field) and 2–3 nice fonts. Great for personalised products only. |
-| **A4** | **Gift-wrap preview** | Picking a wrap colour re-dresses a little gift box on screen (ribbon colour, bow) along with the card text. | S–M | ★★★ | Wrap artwork exists; just not shown *on the gift*. |
+| **A3** ✅ | **Live personalisation preview on the product** | Type "Aarav" and see it engraved on the actual name plate (or printed on a mug) in real time, in the chosen font. | M–L | ★★★★★ | Not built. **Needs:** per-product "where does the text go" setup (a vendor/admin field) and 2–3 nice fonts. Great for personalised products only. **BUILT 3 Oct (Sprint 2).** Vendors set it up in the product form (drag the text box on their own photo); the demo Name Plate and Keepsake Box are configured. |
+| **A4** ✅ | **Gift-wrap preview** | Picking a wrap colour re-dresses a little gift box on screen (ribbon colour, bow) along with the card text. | S–M | ★★★ | Wrap artwork exists; just not shown *on the gift*. **BUILT 3 Oct (Sprint 2).** |
 | **A5** ✅ | **"Unwrap" order confirmation** | After paying, a gift box on screen opens, the robin pops out, details slide in. | S–M | ★★★★ | **BUILT 2 Oct (Sprint 1).** |
 | **A6** ✅ | **Free-delivery ribbon fills as you shop** | A ribbon around the basket fills toward the free-delivery amount. | S | ★★★ | **BUILT 2 Oct (Sprint 1)** — ribbon with a bow that ties at the unlock; also in the mini-basket. |
 | **A7** | **"Complete the gift" add-ons** | At the basket: tick-box add a greeting card, gift wrap, chocolates — each animates into the basket. | M | ★★★ | Also lifts average order value. **Needs:** a decision on which add-ons exist and who fulfils them. |
@@ -74,7 +74,7 @@ The brief was "interactive, animated, real-life feel." Honest state:
 
 | ID | Idea | What the customer sees | Effort | Wow | Status / Needs |
 |---|---|---|---|---|---|
-| **B1** | **Gift-finder quiz** | "Who's it for? What do they love? Budget?" — animated cards, robin reacts, then a curated shelf. Also feeds the marketing segments and the diary. | M | ★★★★ | Not built. Uses existing tags/relationships. |
+| **B1** ✅ | **Gift-finder quiz** | "Who's it for? What do they love? Budget?" — animated cards, robin reacts, then a curated shelf. Also feeds the marketing segments and the diary. | M | ★★★★ | Not built. Uses existing tags/relationships. **BUILT 3 Oct (Sprint 2)** at `/gift-finder`, reusing the diary's suggestion engine. |
 | **B2** | **Cinematic mall entrance** | Scrolling from the homepage "walks you in" through the atrium: layers move at different speeds, lights warm up, shop doors come into view. | L | ★★★★★ | Spec'd originally, never built. **Needs:** your direction on the sequence **and** artwork split into layers (foreground/mid/background) — one flat image can only fake it. |
 | **B3** | **Interactive mall map** | The map is live: hover/tap a shopfront and it glows, the robin walks the path to it, a card shows the boutique. | M | ★★★★ | `mall-map` image exists. **Needs:** hotspot positions (I can place them). |
 | **B4** | **"Entering the shop" transitions** | Going from the mall to a boutique feels like opening a door (smooth, shared-element transition) instead of a page flash. | M | ★★★★ | View Transitions; needs a fallback for older browsers. |
@@ -134,7 +134,7 @@ Real-service testing (Razorpay payment, Shiprocket booking, a real Resend email)
 | Bundle | Contains | Effort | Why this order |
 |---|---|---|---|
 | **Sprint 1 — "The Basket"** ✅ *done 2 Oct* | A1, A2, A6, A5 (A8 not done — still available) | ~1–1.5 weeks est. | The client's own idea and the most demo-able change. |
-| **Sprint 2 — "Make it personal"** | A3, A4, B1 | ~1.5–2 weeks | Personalisation preview + gift-finder are unusual and sell *gifts*, not just products. |
+| **Sprint 2 — "Make it personal"** ✅ *done 3 Oct* | A3, A4, B1 | ~1.5–2 weeks est. | Personalisation preview + gift-finder are unusual and sell *gifts*, not just products. |
 | **Sprint 3 — "The mall as a place"** | B3, B4, B6, B7, B8 | ~2 weeks | Makes it feel like walking through a mall without needing new layered art. |
 | **Sprint 4 — "Cinematic"** | B2 (+B5), optionally D1 | ~2–3 weeks | Only after you/the client choose the direction and layered artwork exists. |
 | **Diary polish** (anytime, small) | C1, C2, then C3 | S, S, L | Strengthens the signature feature; C3 is highly shareable. |

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, Gift, Tag, X } from "lucide-react";
 import { AddressBook } from "@/components/shop/AddressBook";
 import { BuyAssurances } from "@/components/shop/BuyAssurances";
+import { WrapPreview } from "@/components/shop/WrapPreview";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Input";
 import { toast } from "@/components/ui/Toast";
@@ -188,6 +189,8 @@ export function CheckoutForm({
                   })}
                 </div>
                 <p className="mt-3 text-xs text-brand-dark/60">{WRAP_STYLES.find((w) => w.id === wrapStyle)?.detail}. The wrapping fee is the same for every style.</p>
+                {/* The picked wrap with the card tucked in — the message below shows on it as it's typed, addressed to the chosen delivery address's first name. */}
+                <WrapPreview className="mt-4" wrapStyle={wrapStyle} message={giftMessage} recipient={(addresses.find((a) => a.id === selectedId)?.recipient_name ?? "").trim().split(/\s+/)[0] ?? ""} />
               </fieldset>
             ) : null}
             <div>

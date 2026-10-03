@@ -99,4 +99,12 @@ describe("email templates", () => {
     expect(e.html).not.toMatch(/<img src=x|<b>A<|javascript:/);
     expect(e.html).toContain("&lt;img src=x onerror=alert(1)&gt;");
   });
+  it("vendor new-order email puts the text to engrave on its own prominent line, escaped", () => {
+    const e = buildVendorNewOrderEmail({ vendorName: "Lumière", orderNumber: "GP-1", items: [{ name: "Keepsake Box", quantity: 1, engraving: "Meera & <b>Rohan</b>" }, { name: "Candle", quantity: 2 }], earningsLabel: null, dashboardUrl: "https://x.test/vendor/orders", preferencesUrl: prefs });
+    expect(e.html).toContain("Engrave: “Meera &amp; &lt;b&gt;Rohan&lt;/b&gt;”");
+    expect(e.html).not.toContain("<b>Rohan</b>");
+    expect(e.text).toContain("ENGRAVE: “Meera & <b>Rohan</b>”");
+    expect(e.html.match(/Engrave:/g)).toHaveLength(1); // only the line that has engraving
+    expect(e.text).toContain("- Candle × 2");
+  });
 });

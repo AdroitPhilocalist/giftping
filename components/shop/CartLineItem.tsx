@@ -34,7 +34,7 @@ export function CartLineItem({ line }: { line: CartLine }) {
     });
   }
 
-  const { recipientName, giftMessage, occasion } = line.personalization;
+  const { engraving, recipientName, giftMessage, occasion } = line.personalization;
 
   return (
     <li className={cn("flex gap-4 py-5", isPending && "opacity-60")}>
@@ -55,8 +55,9 @@ export function CartLineItem({ line }: { line: CartLine }) {
             {line.variantLabels.length > 0 ? (
               <p className="mt-0.5 text-xs text-brand-dark/60">{line.variantLabels.join(" · ")}</p>
             ) : null}
-            {recipientName || giftMessage || occasion ? (
+            {engraving || recipientName || giftMessage || occasion ? (
               <div className="mt-1 space-y-0.5 text-xs text-brand-dark/60">
+                {engraving ? <p className="font-medium text-brand-secondary-dark">Engraving: “{engraving}”</p> : null}
                 {recipientName ? <p>For: {recipientName}</p> : null}
                 {occasion ? <p>Occasion: {occasion}</p> : null}
                 {giftMessage ? <p className="italic">“{giftMessage}”</p> : null}

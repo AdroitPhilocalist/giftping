@@ -1,3 +1,4 @@
+import { personalizationSummary } from "@/lib/commerce/personalization";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -174,11 +175,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                       <div className="min-w-0 flex-1">
                         <p className="font-medium text-brand-dark">{item.product_name}</p>
                         {item.variant_label ? <p className="text-xs text-brand-dark/60">{item.variant_label}</p> : null}
-                        {p.recipientName || p.occasion || p.giftMessage ? (
-                          <p className="text-xs text-brand-dark/60">
-                            {[p.recipientName && `For ${p.recipientName}`, p.occasion, p.giftMessage && `“${p.giftMessage}”`].filter(Boolean).join(" · ")}
-                          </p>
-                        ) : null}
+                        {personalizationSummary(p) ? <p className="text-xs text-brand-dark/60">{personalizationSummary(p)}</p> : null}
                         <p className="text-xs text-brand-dark/50">
                           Qty {item.quantity} × {formatCurrency(Number(item.unit_price))}
                         </p>

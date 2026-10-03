@@ -1,3 +1,4 @@
+import { normaliseEngraving, parsePersonalizationOptions } from "@/lib/personalization/engraving";
 import "server-only";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -176,7 +177,7 @@ function asPersonalization(value: unknown): Personalization {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const source = value as Record<string, unknown>;
   const out: Record<string, string> = {};
-  for (const key of ["recipientName", "giftMessage", "occasion"]) {
+  for (const key of ["engraving", "recipientName", "giftMessage", "occasion"]) {
     if (typeof source[key] === "string" && source[key]) out[key] = source[key] as string;
   }
   return out;
@@ -326,7 +327,7 @@ export async function addItemToCart(input: AddItemInput): Promise<CartMutationRe
   const { data: product } = await catalogue
     .from("products")
     .select(
-      `id, base_price, sale_price, stock_quantity, status,
+      `id, base_price, sale_price, stock_quantity, status, personalization_options,
        vendor:vendors ( status ),
        variants:product_variants ( id, name, price_adjustment, stock_quantity, is_active )`,
     )
@@ -335,6 +336,19 @@ export async function addItemToCart(input: AddItemInput): Promise<CartMutationRe
 
   if (!product || product.status !== "active" || product.vendor?.status !== "approved") {
     return { error: "This product isn't available right now." };
+  }
+
+  // Live engraving: the product's OWN setup decides whether text is allowed, required, and how long it may be. A product with no setup never keeps engraving
+  // text a client sent anyway, and the text is re-checked here whatever the browser already said.
+  const engravingConfig = parsePersonalizationOptions(product.personalization_options);
+  const personalization = { ...input.personalization };
+  if (engravingConfig) {
+    const checked = normaliseEngraving(personalization.engraving, engravingConfig);
+    if (!checked.ok) return { error: checked.error };
+    if (checked.text) personalization.engraving = checked.text;
+    else delete personalization.engraving;
+  } else {
+    delete personalization.engraving;
   }
 
   const activeVariants = product.variants.filter((v) => v.is_active);
@@ -364,7 +378,7 @@ export async function addItemToCart(input: AddItemInput): Promise<CartMutationRe
     .eq("product_id", input.productId);
   if (lookupError) return { error: "Couldn't update your cart. Please try again." };
 
-  const personalizationKey = JSON.stringify(input.personalization, Object.keys(input.personalization).sort());
+  const personalizationKey = JSON.stringify(personalization, Object.keys(personalization).sort());
   const existing = (sameProduct ?? []).find(
     (row) =>
       row.variant_ids.join(",") === input.variantIds.join(",") &&
@@ -410,7 +424,7 @@ export async function addItemToCart(input: AddItemInput): Promise<CartMutationRe
       // vendor_id is overwritten by the cart_items_enforce_catalog trigger from the product itself.
       vendor_id: "00000000-0000-0000-0000-000000000000",
       quantity: next,
-      personalization: input.personalization,
+      personalization,
       unit_price_snapshot: unitPrice,
     });
     if (error) return { error: "Couldn't add that to your cart. Please try again." };

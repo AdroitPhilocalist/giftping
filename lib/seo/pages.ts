@@ -50,6 +50,13 @@ export const SEO_PAGES = [
     description: "Meet the independent boutiques on GiftPing — handpicked sellers of thoughtful, giftable things from across India.",
   },
   {
+    key: "gift-finder",
+    label: "Gift finder",
+    path: "/gift-finder",
+    title: "Gift Finder — Find the Perfect Gift in 4 Questions | GiftPing",
+    description: "Tell us who it's for, the occasion, your budget and what they love — GiftPing's gift finder suggests thoughtful gifts from boutiques across India.",
+  },
+  {
     key: "about",
     label: "About us",
     path: "/about",

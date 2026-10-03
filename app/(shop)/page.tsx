@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { DiaryBand } from "@/components/home/DiaryBand";
+import { GiftFinderBand } from "@/components/home/GiftFinderBand";
 import { DiscoverCards } from "@/components/home/DiscoverCards";
 import { HomeHero } from "@/components/home/HomeHero";
 import { RelationshipCards } from "@/components/home/RelationshipCards";
@@ -43,6 +44,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ a
       <HeroBanners banners={banners} />
       <DiscoverCards />
       <RelationshipCards />
+      <GiftFinderBand />
 
       {trending.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">

@@ -14,6 +14,8 @@ const optionalText = (max: number) =>
 
 export const personalizationSchema = z
   .object({
+    // The line of text to engrave/print on a product that offers it. Checked against THAT product's own rules (length, required, characters) in addItemToCart.
+    engraving: optionalText(60),
     recipientName: optionalText(60),
     giftMessage: optionalText(150),
     occasion: z.enum(PERSONALIZATION_OCCASIONS).optional(),
@@ -22,6 +24,7 @@ export const personalizationSchema = z
     // Only keep what was actually filled in, so "no personalisation" is always `{}` and identical
     // lines compare equal (the merge-by-line logic in cart.ts and merge_guest_cart() relies on that).
     const out: Record<string, string> = {};
+    if (p.engraving) out.engraving = p.engraving;
     if (p.recipientName) out.recipientName = p.recipientName;
     if (p.giftMessage) out.giftMessage = p.giftMessage;
     if (p.occasion) out.occasion = p.occasion;

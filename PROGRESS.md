@@ -175,6 +175,19 @@ auto-close; a pointer merely sitting under the panel kept it open forever — no
 (exercised via the same window event PayNowButton fires); the reduced-motion path (coded, not exercised); the production latency of `/api/cart/mini` (dev numbers are inflated by DB distance but unproven).
 **Decision for you/client:** all copy still says "Cart" — say if you want "Basket" site-wide. See `docs/progress/2026-10-02-sprint-1-the-basket.md`.
 
+## Sprint 2 — "Make it personal" built (3 Oct)
+
+Second sprint from `docs/ideas/DELIGHT_AND_FEATURE_IDEAS.md` (A3, A4, B1 — all done). **A3** a boutique can now let shoppers put text on a product: the vendor form has a "Personalised text on the photo"
+section with a drag-to-place editor on their own photo; shoppers type and **see their words on the product photo live**; the text flows through cart → checkout → order → the **vendor's order page and
+new-order email** (a highlighted "Engrave:" line). **A4** the checkout gift-wrap picker now shows the chosen wrap large with the handwritten card tucked in, carrying the real message to the real recipient.
+**B1** `/gift-finder`: four questions → a shelf of real products with reasons, ranked by the diary's existing suggestion engine (+ hard budget limit, readable reasons, popular-picks fallback); homepage band and
+footer link. Details and decisions: `docs/progress/2026-10-03-sprint-2-make-it-personal.md`. **Verified live** (real DB, real vendor/customer sessions): live preview, required/length rules, **server-side
+enforcement proven** (limit tightened in the DB after page load — the server still rejected), the vendor editor (drag / resize / keyboard / sliders / save / reload), the vendor order view and email template,
+the wrap preview, the whole quiz and results, hostile URLs, the no-JS markup. 478/478 tests (+53), tsc/eslint/build clean. **Found and fixed by testing:** an engraving would have drifted on larger screens
+because the gallery frame changes shape (now square for engravable products); the quiz's fallback re-added products meant for someone else; the quiz stayed open over its own results; the resize handle shoved the
+box instead of stopping at the edge. **Not verified:** touch dragging on a real phone; vendor usability beyond me; non-Latin glyphs in the preview fonts (the text itself is kept exactly); ranking on a real-sized
+catalogue. **Dev data:** Personalised Name Plate and Engraved Wooden Keepsake Box now have engraving set up (demo).
+
 ## Stage 11 in progress
 
 Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). **Vendor logo + banner upload done** (with admin take-down). **Bulk CSV product upload done** (preview → all-or-nothing import as hidden drafts). **"Download my data" done. Dashboard alert for paid orders stuck with a suspended vendor done — Stage 11 (admin suite) is COMPLETE.** Next: Stage 12 (visual & motion polish), then Stage 13 (go-live). **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 

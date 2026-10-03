@@ -1,3 +1,4 @@
+import { parsePersonalizationOptions } from "@/lib/personalization/engraving";
 import { notFound } from "next/navigation";
 import { ImageManager } from "@/components/vendor/ImageManager";
 import { ProductForm } from "@/components/vendor/ProductForm";
@@ -10,6 +11,8 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const [product, categories] = await Promise.all([getVendorProduct(vendor.id, id), getActiveCategoryOptions()]);
   if (!product) notFound();
 
+  const engravingSetup = parsePersonalizationOptions(product.personalization_options);
+  const engravingDefaults = engravingSetup ? { enabled: true, ...engravingSetup } : undefined;
   const images = [...product.images].sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.sort_order - b.sort_order);
 
   return (
@@ -29,6 +32,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <ProductForm
         productId={product.id}
         categories={categories}
+        primaryImageUrl={images[0]?.medium_url ?? images[0]?.url ?? null}
         defaultValues={{
           name: product.name,
           categoryId: product.category_id ?? "",
@@ -44,6 +48,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           tags: product.tags.join(", "),
           occasionTags: product.occasion_tags as never,
           recipientTags: product.recipient_tags as never,
+          engraving: engravingDefaults,
           variants: product.variants
             .filter((v) => v.is_active)
             .map((v) => ({ id: v.id, name: v.name, value: v.value, priceAdjustment: v.price_adjustment, stockQuantity: v.stock_quantity })),

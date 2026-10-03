@@ -129,3 +129,51 @@
 .gift-card-empty { color: color-mix(in srgb, var(--gp-ink) 40%, transparent); }
 .gift-card-sign { margin-top: 0.3rem; text-align: right; font-size: 1.25rem; line-height: 1.5rem; color: var(--gp-copper-dark); }
 }
+
+/* ── Live engraving preview (EngravingOverlay.tsx) ───────────────────────────────────────────────────────────────────────────────────────────────
+   The shopper's text drawn ON the product photo. Sizes are container-query units (1cqw = 1% of the photo's width — the photo wrapper sets
+   container-type: inline-size), so the text scales with the photo at every screen size. Colours are theme tokens; the shadows are plain neutral black/white. */
+.gp-engrave { position: absolute; display: flex; align-items: center; justify-content: center; text-align: center; white-space: nowrap; line-height: 1; pointer-events: none; transform-origin: center; }
+.gp-engrave-text { display: block; max-width: 100%; }
+.gp-engrave-font-serif .gp-engrave-text { font-family: var(--font-newsreader), Georgia, serif; font-weight: 600; }
+.gp-engrave-font-sans .gp-engrave-text { font-family: var(--font-dm-sans), system-ui, sans-serif; font-weight: 600; }
+.gp-engrave-font-script .gp-engrave-text { font-family: var(--font-caveat), "Comic Sans MS", cursive; font-weight: 700; }
+
+/* gold foil: a warm metallic gradient clipped to the letters, with a tiny dark edge under it so it reads as pressed into the surface */
+.gp-engrave-fx-gold .gp-engrave-text {
+  background: linear-gradient(115deg, color-mix(in srgb, var(--gp-copper-dark) 62%, black) 0%, var(--gp-peach) 38%, var(--gp-copper) 56%, color-mix(in srgb, var(--gp-copper-dark) 62%, black) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  /* a thin dark edge all round (four tiny shadows) keeps the foil legible on mid-tone photos, plus a soft shadow that makes it look pressed in */
+  filter: drop-shadow(0.025em 0 0 rgb(45 24 4 / 0.7)) drop-shadow(-0.025em 0 0 rgb(45 24 4 / 0.7)) drop-shadow(0 0.025em 0 rgb(45 24 4 / 0.7)) drop-shadow(0 -0.025em 0 rgb(45 24 4 / 0.7)) drop-shadow(0 0.06em 0.05em rgb(0 0 0 / 0.35));
+}
+/* deep engraving: dark, slightly sunk into a light material (blends with the surface instead of sitting on it) */
+.gp-engrave-fx-deep .gp-engrave-text { color: color-mix(in srgb, var(--gp-ink) 84%, transparent); mix-blend-mode: multiply; text-shadow: 0 0.04em 0 rgb(255 255 255 / 0.4), 0 -0.025em 0 rgb(0 0 0 / 0.32); }
+/* cream print: light lettering for dark products */
+.gp-engrave-fx-cream .gp-engrave-text { color: var(--gp-surface); text-shadow: 0 0.04em 0.07em rgb(0 0 0 / 0.4); }
+/* handwritten: ink */
+.gp-engrave-fx-script .gp-engrave-text { color: var(--gp-ink); mix-blend-mode: multiply; opacity: 0.88; }
+
+/* before anything is typed: a dashed box and a gentle sample, so the shopper sees WHERE their text will go */
+.gp-engrave-empty { outline: 1.5px dashed rgb(255 255 255 / 0.85); outline-offset: 0.3cqw; border-radius: 0.6cqw; background: rgb(0 0 0 / 0.1); }
+.gp-engrave-empty .gp-engrave-text { opacity: 0.7; font-style: italic; }
+@keyframes gp-engrave-settle { from { opacity: 0.4; transform: scale(1.04); } to { opacity: 1; transform: scale(1); } }
+.gp-engrave-live .gp-engrave-text { animation: gp-engrave-settle 0.22s var(--gp-ease); }
+
+/* ── Gift-wrap preview at checkout (WrapPreview.tsx) ─────────────────────────────────────────────────────────────────────────────────────────────
+   All five wrap pictures stay mounted and cross-fade; the one that becomes active gives a little "re-tie" pop, and the card tucked into it swings. */
+@keyframes gp-wrap-pop {
+  0% { transform: scale(0.9) rotate(-3deg); }
+  55% { transform: scale(1.04) rotate(1.5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.gp-wrap-pop { animation: gp-wrap-pop 0.55s var(--gp-ease) both; }
+@keyframes gp-wrap-card { from { transform: translateY(14px) rotate(14deg); opacity: 0; } to { transform: translateY(0) rotate(6deg); opacity: 1; } }
+.gp-wrap-card { animation: gp-wrap-card 0.5s var(--gp-ease) 0.12s both; transform-origin: bottom right; }
+
+/* ── Gift-finder quiz (GiftFinderQuiz.tsx) ───────────────────────────────────────────────────────────────────────────────────────────────────── */
+@keyframes gp-quiz-in { from { opacity: 0; transform: translateX(22px); } to { opacity: 1; transform: translateX(0); } }
+.gp-quiz-in { animation: gp-quiz-in 0.38s var(--gp-ease) both; }
+@keyframes gp-quiz-pick { 0% { transform: scale(1); } 40% { transform: scale(1.04); } 100% { transform: scale(1); } }
+.gp-quiz-pick { animation: gp-quiz-pick 0.3s var(--gp-ease); }
+@keyframes gp-quiz-bubble { from { opacity: 0; transform: translateY(6px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.gp-quiz-bubble { animation: gp-quiz-bubble 0.35s var(--gp-ease) 0.1s both; }

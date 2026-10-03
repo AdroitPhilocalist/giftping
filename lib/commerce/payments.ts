@@ -35,6 +35,12 @@ export type StartPaymentResult =
   | { ok: true; keyId: string; razorpayOrderId: string; amountPaise: number; orderNumber: string }
   | { ok: false; error: string };
 
+/** The engraving text on an order line's personalisation, if any (the boutique must carry it out exactly, so it goes in their new-order email). */
+function engravingOf(p: unknown): string | null {
+  const v = p && typeof p === "object" && !Array.isArray(p) ? (p as Record<string, unknown>).engraving : null;
+  return typeof v === "string" && v.trim() ? v : null;
+}
+
 export async function startPayment(userId: string, orderId: string): Promise<StartPaymentResult> {
   if (!isRazorpayConfigured()) {
     return { ok: false, error: "Online payments aren't switched on yet. Please check back soon." };
@@ -215,7 +221,7 @@ async function notifyOrderConfirmed(orderId: string) {
     .select(
       `id, order_number, customer_id, total_amount, delivery_address,
        customer:users ( full_name ),
-       items:order_items ( product_name, quantity, total_price, discount_amount, variant_label, vendor_id,
+       items:order_items ( product_name, quantity, total_price, discount_amount, variant_label, personalization, vendor_id,
          vendor:vendors ( business_name, user_id ), financials:order_item_financials ( vendor_payout ) )`,
     )
     .eq("id", orderId)
@@ -270,7 +276,7 @@ async function notifyOrderConfirmed(orderId: string) {
       email: buildVendorNewOrderEmail({
         vendorName: vendor.business_name,
         orderNumber: order.order_number,
-        items: items.map((i) => ({ name: i.product_name, quantity: i.quantity })),
+        items: items.map((i) => ({ name: i.product_name, quantity: i.quantity, engraving: engravingOf(i.personalization) })),
         earningsLabel: earnings > 0 ? formatCurrency(earnings) : null,
         dashboardUrl: `${base}/vendor/orders`,
         preferencesUrl: prefsUrl,

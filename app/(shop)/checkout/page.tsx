@@ -1,3 +1,4 @@
+import { personalizationSummary } from "@/lib/commerce/personalization";
 import { randomUUID } from "node:crypto";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -51,7 +52,7 @@ export default async function CheckoutPage() {
           <ul className="divide-y divide-brand-dark/10">
             {group.lines.map((line) => {
               const q = quoteByKey.get(line.key)!;
-              const { recipientName, giftMessage, occasion } = line.personalization;
+              const personalisation = personalizationSummary(line.personalization);
               return (
                 <li key={line.key} className="flex gap-3 py-3 text-sm">
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-button border border-brand-dark/10">
@@ -60,11 +61,7 @@ export default async function CheckoutPage() {
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-brand-dark">{line.name}</p>
                     {line.variantLabels.length > 0 ? <p className="text-xs text-brand-dark/60">{line.variantLabels.join(" · ")}</p> : null}
-                    {recipientName || occasion || giftMessage ? (
-                      <p className="text-xs text-brand-dark/60">
-                        {[recipientName && `For ${recipientName}`, occasion, giftMessage && `“${giftMessage}”`].filter(Boolean).join(" · ")}
-                      </p>
-                    ) : null}
+                    {personalisation ? <p className="text-xs text-brand-dark/60">{personalisation}</p> : null}
                     <p className="text-xs text-brand-dark/50">Qty {line.quantity}</p>
                     {line.issue ? <p className="mt-1 text-xs font-medium text-red-700">{line.issue}</p> : null}
                   </div>

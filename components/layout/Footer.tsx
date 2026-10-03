@@ -9,6 +9,7 @@ const columns = [
   {
     title: "Explore",
     links: [
+      { label: "Gift Finder", href: "/gift-finder" },
       { label: "Occasions", href: "/categories" },
       { label: "Boutiques", href: "/vendors" },
       { label: "Personal Gifting Diary", href: "/diary" },

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { OCCASION_TAGS, RECIPIENT_TAGS } from "@/lib/catalog/tags";
+import { DEFAULT_ENGRAVING, ENGRAVING_LIMITS, ENGRAVING_STYLE_IDS } from "@/lib/personalization/engraving";
 
 const optionalInt = z.preprocess(
   (v) => (v === "" || v === null || v === undefined || Number.isNaN(v) ? undefined : v),
@@ -13,6 +14,24 @@ export const variantSchema = z.object({
   value: z.string().trim().min(1, "Variant value is required").max(60),
   priceAdjustment: z.coerce.number().min(-100000).max(100000).default(0),
   stockQuantity: z.coerce.number().int().min(0).max(100000).default(0),
+});
+
+/**
+ * The "personalised text on the photo" setup. Lenient while `enabled` is false (the form keeps the other fields around so toggling it back on restores
+ * them); the real rules apply only when it's on — see the superRefine below. The result is stored in products.personalization_options via
+ * toPersonalizationOptions(), which clamps everything again.
+ */
+export const engravingSetupSchema = z.object({
+  enabled: z.boolean().default(false),
+  label: z.string().trim().max(ENGRAVING_LIMITS.labelMax, `Keep the field name under ${ENGRAVING_LIMITS.labelMax} characters`).default(DEFAULT_ENGRAVING.label),
+  maxLength: z.coerce.number().int().min(ENGRAVING_LIMITS.minLength, `At least ${ENGRAVING_LIMITS.minLength} characters`).max(ENGRAVING_LIMITS.maxLength, `At most ${ENGRAVING_LIMITS.maxLength} characters`).default(DEFAULT_ENGRAVING.maxLength),
+  required: z.boolean().default(true),
+  style: z.enum(ENGRAVING_STYLE_IDS).default(DEFAULT_ENGRAVING.style),
+  x: z.coerce.number().min(0).max(100).default(DEFAULT_ENGRAVING.x),
+  y: z.coerce.number().min(0).max(100).default(DEFAULT_ENGRAVING.y),
+  w: z.coerce.number().min(ENGRAVING_LIMITS.minW).max(100).default(DEFAULT_ENGRAVING.w),
+  h: z.coerce.number().min(ENGRAVING_LIMITS.minH).max(100).default(DEFAULT_ENGRAVING.h),
+  rotate: z.coerce.number().min(-ENGRAVING_LIMITS.maxRotate).max(ENGRAVING_LIMITS.maxRotate).default(0),
 });
 
 export const productSchema = z
@@ -35,10 +54,17 @@ export const productSchema = z
     occasionTags: z.array(z.enum(OCCASION_TAGS)).default([]),
     recipientTags: z.array(z.enum(RECIPIENT_TAGS)).default([]),
     variants: z.array(variantSchema).max(20).default([]),
+    engraving: engravingSetupSchema.optional(),
   })
   .refine((v) => v.salePrice === undefined || v.salePrice < v.basePrice, {
     message: "Sale price must be lower than the regular price",
     path: ["salePrice"],
+  })
+  .superRefine((v, ctx) => {
+    const e = v.engraving;
+    if (!e?.enabled) return;
+    if (e.label.trim() === "") ctx.addIssue({ code: "custom", path: ["engraving", "label"], message: "Name the text field (for example “Name on the plate”)" });
+    if (e.x + e.w > 100.5 || e.y + e.h > 100.5) ctx.addIssue({ code: "custom", path: ["engraving", "x"], message: "The text box has to stay inside the photo — drag it back in" });
   });
 
 export type ProductFormInput = z.input<typeof productSchema>;

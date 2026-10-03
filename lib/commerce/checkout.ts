@@ -48,7 +48,7 @@ function asPersonalization(value: unknown): Personalization {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   const source = value as Record<string, unknown>;
   const out: Record<string, string> = {};
-  for (const key of ["recipientName", "giftMessage", "occasion"]) {
+  for (const key of ["engraving", "recipientName", "giftMessage", "occasion"]) {
     if (typeof source[key] === "string" && source[key]) out[key] = source[key] as string;
   }
   return out;
