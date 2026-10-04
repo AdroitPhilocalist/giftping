@@ -24,6 +24,7 @@ import { labelForTag } from "@/lib/catalog/tags";
 import { formatCurrency } from "@/lib/utils/format";
 import { parsePersonalizationOptions } from "@/lib/personalization/engraving";
 import { baseOpenGraph } from "@/lib/seo/site";
+import { breadcrumbJsonLd, jsonLdScript, productJsonLd } from "@/lib/seo/structured-data";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
@@ -62,6 +63,14 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     : product.thumbnail_url
       ? [{ url: product.thumbnail_url, alt_text: product.name }]
       : [];
+
+  const breadcrumbItems = [
+    { name: "Home", path: "/" },
+    ...(product.category ? [{ name: product.category.name, path: `/categories/${product.category.slug}` }] : []),
+    { name: product.name, path: `/products/${product.slug}` },
+  ];
+  const productSchema = productJsonLd(product);
+  const breadcrumbSchema = breadcrumbJsonLd(breadcrumbItems);
 
   const tags = [...product.occasion_tags, ...product.recipient_tags];
   const benefits = [
@@ -129,6 +138,9 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div>
+      {/* Google rich results (E12): price/rating/stock on the product, and the breadcrumb trail this page already shows — see lib/seo/structured-data.ts. */}
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdScript(productSchema) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbSchema) }} />
       <div className="mx-auto max-w-7xl px-4 pb-4 pt-6 sm:px-6 lg:px-8 lg:pt-8">
         <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-1 text-xs text-brand-dark/55">
           <Link href="/" className="hover:text-brand-dark hover:underline">Home</Link>

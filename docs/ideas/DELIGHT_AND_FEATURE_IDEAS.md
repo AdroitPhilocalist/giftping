@@ -117,7 +117,7 @@ The brief was "interactive, animated, real-life feel." Honest state:
 | **E9** | **Corporate bulk gifting** | Upload a recipient list, one order, many addresses. | L | Real B2B demand in India. |
 | **E10** | **Gift subscriptions** | Monthly hamper. | L | Recurring payments (Razorpay subscriptions). |
 | **E11** | **Hindi / regional languages** | Switchable site language. | M–L | Translations need review; SEO implications. |
-| **E12** | **Structured data for Google** | Price/stars/stock shown in search results (rich results). | S | **No cost.** Quick SEO win; pairs with the new SEO tools. |
+| **E12 ✅** | **Structured data for Google** | Price/stars/stock shown in search results (rich results). | S | **No cost.** Quick SEO win; pairs with the new SEO tools. |
 | **E13** | **Reviews with photos** | Customers attach pictures. | M | Image-moderation + storage. |
 | **E14** | **Boutique analytics** | Views → carts → sales per product for vendors. | M | `products.view_count` exists unused; need to start counting. |
 | **E15** | **Installable app (PWA)** | "Add to home screen", offline diary reading. | M | No app-store cost. |
