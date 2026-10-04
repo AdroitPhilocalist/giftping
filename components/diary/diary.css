@@ -268,6 +268,45 @@ a.dy-note:hover, .dy-note--hover:hover { transform: rotate(0deg) translateY(-4px
 .dy-marker { isolation: isolate; }
 .dy-marker--blush { --mark: var(--dy-blush); }
 
+/* ------------------------------------------------------------------ countdown ribbon (components/diary/DateRibbon.tsx) — classes prefixed dy-count-, NOT dy-ribbon (that name already means the bookmark hanging off the page) */
+/* A gift ribbon that fills (and so visually "pulls tighter") the closer a date gets — the same recipe as the shop's free-delivery ribbon
+   (components/shop/DeliveryRibbon.tsx), themed in diary paper/copper instead of the storefront's brand tokens. */
+.dy-count-ribbon { position: relative; display: inline-flex; flex-direction: column; gap: 0.3rem; }
+.dy-count-track {
+  position: relative;
+  height: 0.6rem;
+  border-radius: 999px;
+  border: 1.5px dashed color-mix(in srgb, var(--gp-copper) 45%, transparent);
+  background: color-mix(in srgb, var(--dy-paper-lo) 55%, transparent);
+}
+.dy-count-fill { display: block; height: 100%; border-radius: 999px; background: var(--gp-copper); transition: width 0.6s var(--gp-ease); }
+.dy-count-bow { position: absolute; top: 50%; transform: translate(-50%, -50%); transition: left 0.6s var(--gp-ease); }
+.dy-count-label { font-size: 1.15rem; color: var(--dy-ink); }
+.dy-count-ribbon--lg .dy-count-track { width: 7rem; }
+.dy-count-ribbon--lg .dy-count-label { font-size: 1.5rem; }
+.dy-count-ribbon--sm { flex-direction: row; align-items: center; gap: 0.45rem; }
+.dy-count-ribbon--sm .dy-count-track { width: 3.4rem; }
+.dy-count-ribbon--sm .dy-count-bow svg { width: 1.1rem; height: 0.8rem; }
+.dy-count-ribbon--sm .dy-count-label { font-size: 1.15rem; }
+.dy-count-ribbon--today .dy-count-label { color: var(--gp-primary); }
+
+/* a small burst of paper confetti, once, the moment a date's countdown reads "Today" — each piece is just a colour, a delay, a flight path (--dx/--dy)
+   and a final spin (--spin); the keyframe itself is shared and reads those as custom properties, so adding a 7th piece is one more line, not more CSS. */
+.dy-confetti { position: absolute; inset: -0.6rem -1.1rem; pointer-events: none; overflow: visible; }
+.dy-confetti > i { position: absolute; top: 50%; left: 50%; width: 0.4rem; height: 0.65rem; border-radius: 0.1rem; opacity: 0; animation: dy-confetti-burst 1.1s var(--gp-ease) both; animation-delay: var(--delay, 0ms); }
+.dy-confetti > i:nth-child(1) { background: var(--dy-blush); --dx: -2.2rem; --dy: -1.4rem; --spin: 210deg; --delay: 0ms; }
+.dy-confetti > i:nth-child(2) { background: var(--dy-sage); --dx: -0.8rem; --dy: -2rem; --spin: -230deg; --delay: 40ms; }
+.dy-confetti > i:nth-child(3) { background: var(--dy-gold); --dx: 0.9rem; --dy: -2.1rem; --spin: 195deg; --delay: 80ms; }
+.dy-confetti > i:nth-child(4) { background: var(--dy-mustard); --dx: 2.3rem; --dy: -1.3rem; --spin: -205deg; --delay: 60ms; }
+.dy-confetti > i:nth-child(5) { background: var(--dy-sky); --dx: 1.6rem; --dy: 0.6rem; --spin: 240deg; --delay: 110ms; }
+.dy-confetti > i:nth-child(6) { background: var(--dy-rose); --dx: -1.7rem; --dy: 0.7rem; --spin: -215deg; --delay: 20ms; }
+@keyframes dy-confetti-burst {
+  0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(0.4); }
+  18% { opacity: 1; }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy) + 0.9rem)) rotate(var(--spin)) scale(0.9); }
+}
+
+
 /* ------------------------------------------------------------------ polaroids */
 .dy-polaroid {
   position: relative;
@@ -287,6 +326,21 @@ a.dy-polaroid:hover, button.dy-polaroid:hover, .dy-polaroid--hover:hover {
 .dy-polaroid-photo { position: relative; aspect-ratio: var(--photo-ratio, 1 / 1); overflow: hidden; background: var(--dy-paper-lo); box-shadow: inset 0 0 0 1px rgb(60 30 10 / 0.12), inset 0 0 14px rgb(60 30 10 / 0.1); }
 .dy-polaroid-photo > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .dy-polaroid figcaption, .dy-polaroid .dy-polaroid-cap { padding: 0.3rem 0.15rem 0.1rem; text-align: center; font-family: var(--dy-hand); font-size: 1.3rem; line-height: 1.05; color: var(--dy-ink); }
+
+/* the "just added" moment (components/diary/person/NewPersonReveal.tsx): the polaroid drops into place, then its tape peels down and presses on, as if
+   someone just set it down and taped it in by hand. Both keyframes end at exactly the element's own resting transform (the same values .dy-polaroid /
+   .dy-tape already rest at), so there is no jump once the animation finishes. */
+.dy-person-reveal .dy-polaroid { animation: dy-person-drop 0.55s var(--gp-ease) both; }
+@keyframes dy-person-drop {
+  0% { opacity: 0; transform: rotate(var(--tilt, 0deg)) translateY(-34px) scale(0.9); }
+  70% { transform: rotate(var(--tilt, 0deg)) translateY(3px) scale(1.01); }
+  100% { opacity: 1; transform: rotate(var(--tilt, 0deg)) translateY(0) scale(1); }
+}
+.dy-person-reveal .dy-tape { transform-origin: 50% 0%; animation: dy-tape-peel 0.45s var(--gp-ease) 0.4s both; }
+@keyframes dy-tape-peel {
+  0% { opacity: 0; transform: rotate(calc(var(--tape-rot, -4deg) - 70deg)) translateY(-14px); }
+  100% { opacity: 1; transform: rotate(var(--tape-rot, -4deg)) translateY(0); }
+}
 
 /* a person with no photo yet: a soft tinted panel with their initial, like a monogrammed card */
 .dy-monogram {

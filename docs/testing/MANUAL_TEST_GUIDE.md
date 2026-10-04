@@ -447,6 +447,17 @@ Sign in as `test-admin@giftping.test`.
 4. **Festival mode:** `/admin/themes` → preview "Diwali". Home shows a maroon look, a "36 days to Diwali — order by 4 Nov" ribbon, rising lamps; the cart shows a one-line note; checkout, sign-in and the portals show no lamps. Stop the preview. **Confirm the Diwali date and the 4-day cut-off with the client before scheduling it for real.**
 5. **Shop-window cards:** on `/vendors` and `/categories` (desktop mouse), cards lean toward the cursor and a warm light follows it. On a phone nothing tilts.
 
+## 14. Diary polish — countdown ribbons, wax seal, tape-peel
+
+1. **Countdown ribbon:** open `/diary` and look at the "Next moments" tickets, then open a person with an upcoming date — the ribbon under each date should
+   look more filled the sooner it is, with a small bow riding its tip.
+2. **Today + confetti:** add (or edit) a date to today's date — the ribbon should be fully filled and a small burst of paper confetti should play once
+   around it, on the ticket, the date card and the plan header.
+3. **Wax seal:** on a person's page, start a plan and step it all the way to "Given" — a wax seal should stamp down next to "Given with love" right then.
+   Refresh the page: the seal should be gone (just the checkmark text remains) — that is correct, not a bug.
+4. **Tape-peel:** add a new person — their photo should visibly drop in and its tape should peel down into place, not just appear. Refresh: it should sit
+   there normally, not replay.
+
 ## Reporting a bug
 
 For anything that doesn't match "Expected," note:

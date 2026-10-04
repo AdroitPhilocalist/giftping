@@ -17,6 +17,8 @@ import { PrivateNotes } from "./PrivateNotes";
 
 export interface PersonSpreadProps {
   contact: DiaryContactRow;
+  /** true for the one page load right after adding them — see NewPersonReveal */
+  justAdded?: boolean;
   photoUrl: string | null;
   events: DiaryEventRow[];
   moments: Moment[];
@@ -33,7 +35,7 @@ export interface PersonSpreadProps {
 }
 
 /** One person's page: the plan strip across the top, then the book — who they are, their dates and gifts on the left; what they love, ideas and notes on the right. */
-export function PersonSpread({ contact, photoUrl, events, moments, timeline, plan, ideas, ideasWho, pick, defaultEventType, giftsHref, themeId }: PersonSpreadProps) {
+export function PersonSpread({ contact, justAdded, photoUrl, events, moments, timeline, plan, ideas, ideasWho, pick, defaultEventType, giftsHref, themeId }: PersonSpreadProps) {
   const first = contact.name.trim().split(/\s+/)[0] || contact.name;
   const reading = hasRobinArt("reading");
   return (
@@ -51,7 +53,7 @@ export function PersonSpread({ contact, photoUrl, events, moments, timeline, pla
         left={
           <>
             <Corner at="bl" variant="daisy" />
-            <PersonHeader contact={contact} photoUrl={photoUrl} />
+            <PersonHeader contact={contact} photoUrl={photoUrl} justAdded={justAdded} />
             <div className="mt-9"><DateCards contactId={contact.id} contactName={contact.name} events={events} moments={moments} themeId={themeId} /></div>
             <div className="mt-9 pb-2"><GiftTimeline contactId={contact.id} contactName={contact.name} gifts={timeline} themeId={themeId} defaultEventType={defaultEventType} /></div>
           </>

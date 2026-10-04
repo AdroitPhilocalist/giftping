@@ -75,7 +75,7 @@ export function PersonDialog({ contact, photoUrl, trigger }: { contact?: DiaryCo
       } else if (id && removePhoto) await dropPhoto(id);
       toast.success(contact ? "Saved." : `${form.name.trim()} is in your diary.`);
       setOpen(false);
-      if (!contact && id) router.push(`/diary/people/${id}`);
+      if (!contact && id) router.push(`/diary/people/${id}?welcome=1`);
       else router.refresh();
     });
   }

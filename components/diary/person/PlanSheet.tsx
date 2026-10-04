@@ -10,10 +10,12 @@ import { toast } from "@/components/ui/Toast";
 import { deletePlanAction, savePlanAction, setPlanStatusAction } from "@/lib/diary/actions";
 import { PLAN_COPY, PLAN_STEPS, nextStatus, stepIndex, type PlanStatus } from "@/lib/diary/plans";
 import { daysLabel } from "@/lib/diary/present";
+import { DateRibbon } from "../DateRibbon";
 import { OccasionSticker } from "../art/OccasionSticker";
 import { Sprig } from "../art/Sprig";
 import { HeartDoodle } from "../art/Doodles";
 import { PlanIcon } from "./PlanIcons";
+import { WaxSeal } from "../art/WaxSeal";
 import { cn } from "@/lib/utils/cn";
 
 export interface PlanViewData {
@@ -46,8 +48,22 @@ export function PlanSheet({ data, personName }: { data: PlanViewData; personName
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [own, setOwn] = useState("");
-  const [note, setNote] = useState(data.plan?.note ?? "");
   const plan = data.plan;
+  // Only true for the moment THIS screen marked it given. PersonSpread remounts PlanSheet (its `key` includes the status) the instant the status changes,
+  // so plain component state set inside the click handler would be erased before the stamped seal ever painted. A one-shot sessionStorage flag survives
+  // that remount; reading it clears it immediately, so a later visit (or reload) never replays the stamp.
+  const [justGiven] = useState(() => {
+    if (!plan) return false;
+    const key = `dy-just-given:${plan.id}`;
+    try {
+      if (sessionStorage.getItem(key) !== "1") return false;
+      sessionStorage.removeItem(key);
+      return true;
+    } catch {
+      return false; // private browsing / storage blocked — the stamp just doesn't show, nothing else breaks
+    }
+  });
+  const [note, setNote] = useState(data.plan?.note ?? "");
   const current = plan?.status ?? null;
   const next = current ? nextStatus(current) : null;
 
@@ -56,7 +72,10 @@ export function PlanSheet({ data, personName }: { data: PlanViewData; personName
       const result = await fn();
       if (result.error) return void toast.error(result.error);
       if (done) toast.success(done);
-      if (celebrate) window.dispatchEvent(new Event(GIFT_GIVEN_EVENT)); // the robin's small celebration
+      if (celebrate) {
+        window.dispatchEvent(new Event(GIFT_GIVEN_EVENT)); // the robin's small celebration
+        if (plan) try { sessionStorage.setItem(`dy-just-given:${plan.id}`, "1"); } catch { /* the seal just won't stamp */ }
+      }
       router.refresh();
     });
 
@@ -76,7 +95,7 @@ export function PlanSheet({ data, personName }: { data: PlanViewData; personName
       <span className="dy-tape dy-tape--blush" style={{ top: "-0.6rem", right: "10%", ["--tape-rot" as string]: "5deg" }} aria-hidden="true" />
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <h2 id="plan-h" className="dy-h">Plan for {data.heading} <HeartDoodle className="text-[0.62em]" /></h2>
-        <p className="dy-hand text-[1.25rem]"><span className="dy-cap">{data.dateLabel}</span> · <span className="dy-hand-b text-[var(--gp-copper-dark)]">{data.daysAway <= 0 ? "Today!" : `in ${daysLabel(data.daysAway)}`}</span></p>
+        <span className="flex items-center gap-2.5"><span className="dy-cap">{data.dateLabel}</span><DateRibbon daysAway={data.daysAway} label={data.daysAway <= 0 ? "Today!" : `in ${daysLabel(data.daysAway)}`} size="sm" /></span>
       </div>
 
       {!plan ? (
@@ -136,6 +155,11 @@ export function PlanSheet({ data, personName }: { data: PlanViewData; personName
             <div className="flex flex-col items-stretch gap-2 md:items-end">
               {next ? (
                 <button type="button" className={cn("dy-btn dy-btn--lg dy-btn--sprig", next === "given" ? "" : "dy-btn--copper")} onClick={() => setStatus(next)} disabled={pending}>{PLAN_COPY[next].action} <span aria-hidden="true">→</span></button>
+              ) : justGiven ? (
+                <span className="flex items-center gap-2.5" role="img" aria-label="Given with love">
+                  <WaxSeal size={52} animate tone="green"><Check className="h-5 w-5" strokeWidth={2.6} aria-hidden="true" /></WaxSeal>
+                  <span className="dy-hand-b text-[1.5rem] text-[var(--gp-primary)]">Given with love</span>
+                </span>
               ) : (
                 <p className="dy-hand-b inline-flex items-center gap-2 text-[1.5rem] text-[var(--gp-primary)]"><Check className="h-5 w-5" aria-hidden="true" /> Given with love</p>
               )}

@@ -2,18 +2,21 @@ import { Star, Wallet } from "lucide-react";
 import { HeartDoodle } from "../art/Doodles";
 import { Sprig } from "../art/Sprig";
 import { Polaroid } from "../book/Polaroid";
+import { NewPersonReveal } from "./NewPersonReveal";
 import { AddPhotoButton, EditPersonButton, RemoveButton } from "../forms/DiaryDialogs";
 import type { DiaryContactRow } from "@/lib/diary/view";
 import { formatCurrency } from "@/lib/utils/format";
 
 /** The top of a person's page: their photo in a polaroid, their name, the line about them, their usual budget. */
-export function PersonHeader({ contact, photoUrl }: { contact: DiaryContactRow; photoUrl: string | null }) {
+export function PersonHeader({ contact, photoUrl, justAdded = false }: { contact: DiaryContactRow; photoUrl: string | null; justAdded?: boolean }) {
   const budget = contact.budget_max ? Number(contact.budget_max) : null;
   return (
     <header className="relative grid items-start gap-x-6 gap-y-4 sm:grid-cols-[auto_1fr]">
       <div className="relative mx-auto w-[9.6rem] shrink-0 sm:mx-0 sm:w-[11.2rem]">
         <Sprig variant="daisy" className="absolute -left-7 -bottom-3 z-[2] h-28 w-14" />
-        <Polaroid photoUrl={photoUrl} name={contact.name} tilt={-3} tape="blush" caption={contact.relationship ?? contact.name} className="!p-2 !pb-1" ratio="4 / 5" />
+        <NewPersonReveal justAdded={justAdded}>
+          <Polaroid photoUrl={photoUrl} name={contact.name} tilt={-3} tape="blush" caption={contact.relationship ?? contact.name} className="!p-2 !pb-1" ratio="4 / 5" />
+        </NewPersonReveal>
         {photoUrl ? null : <p className="mt-3 text-center"><AddPhotoButton contact={contact} /></p>}
       </div>
       <div className="min-w-0 pt-1 text-center sm:text-left">

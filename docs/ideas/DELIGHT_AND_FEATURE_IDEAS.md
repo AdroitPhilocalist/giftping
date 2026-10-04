@@ -88,8 +88,8 @@ The brief was "interactive, animated, real-life feel." Honest state:
 
 | ID | Idea | What the customer sees | Effort | Wow | Status / Needs |
 |---|---|---|---|---|---|
-| **C1** | **Wax-seal & stamp moments** | Marking a gift "given" stamps a wax seal on the page; adding a person lays a polaroid down with a tape-peel. | S | ★★★★ | Art components exist (WaxSeal, Polaroid). |
-| **C2** | **Countdown ribbons** | "12 days to Mom's birthday" as a ribbon that tightens as the date nears; today's date confetti. | S | ★★★ | |
+| **C1 ✅** | **Wax-seal & stamp moments** | Marking a gift "given" stamps a wax seal on the page; adding a person lays a polaroid down with a tape-peel. | S | ★★★★ | Art components exist (WaxSeal, Polaroid). |
+| **C2 ✅** | **Countdown ribbons** | "12 days to Mom's birthday" as a ribbon that tightens as the date nears; today's date confetti. | S | ★★★ | |
 | **C3** | **Year-in-review "story"** | A swipeable, animated recap: gifts given, people remembered, your streak, a shareable card — **numbers only, never names/diary text**, so privacy is intact. | L | ★★★★★ | Review page exists; this is the story format. High shareability = free marketing. |
 | **C4** | **Page-turn sound (off by default)** | A soft paper sound when turning pages. | S | ★★ | Needs a licensed sound; **opt-in only**. Optional. |
 

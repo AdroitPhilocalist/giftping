@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Check, Sparkles } from "lucide-react";
 import type { CSSProperties } from "react";
 import { OccasionSticker } from "./art/OccasionSticker";
+import { DateRibbon } from "./DateRibbon";
 import { Sprig } from "./art/Sprig";
 import { SectionTitle } from "./book/SectionTitle";
 import { RobinSleeping } from "./EmptyStates";
@@ -41,7 +42,7 @@ export function MomentTickets({ moments, themeId, addAction, className, plans = 
                   <p className="dy-cap pt-0.5 text-right leading-[1.1]">{m.dateLabel}</p>
                 </div>
                 <p className="dy-hand-b mt-1.5 break-words text-[1.5rem] leading-[1.02]">{m.title}</p>
-                <p className="dy-num mt-2 text-[2.3rem] text-[var(--dy-ink)] xl:mt-1 xl:text-[1.95rem]">{daysLabel(m.daysAway)}{m.daysAway > 1 ? <span className="sr-only"> away</span> : null}</p>
+                <DateRibbon daysAway={m.daysAway} label={daysLabel(m.daysAway)} className="mt-2 xl:mt-1" />
                 {m.handled ? (
                   <span className="dy-hand mt-1.5 inline-flex items-center gap-1.5 text-[1.15rem] text-[var(--gp-primary)]"><Check className="h-4 w-4" aria-hidden="true" /> Gift sorted</span>
                 ) : plan ? (

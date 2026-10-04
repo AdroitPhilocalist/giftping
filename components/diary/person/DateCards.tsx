@@ -1,6 +1,7 @@
 import { CalendarDays } from "lucide-react";
 import type { CSSProperties } from "react";
 import { OccasionSticker } from "../art/OccasionSticker";
+import { DateRibbon } from "../DateRibbon";
 import { Sprig } from "../art/Sprig";
 import { SectionTitle } from "../book/SectionTitle";
 import { AddDateButton, EditDateButton, RemoveButton, ReminderSwitch } from "../forms/DiaryDialogs";
@@ -31,7 +32,7 @@ export function DateCards({ contactId, contactName, events, moments, themeId }: 
                   </div>
                   <p className="dy-hand-b mt-1.5 break-words text-[1.5rem] leading-[1.02]">{occasionName(e.event_type, e.title)}</p>
                   {m ? (
-                    <p className="mt-2"><span className="dy-marker dy-marker--blush dy-hand-b !text-[1.25rem]" style={{ ["--mark" as string]: m.daysAway <= 14 ? "var(--dy-blush)" : "var(--dy-mustard)" }}>{m.daysAway <= 0 ? "Today!" : `In ${daysLabel(m.daysAway)}`}</span></p>
+                    <p className="mt-2"><DateRibbon daysAway={m.daysAway} label={m.daysAway <= 0 ? "Today!" : `In ${daysLabel(m.daysAway)}`} size="sm" /></p>
                   ) : <p className="dy-cap mt-2">This date has passed</p>}
                   <div className="mt-3 space-y-2">
                     <ReminderSwitch id={e.id} active={e.is_active} />

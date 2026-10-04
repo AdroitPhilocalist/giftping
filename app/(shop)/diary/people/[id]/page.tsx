@@ -22,9 +22,9 @@ import { getActiveTheme } from "@/lib/theme/active";
 
 export const metadata = { title: "Diary — GiftPing" };
 
-export default async function PersonPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ event?: string }> }) {
+export default async function PersonPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ event?: string; welcome?: string }> }) {
   const { id } = await params;
-  const { event: eventParam } = await searchParams;
+  const { event: eventParam, welcome } = await searchParams;
   if (!z.string().uuid().safeParse(id).success) notFound();
 
   const user = await requireRole("customer", "vendor", "admin");
@@ -96,6 +96,7 @@ export default async function PersonPage({ params, searchParams }: { params: Pro
     <DiaryDesk>
       <PersonSpread
         contact={contact}
+        justAdded={welcome === "1"}
         photoUrl={photoUrl}
         events={events}
         moments={view.moments}
