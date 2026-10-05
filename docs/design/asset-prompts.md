@@ -208,3 +208,33 @@ They appear automatically on Boutique Avenue and boutique pages (each boutique p
 | `scene-courier.png` | A friendly cartoon-painterly courier on a small scooter carrying a wrapped gift, side view, transparent background, facing right. (order tracking) |
 | `scene-display-stand.png` | An empty round wooden display stand with a soft spotlight and a draped cloth, on a cream wall. Square. (product pages) |
 | `scene-empty-shelf.png` | An empty wooden shelf with a single hanging tag, a robin looking around. 4:3. (empty search / no results) |
+
+---
+
+# Batch 5 — layered atrium art for Sprint 4 ("Cinematic")
+
+**Why this is its own batch, and why it's not just "crop the existing hero photo in three."** `hero-atrium.png` is one flat photo — it has real depth of *focus* (soft background blur) but no depth of *parallax*: there's no way to move "the hanging gift boxes" independently of "the skylight behind them" when they're baked into the same pixels. B2 (the cinematic scroll-in entrance) and B5 (the parallax hero) both need the scene as **separate layers that composite together**, each its own transparent PNG, so the site's CSS can move them at different speeds and get real depth instead of one photo sliding as a block.
+
+**What ChatGPT is actually good at here**: generating three independent, simpler illustrations designed to stack — not "splitting" the existing photo into layers (image models can't un-flatten a photo that way; asking for that produces three different half-matching scenes, not one coherent depth stack). So these three prompts deliberately describe three separate, simpler paintings in the established style, each confined to its own "depth band," rather than three crops of one busy photo.
+
+**Sequence this unlocks** (confirmed): scrolling down from the very top of the homepage drifts the viewer INTO the atrium — the far layer barely moves, the mid layer (the hanging gifts) drifts up faster, the near layer (the platform/shopfront edges) drifts fastest and the light warms from cool to golden — then the scroll releases into the ordinary homepage content below. This is an intro, not a replacement for the homepage: one screen-tall, then normal scrolling resumes.
+
+Same STYLE LINE as Batch 1. Same conversation if possible, so the lighting/palette matches `hero-atrium.png` closely (it's the same scene, re-imagined in three depth bands, not a new scene). **All three must say "transparent background"** — if ChatGPT gives a flat background, reply "Regenerate with a fully transparent background, nothing filled in behind the subject."
+
+**20 · `atrium-layer-far.png` — the background band** · **landscape** · transparent background (or a very soft, almost-white sky if transparency fails — never filled-in detail)
+> Only the distant architecture of a luxury gifting-mall atrium, soft and slightly hazy as if seen through depth of field: a circular glass skylight ceiling letting in cool-to-warm light, the faint curved upper balcony railings far above, barely-visible tiny fairy lights. No gift boxes, no shopfronts, no foreground objects — just the ceiling and the far architecture, soft-focus, muted. Transparent background below the architecture.
+
+**21 · `atrium-layer-mid.png` — the midground band** · **landscape** · transparent background
+> Only the hanging elements of a luxury gifting-mall atrium, in sharp focus, isolated against nothing: large gift boxes wrapped in copper satin ribbons hanging from the ceiling at different heights on ribbon cords, strings of warm fairy lights draped between them, a curved balcony railing with green hanging plants at the edges of the frame. No ceiling, no skylight, no floor, no shopfronts — just the hanging boxes, lights and plants, floating on a fully transparent background.
+
+**22 · `atrium-layer-near.png` — the foreground band** · **landscape** · transparent background, action confined to the BOTTOM third of the frame (the top two-thirds must be empty/transparent)
+> Only the lower, closest elements of a luxury gifting-mall atrium, bottom third of the frame only: the edge of a central round marble platform piled with wrapped gifts and flowers, the warm glowing bottom edges of boutique shopfronts entering from both sides, polished marble floor with warm reflections in the very foreground. The top two-thirds of the image must be completely empty/transparent — nothing floating in the upper frame.
+
+## What this unlocks
+| File | Depth band | Scroll speed in B2/B5 |
+|---|---|---|
+| `atrium-layer-far.png` | skylight, distant architecture | slowest (near-static) |
+| `atrium-layer-mid.png` | hanging gifts, fairy lights, balcony | medium |
+| `atrium-layer-near.png` | platform, shopfront edges, floor | fastest |
+
+Until these exist, Sprint 4 (B2 cinematic entrance, B5 parallax hero) stays on hold — see `PROGRESS.md`. The flat `hero-atrium.png` keeps doing its current job (the plain homepage hero) regardless; these three are additional files, not a replacement for it.

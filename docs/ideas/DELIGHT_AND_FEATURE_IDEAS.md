@@ -75,10 +75,10 @@ The brief was "interactive, animated, real-life feel." Honest state:
 | ID | Idea | What the customer sees | Effort | Wow | Status / Needs |
 |---|---|---|---|---|---|
 | **B1** ✅ | **Gift-finder quiz** | "Who's it for? What do they love? Budget?" — animated cards, robin reacts, then a curated shelf. Also feeds the marketing segments and the diary. | M | ★★★★ | Not built. Uses existing tags/relationships. **BUILT 3 Oct (Sprint 2)** at `/gift-finder`, reusing the diary's suggestion engine. |
-| **B2** | **Cinematic mall entrance** | Scrolling from the homepage "walks you in" through the atrium: layers move at different speeds, lights warm up, shop doors come into view. | L | ★★★★★ | Spec'd originally, never built. **Needs:** your direction on the sequence **and** artwork split into layers (foreground/mid/background) — one flat image can only fake it. |
+| **B2 ⏸** | **Cinematic mall entrance** | Scrolling from the homepage "walks you in" through the atrium: layers move at different speeds, lights warm up, shop doors come into view. | L | ★★★★★ | **Sequence confirmed (4 Oct): an atrium depth-scroll intro, one screen tall, then the normal homepage resumes.** On hold for the layered artwork — prompt sent, see `docs/design/asset-prompts.md` Batch 5 (`atrium-layer-far/mid/near.png`). |
 | **B3 ✅** | **Interactive mall map** | The map is live: hover/tap a shopfront and it glows, the robin walks the path to it, a card shows the boutique. | M | ★★★★ | `mall-map` image exists. **Needs:** hotspot positions (I can place them). |
 | **B4 ✅** | **"Entering the shop" transitions** | Going from the mall to a boutique feels like opening a door (smooth, shared-element transition) instead of a page flash. | M | ★★★★ | View Transitions; needs a fallback for older browsers. |
-| **B5** | **Parallax atrium hero** | The homepage hero has depth: layers drift as you scroll or tilt the phone. | M | ★★★ | Same layered-art dependency as B2. |
+| **B5 ⏸** | **Parallax atrium hero** | The homepage hero has depth: layers drift as you scroll or tilt the phone. | M | ★★★ | On hold with B2 — same three layered files (Batch 5) cover both. |
 | **B6 ✅** | **Robin as a guide** | The robin reacts to context: peeks into an empty basket, naps on a quiet diary, flies a gift across when you add one, waves hello at sign-in. | M | ★★★★ | 11 poses exist; may want 3–4 more (you'd generate). |
 | **B7 ✅** | **Festival mode** | When Diwali/Rakhi/etc. is scheduled, the whole site changes: palette (exists), floating diyas/petals, a countdown ("order by 20 Oct for Diwali delivery"), festive banner. | S–M | ★★★★ | Theme system + `Ambience` exist. **Needs:** a decision on the delivery-cutoff rule per festival. |
 | **B8 ✅** | **Shop-window cards** | Boutique/product cards tilt slightly toward the cursor and light up like lit windows. | S | ★★★ | Desktop only. |
@@ -97,7 +97,7 @@ The brief was "interactive, animated, real-life feel." Honest state:
 
 | ID | Idea | What the customer sees | Effort | Wow | Status / Needs |
 |---|---|---|---|---|---|
-| **D1** | **One hero 3D gift box** | A 3D gift box on the homepage that opens as you scroll, revealing the first shelf. Lazy-loaded; phones/low-power get a flat image. | L | ★★★★★ | **Needs:** a 3D model (`.glb`) — someone has to make it (a freelancer, or we generate one from stock). Adds ~150 KB+ on desktop. |
+| **D1** | **One hero 3D gift box** | A 3D gift box on the homepage that opens as you scroll, revealing the first shelf. Lazy-loaded; phones/low-power get a flat image. | L | ★★★★★ | **Confirmed skipped from Sprint 4 (4 Oct)** — no `.glb` model exists and a placeholder CSS version was declined. Revisit only once a real model is commissioned. |
 | **D2** | **360° product spin** | Drag to rotate a product. Cheapest route is a *sequence of photos* (no 3D at all), done by the boutique; true 3D needs models. | M (photo spin) / L+ (3D) | ★★★★ | **Needs vendors to shoot ~24 photos per product.** Realistic for a few hero products only. |
 | **D3** | **AR "see it in your room"** | Phone camera places the product on a table. | XL | ★★★★ | Needs a 3D model of *every* product; not realistic marketplace-wide. |
 | **D4** | **3D mall walk-through** | Free-roam 3D mall. | XL | ★★★★★ | **I recommend against.** Huge asset cost, poor on budget phones, hurts SEO and checkout, and the illustrated mall already carries the charm. |
@@ -136,7 +136,7 @@ Real-service testing (Razorpay payment, Shiprocket booking, a real Resend email)
 | **Sprint 1 — "The Basket"** ✅ *done 2 Oct* | A1, A2, A6, A5 (A8 not done — still available) | ~1–1.5 weeks est. | The client's own idea and the most demo-able change. |
 | **Sprint 2 — "Make it personal"** ✅ *done 3 Oct* | A3, A4, B1 | ~1.5–2 weeks est. | Personalisation preview + gift-finder are unusual and sell *gifts*, not just products. |
 | **Sprint 3 — "The mall as a place"** ✅ *done 3 Oct* | B3, B4, B6, B7, B8 | ~2 weeks | Makes it feel like walking through a mall without needing new layered art. |
-| **Sprint 4 — "Cinematic"** | B2 (+B5), optionally D1 | ~2–3 weeks | Only after you/the client choose the direction and layered artwork exists. |
+| **Sprint 4 — "Cinematic"** ⏸ *on hold 4 Oct* | B2 (+B5) | ~2–3 weeks | Sequence confirmed; waiting on Batch 5 artwork (prompt sent). D1 dropped from scope. |
 | **Diary polish** (anytime, small) | C1, C2, then C3 | S, S, L | Strengthens the signature feature; C3 is highly shareable. |
 | **Quick business wins** (anytime) | E12, then E1 + E2 | S, M, M | E12 is nearly free SEO. Rewards/referral need the client's rules first. |
 
