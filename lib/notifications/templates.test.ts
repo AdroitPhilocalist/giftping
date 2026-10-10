@@ -76,6 +76,12 @@ describe("email templates", () => {
     expect(refunded.subject).toBe("Refund of ₹450.00 on its way");
     expect(refunded.html).toContain("5–7 working days");
     expect(refunded.text).toContain("₹450.00 refunded");
+    const pickup = buildReturnUpdateEmail({ ...base, kind: "pickup_scheduled", note: null, courier: "<Courier>", awb: "AWB123", trackingUrl: "https://track.test/AWB123" });
+    expect(pickup.subject).toBe("Your return pickup is scheduled — order GP-7");
+    expect(pickup.html).toContain("Tracking number AWB123");
+    expect(pickup.html).not.toContain("<Courier>");
+    expect(pickup.html).toContain("https://track.test/AWB123");
+    expect(pickup.text).toContain("AWB123");
   });
   it("data-export notice: says when, escapes the name, tells them what to do if it wasn't them", () => {
     const e = buildDataExportEmail({ firstName: "<b>Asha</b>", whenLabel: "21 Sept 2026, 9:30 pm IST", accountUrl: "https://x.test/account", preferencesUrl: prefs });

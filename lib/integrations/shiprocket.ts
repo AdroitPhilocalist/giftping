@@ -221,6 +221,77 @@ export async function createShiprocketOrder(input: ShiprocketOrderInput) {
   return { shiprocketOrderId: String(json.order_id ?? ""), shipmentId: String(json.shipment_id) };
 }
 
+export interface ShiprocketReturnOrderInput {
+  orderId: string; // unique per return shipment
+  orderDate: string; // YYYY-MM-DD HH:mm
+  /** Where the courier collects FROM — the customer's own delivery address for this order. */
+  pickup: { name: string; email: string; phone: string; address: { line1: string; line2: string | null; city: string; state: string; pincode: string } };
+  /** Where the courier delivers TO — the vendor's registered warehouse. */
+  dropoff: { name: string; email: string; phone: string; address: { line1: string; city: string; state: string; pincode: string } };
+  items: { name: string; sku: string; units: number; sellingPrice: number; taxRate: number; hsn: string | null }[];
+  subTotal: number;
+  weightKg: number;
+  lengthCm: number;
+  breadthCm: number;
+  heightCm: number;
+}
+
+/**
+ * Reverse pickup: /orders/create/return mirrors /orders/create/adhoc in shape, but swaps which side is which —
+ * the "pickup" fields are where the courier collects from (the customer) and the "shipping" fields are where it's
+ * delivered (the vendor's warehouse) — the exact reverse of a forward order. NOTE: built from Shiprocket's
+ * documented field pattern (the same pickup/shipping/order_items/payment_method shape confirmed real for the
+ * adhoc endpoint in this file) — but unlike adhoc orders and serviceability checks, this specific endpoint has
+ * never been called against the real account (doing so creates a real return order with real consequences, the
+ * same category of action the pickup-request step in bookShipment() is deliberately careful about). Treat the
+ * exact field names as unverified until a real call confirms them.
+ */
+export async function createShiprocketReturnOrder(input: ShiprocketReturnOrderInput) {
+  const [pFirst, ...pRest] = input.pickup.name.trim().split(/\s+/);
+  const json = await call<{ order_id?: number; shipment_id?: number; status?: string; message?: string }>("/orders/create/return", {
+    method: "POST",
+    body: {
+      order_id: input.orderId,
+      order_date: input.orderDate,
+      pickup_customer_name: pFirst || input.pickup.name,
+      pickup_last_name: pRest.join(" "),
+      pickup_address: input.pickup.address.line1,
+      pickup_address_2: input.pickup.address.line2 ?? "",
+      pickup_city: input.pickup.address.city,
+      pickup_state: input.pickup.address.state,
+      pickup_country: "India",
+      pickup_pincode: input.pickup.address.pincode,
+      pickup_email: input.pickup.email,
+      pickup_phone: input.pickup.phone,
+      shipping_customer_name: input.dropoff.name,
+      shipping_address: input.dropoff.address.line1,
+      shipping_city: input.dropoff.address.city,
+      shipping_state: input.dropoff.address.state,
+      shipping_country: "India",
+      shipping_pincode: input.dropoff.address.pincode,
+      shipping_email: input.dropoff.email,
+      shipping_phone: input.dropoff.phone,
+      order_items: input.items.map((i) => ({
+        name: i.name,
+        sku: i.sku,
+        units: i.units,
+        selling_price: i.sellingPrice,
+        discount: 0,
+        tax: i.taxRate,
+        hsn: i.hsn ?? "",
+      })),
+      payment_method: "PREPAID",
+      sub_total: input.subTotal,
+      length: input.lengthCm,
+      breadth: input.breadthCm,
+      height: input.heightCm,
+      weight: input.weightKg,
+    },
+  });
+  if (!json.shipment_id) throw new ShiprocketError(502, json.message ?? "Shiprocket did not return a shipment id");
+  return { shiprocketOrderId: String(json.order_id ?? ""), shipmentId: String(json.shipment_id) };
+}
+
 /**
  * `preferredCourierId` (from an Express delivery-speed selection at checkout) asks Shiprocket to use that specific
  * courier instead of letting it auto-pick; omitted, it auto-picks as before. The preference was captured at

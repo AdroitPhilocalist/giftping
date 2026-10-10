@@ -234,6 +234,22 @@ classifier, same limitation as the 9 Oct Shiprocket session) and the vendor/cust
 page (needs a paid, dispatched order to reach the shipment-tracking section). 523/523 tests (7 new), tsc/eslint/
 build clean. See `docs/progress/2026-10-10-delivery-speed-options.md`.
 
+## Return shipment / reverse-pickup booking (10 Oct)
+
+Gap #6 from the 1 Oct spec assessment, closed alongside #5 now that real Shiprocket credentials exist. Approving a
+return used to just tell the customer "we'll arrange the pickup" with nothing ever actually booking one —
+`lib/admin/return-dispatch.ts`'s `bookReturnPickup()` now does, as an **admin** action (`/admin/returns`'s new
+"Book pickup" button), matching how `/vendor/returns` is deliberately read-only and GiftPing already owns
+cancellations/refunds rather than the vendor. Same resumable-saga pattern as forward dispatch, reversed: pickup =
+the customer's address, drop-off = the vendor's warehouse. **Found and fixed a real gap while building it**: the
+Stage 8 shipment-uniqueness indexes only ever covered forward shipments, so nothing stopped a duplicate return
+booking or protected a return AWB from colliding — `20261010160000_return_shipment_indexes.sql` extends both.
+**Verified live**: signed in as admin, confirmed the real "Book pickup" button renders correctly against two real
+approved returns already in the seed data. **Deliberately not verified**: the actual booking click itself — same
+category as the forward "Book courier" click from the 9 Oct session (a real call to Shiprocket's live API with
+real consequences) — asked first, and stopped short at your choice rather than assuming. 523/523 tests, tsc/
+eslint/build clean. See `docs/progress/2026-10-10-return-pickup-booking.md`.
+
 ## Stage 11 in progress
 
 Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). **Vendor logo + banner upload done** (with admin take-down). **Bulk CSV product upload done** (preview → all-or-nothing import as hidden drafts). **"Download my data" done. Dashboard alert for paid orders stuck with a suspended vendor done — Stage 11 (admin suite) is COMPLETE.** Next: Stage 12 (visual & motion polish), then Stage 13 (go-live). **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 
@@ -266,9 +282,11 @@ dated logs in `/docs/progress/`). Remaining before Stage 13:
 3. Sprint 4 (cinematic atrium entrance) — attempted against real art and reverted (client: "very bad looking");
    on hold until a different treatment is agreed.
 4. ✅ Delivery speed options (Standard vs Express) built (10 Oct) — real courier data, live-verified end to end.
-   One human click still needed: real Shiprocket courier booking (`/vendor/orders`, order GP-100176) —
-   everything up to that click is verified; the click itself was refused by this environment's own safety
-   classifier, not by the app. Also: rotate `SHIPROCKET_WEBHOOK_SECRET` (deferred, now unblocked).
+   ✅ Return shipment / reverse-pickup booking built (10 Oct) — admin-initiated `/admin/returns` "Book pickup".
+   Two real clicks still outstanding (both deliberately stopped short of, by choice, not by any app defect):
+   real Shiprocket courier booking (`/vendor/orders`, order GP-100176) and the return-pickup equivalent
+   (`/admin/returns?status=approved`, GP-100145 or GP-100142) — everything up to each click is verified.
+   Also: rotate `SHIPROCKET_WEBHOOK_SECRET` (deferred, now unblocked).
 5. Then **Stage 13 — go-live**: production Supabase project + backups, rotate every pasted secret, delete
    test accounts/seed images, legal review of Privacy/Terms/Refunds (`lib/site.ts` `legalReviewed`), live
    Razorpay KYC. ✅ Verified email domain + Supabase auth SMTP through Resend — done 10 Oct.

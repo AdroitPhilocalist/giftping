@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DecideReturnButtons, RetryRefundButton } from "@/components/admin/ReturnRefundControls";
+import { BookReturnPickupButton, DecideReturnButtons, RetryRefundButton } from "@/components/admin/ReturnRefundControls";
 import { Badge } from "@/components/ui/Badge";
 import { requireRole } from "@/lib/auth/session";
 import { RETURN_REASONS, type ReturnReason } from "@/lib/commerce/refunds";
@@ -60,7 +60,18 @@ export default async function AdminReturnsPage({ searchParams }: { searchParams:
                 {r.details ? <p className="mt-1 text-brand-dark/80">“{r.details}”</p> : null}
               </div>
               {r.status === "requested" ? <DecideReturnButtons returnId={r.id} productName={one(r.item)?.product_name ?? "this item"} />
-                : r.status === "approved" ? <Link href={`/admin/orders/${r.order_id}`} className="text-xs text-brand-primary underline">Issue the refund →</Link> : null}
+                : r.status === "approved" ? (
+                  <div className="flex flex-col items-end gap-1.5">
+                    {r.returnShipment?.awb_number ? (
+                      <p className="text-xs text-brand-dark/70">
+                        Pickup booked{r.returnShipment.courier_name ? ` · ${r.returnShipment.courier_name}` : ""} · AWB {r.returnShipment.awb_number}
+                      </p>
+                    ) : (
+                      <BookReturnPickupButton returnRequestId={r.id} />
+                    )}
+                    <Link href={`/admin/orders/${r.order_id}`} className="text-xs text-brand-primary underline">Issue the refund →</Link>
+                  </div>
+                ) : null}
             </li>
           ))}
         </ul>

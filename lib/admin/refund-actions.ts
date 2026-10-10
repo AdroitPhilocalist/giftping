@@ -6,6 +6,7 @@ import { checkRateLimit, dispatchRateLimit } from "@/lib/auth/rate-limit";
 import { getRequestIp } from "@/lib/auth/request-ip";
 import { getServerUser } from "@/lib/auth/session";
 import { decideReturn, issueRefund, retryRefund, type RefundOutcome } from "@/lib/admin/refunds";
+import { bookReturnPickup } from "@/lib/admin/return-dispatch";
 
 /** Every action here is admin-only, judged by the role in the DATABASE (getServerUser re-reads it) — never a cookie or client claim. */
 async function gate(): Promise<{ adminId: string } | { error: string }> {
@@ -50,4 +51,14 @@ export async function retryRefundAction(refundId: string) {
   if ("error" in g) return { ok: false as const, error: g.error };
   if (!z.string().uuid().safeParse(refundId).success) return { ok: false as const, error: "Invalid refund." };
   return done(await retryRefund({ refundId, adminId: g.adminId }));
+}
+
+export async function bookReturnPickupAction(returnRequestId: string) {
+  const g = await gate();
+  if ("error" in g) return { ok: false as const, error: g.error };
+  if (!z.string().uuid().safeParse(returnRequestId).success) return { ok: false as const, error: "Invalid return request." };
+  const result = await bookReturnPickup({ returnRequestId, adminId: g.adminId });
+  revalidatePath("/admin/returns");
+  if (result.error) return { ok: false as const, error: result.error };
+  return { ok: true as const, message: result.warning ? `Pickup booked (AWB ${result.awb}). ${result.warning}` : `Pickup booked — AWB ${result.awb}.` };
 }

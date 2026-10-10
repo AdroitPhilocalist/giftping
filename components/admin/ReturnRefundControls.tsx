@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Label, Textarea } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { toast } from "@/components/ui/Toast";
-import { decideReturnAction, issueRefundAction, retryRefundAction } from "@/lib/admin/refund-actions";
+import { bookReturnPickupAction, decideReturnAction, issueRefundAction, retryRefundAction } from "@/lib/admin/refund-actions";
 import { refundShare, refundableRemaining, suggestRefundAmount } from "@/lib/commerce/refunds";
 import { formatCurrency } from "@/lib/utils/format";
 
@@ -154,6 +154,29 @@ export function RefundLineButton({ line, label = "Refund…" }: { line: RefundLi
         </div>
       </Modal>
     </>
+  );
+}
+
+/** Books a real reverse pickup with Shiprocket — courier collects from the customer, delivers to the boutique's warehouse. */
+export function BookReturnPickupButton({ returnRequestId }: { returnRequestId: string }) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  return (
+    <Button
+      size="sm"
+      variant="secondary"
+      disabled={pending}
+      onClick={() =>
+        startTransition(async () => {
+          const result = await bookReturnPickupAction(returnRequestId);
+          if (result.ok) toast.success(result.message);
+          else toast.error(result.error);
+          router.refresh();
+        })
+      }
+    >
+      {pending ? "Booking pickup…" : "Book pickup"}
+    </Button>
   );
 }
 

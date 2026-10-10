@@ -521,6 +521,23 @@ here will work the same way on every route, because it depends entirely on what 
 9. **Edge case**: on a cart whose subtotal already qualifies for free standard delivery, Express should still cost the
    surcharge (not be free) — free delivery waives the ordinary fee, not the speed upgrade.
 
+## 17. Return pickup booking *(new — 10 Oct; real Shiprocket write, be deliberate about the actual click)*
+
+An **admin**-only action — `/vendor/returns` stays read-only, GiftPing books the pickup, not the boutique.
+
+1. `/admin/returns?status=approved` — any approved return with no pickup booked yet shows a **Book pickup**
+   button next to "Issue the refund →". (The seed data already has a couple of these — GP-100145 and GP-100142 —
+   no need to create a new return request just to see the button.)
+2. **Before clicking it**, know that this calls the real, live Shiprocket API — it creates a genuine return order
+   and requests an actual courier pickup from the customer's real address. Only go through with the actual click
+   if you mean a real test booking.
+3. If you do click it: confirm it returns an AWB, the button is replaced with "Pickup booked · courier · AWB …",
+   the customer's order page shows "a courier from X is collecting it (AWB …)" instead of the generic "we'll
+   arrange the pickup," and the vendor's `/vendor/returns` page shows "Pickup booked … it's on its way back to
+   you."
+4. **Edge case**: click "Book pickup" a second time on the same return — confirm it's refused ("A return pickup
+   is already booked for this item"), not a duplicate booking.
+
 ## Reporting a bug
 
 For anything that doesn't match "Expected," note:

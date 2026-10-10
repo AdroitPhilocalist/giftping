@@ -222,12 +222,16 @@ export function buildVendorAccountEmail(i: VendorAccountInput): BuiltEmail {
 // Returns and refunds (customer)
 // ---------------------------------------------------------------------------
 export interface ReturnUpdateInput {
-  kind: "approved" | "rejected" | "refunded";
+  kind: "approved" | "rejected" | "refunded" | "pickup_scheduled";
   firstName: string;
   orderNumber: string;
   productName: string;
   /** "₹450.00" — only for kind "refunded" */
   amountLabel?: string;
+  /** only for kind "pickup_scheduled" */
+  courier?: string | null;
+  awb?: string | null;
+  trackingUrl?: string | null;
   /** the admin's note (approval instructions / the reason for rejecting) */
   note: string | null;
   orderUrl: string;
@@ -236,6 +240,7 @@ export interface ReturnUpdateInput {
 
 export function buildReturnUpdateEmail(i: ReturnUpdateInput): BuiltEmail {
   const product = escapeHtml(i.productName);
+  const trackLine = i.awb ? `${i.courier ? `${i.courier} · ` : ""}Tracking number ${i.awb}` : "";
   const copy = {
     approved: {
       subject: `Return approved for order ${i.orderNumber}`,
@@ -252,6 +257,11 @@ export function buildReturnUpdateEmail(i: ReturnUpdateInput): BuiltEmail {
       heading: "Your refund is on its way",
       body: `<p style="margin:0 0 12px;color:#555"><strong>${escapeHtml(i.amountLabel ?? "")}</strong> for <strong>${product}</strong> (order <strong>${escapeHtml(i.orderNumber)}</strong>) is being refunded to your original payment method. It usually appears within 5–7 working days.</p>`,
     },
+    pickup_scheduled: {
+      subject: `Your return pickup is scheduled — order ${i.orderNumber}`,
+      heading: "Your return pickup is scheduled",
+      body: `<p style="margin:0 0 12px;color:#555">A courier will collect <strong>${product}</strong> from your address for order <strong>${escapeHtml(i.orderNumber)}</strong>. Please have it packed and ready.</p>${trackLine ? `<p style="margin:0;color:#777;font-size:13px">${escapeHtml(trackLine)}</p>` : ""}${i.trackingUrl ? `<p style="margin:12px 0 0"><a href="${escapeHtml(i.trackingUrl.startsWith("http") ? i.trackingUrl : "#")}" style="color:#1A4731">Track on the courier's site</a></p>` : ""}`,
+    },
   }[i.kind];
   const html = renderEmailFrame({
     preheader: copy.heading,
@@ -260,7 +270,7 @@ export function buildReturnUpdateEmail(i: ReturnUpdateInput): BuiltEmail {
     cta: { label: "View the order", url: i.orderUrl },
     footerHtml: footer(i.preferencesUrl),
   });
-  const text = [`Hi ${i.firstName},`, "", copy.heading + " — " + i.productName + " (order " + i.orderNumber + ")" + (i.amountLabel && i.kind === "refunded" ? `: ${i.amountLabel} refunded to your original payment method (usually 5–7 working days).` : "."), i.note ? `Note from our team: ${i.note}` : "", `Order: ${i.orderUrl}`].filter(Boolean).join("\n");
+  const text = [`Hi ${i.firstName},`, "", copy.heading + " — " + i.productName + " (order " + i.orderNumber + ")" + (i.amountLabel && i.kind === "refunded" ? `: ${i.amountLabel} refunded to your original payment method (usually 5–7 working days).` : "."), i.note ? `Note from our team: ${i.note}` : "", ...(trackLine ? [trackLine] : []), `Order: ${i.orderUrl}`].filter(Boolean).join("\n");
   return { subject: copy.subject, html, text };
 }
 

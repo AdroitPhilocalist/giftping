@@ -163,6 +163,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   const refundedNow = order.refunds.filter((r) => r.order_item_id === item.id && r.status === "processed").reduce((s, r) => s + Number(r.amount), 0);
                   const refundInProgress = order.refunds.some((r) => r.order_item_id === item.id && r.status !== "processed");
                   const deliveredAt = order.shipments.find((s) => s.vendor_id === item.vendor_id && !s.is_return && s.status === "delivered")?.delivered_at ?? null;
+                  const returnPickup = order.shipments.find((s) => s.vendor_id === item.vendor_id && s.is_return && s.status !== "cancelled" && s.awb_number) ?? null;
                   const window = returnWindow({ deliveredAt, windowDays });
                   const canRequest = item.fulfilment_status === "delivered" && window.open && !openRequest && item.returned_quantity < item.quantity && Number(item.refunded_amount) < paid;
                   const lastRequest = requests[0] ?? null;
@@ -191,7 +192,14 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                           {refundInProgress ? <p className="text-brand-dark/70">A refund is being processed.</p> : null}
                           {openRequest ? (
                             <p className="flex flex-wrap items-center gap-2 text-brand-dark/80">
-                              <span>{openRequest.status === "requested" ? "Return requested — we're reviewing it" : "Return approved — we'll arrange the pickup"} ({RETURN_REASONS[openRequest.reason as ReturnReason] ?? openRequest.reason}).</span>
+                              <span>
+                                {openRequest.status === "requested"
+                                  ? "Return requested — we're reviewing it"
+                                  : returnPickup
+                                    ? `Return approved — a courier${returnPickup.courier_name ? ` from ${returnPickup.courier_name}` : ""} is collecting it (AWB ${returnPickup.awb_number})`
+                                    : "Return approved — we'll arrange the pickup"}
+                                {" "}({RETURN_REASONS[openRequest.reason as ReturnReason] ?? openRequest.reason}).
+                              </span>
                               {openRequest.status === "requested" ? <CancelReturnButton returnId={openRequest.id} /> : null}
                             </p>
                           ) : lastRequest && lastRequest.status === "rejected" ? (
