@@ -5,8 +5,23 @@ would. Work through it section by section — each one is a self-contained area,
 in one sitting. Check boxes as you go; anything that doesn't match "Expected" is a bug worth writing down
 (see "Reporting a bug" at the very end).
 
-This guide covers **local development** against the seeded dev database. It does not require the domain,
-production Supabase project, or live payment/courier credentials.
+This guide covers **local development** against the seeded dev database. It does not require a separate
+production Supabase project (there isn't one yet — see `PROGRESS.md`'s Stage 13 checklist), but as of
+10 Oct the domain and two real integrations are live and usable from local dev too:
+
+- **The site is live for real** at `https://www.giftping.in` — the exact same dev database as localhost, so
+  the test accounts below work there too. Testing against the live domain is fine; nothing separates it
+  from localhost except the URL (and real Shiprocket/Resend calls going to real external services either way).
+- **Shiprocket now has real credentials** (`.env.local`/Vercel). Delivery/pincode checks are no longer a
+  fail-open no-op — a real serviceability lookup actually runs. **A real courier booking ("Book courier" in
+  the vendor portal) now genuinely calls the live Shiprocket account** and will create a real order there —
+  only click through the FULL booking flow (including the final pickup request) if you actually mean to
+  book a real test pickup. If you just want to confirm the earlier steps work (pickup-location registration,
+  order creation, AWB assignment), stop short of the final step, or ask first.
+- **Resend now has a verified domain** (`connect@giftping.in`). Real emails now actually send to whatever
+  address you use — use a real inbox you control for anything that should land in an actual mailbox
+  (password reset, order confirmation, a marketing-campaign test), and be mindful this counts against the
+  real monthly send quota.
 
 ---
 
@@ -39,9 +54,10 @@ window for another, rather than signing in and out repeatedly.
 - **Demo vendors**: Lumière Keepsakes, Aurelia Gifts, Lumen & Ash, Saffron & Silk, The Brass Diya, Petal &
   Bloom, Cocoa Atelier, Inkwell & Co, Little Wonders, Vela Jewels — plus GiftPing Originals (in-house, 0%
   commission).
-- **Delivery/pincode checks fail open in dev** (no real Shiprocket credentials are configured locally), so
-  any 6-digit pincode should be accepted as serviceable — you won't be able to test a real "can't deliver
-  here" rejection locally.
+- **Delivery/pincode checks now call the real Shiprocket API** (real credentials are configured). Most
+  pincodes should come back serviceable, but if you want to see the old fail-open "unknown ⇒ allowed"
+  behavior, try a clearly invalid pincode (e.g. `000000`) rather than assuming every real-looking number
+  gets real coverage.
 - **Payments**: Razorpay is in **test mode**. Use their test UPI handle `success@razorpay` to simulate a
   successful payment, or `failure@razorpay` to simulate a failed one — no real money moves. If you use a
   test card instead, open the Razorpay checkout modal first; it shows the currently valid test card numbers
@@ -52,9 +68,13 @@ window for another, rather than signing in and out repeatedly.
 A few things need a human specifically because of how they work — flag these as "still to verify" rather
 than assuming they're broken if you don't get to them:
 - Completing a real payment inside Razorpay's own checkout iframe (cross-origin, can't be automated)
-- A real courier booking at Shiprocket (would need real API credentials)
-- Sending a real email (would need a configured Resend domain) or a real web push notification (needs a
-  real HTTPS deployment, not localhost)
+- **The final step of a real courier booking** — accepting an order and clicking "Book courier" as the
+  vendor is now a genuinely real action against the live Shiprocket account (see the note above). This
+  environment's own tooling is blocked from clicking that specific button for safety reasons, so the full
+  flow (pickup-location registration → real order → AWB → pickup request) still needs a human to click it
+  once and confirm the AWB comes back correctly.
+- A real web push notification (needs a real HTTPS deployment, not localhost — `https://www.giftping.in`
+  now qualifies, so this is testable there even though it isn't locally)
 - Native browser dialogs (`confirm()`/`alert()` — e.g. "Delete this review?", "Send to N vendors?") — these
   work fine when you click them yourself, just noting they weren't something I could click-test earlier
 - Picking a real file in the OS file picker (avatar photo, product image, diary photo, vendor logo/banner)
@@ -71,10 +91,11 @@ than assuming they're broken if you don't get to them:
       pill** with a thin gold edge around it. Scroll back to the top — it should return to the glass look.
 - [ ] **Mall** (`/mall`): map/directory loads, hovering a numbered zone previews its image, "Handpicked
       Experiences" cards below show real photos, clicking a zone or card navigates correctly.
-- [ ] **Occasions** (`/categories`, the "Occasions" nav item): Birthday, Anniversary, Wedding, and Corporate
-      Gifting should show **photo cards**; For Her, For Him, Housewarming, Thank You, Festivals should show
-      the plain icon card (this is expected — see "Known limitations" in the asset-generation conversation,
-      not a bug).
+- [ ] **Occasions** (`/categories`, the "Occasions" nav item): Birthday, Anniversary, Wedding, Corporate
+      Gifting, Housewarming, Thank You, and Festivals should all show **photo cards** (Batch 3 artwork).
+      **For Her and For Him deliberately still show the plain icon card** — their artwork has real,
+      legible third-party brand logos (Dior, Chanel) visible in it, a trademark risk, so it's intentionally
+      suppressed on this page until that artwork is regenerated (this is expected, not a bug).
 - [ ] Click into an individual occasion, e.g. `/categories/birthday`: hero photo banner, product grid,
       filters (occasion tag / recipient tag / in-stock only / sort), pagination if there are enough products.
 - [ ] **Boutiques** (`/vendors`): listing grid loads with vendor cards. Click into **Lumière Keepsakes**:
@@ -115,9 +136,10 @@ than assuming they're broken if you don't get to them:
       shows you as signed in (account menu, no more "Sign in" link).
 - [ ] **Google sign-in button** is present on the sign-in page (you don't need to complete it if you don't
       have a Google account handy — just confirm the button renders and clicking it goes to Google).
-- [ ] **Forgot password**: from the sign-in page, request a reset for a real test account's email. (You may
-      not receive a real email locally unless Resend is configured — that's expected; just confirm the form
-      submits without an error.)
+- [ ] **Forgot password**: from the sign-in page, request a reset for an email address you actually control
+      (not `test-customer@giftping.test`, which isn't real — point a real account's email at your own inbox
+      first if you want to try this for real). Resend and Supabase SMTP are both configured now, so a real
+      reset email should actually arrive; click the link and confirm it lands on `/update-password` and works.
 - [ ] **Wrong password**: try signing in with the right email and a deliberately wrong password — confirm a
       clear error message, not a crash, and confirm you're NOT signed in.
 - [ ] Try to visit `/account` or `/vendor/dashboard` or `/admin/dashboard` **while signed out** — confirm
@@ -294,9 +316,12 @@ Sign in as `test-vendor@giftping.test` (owns Lumière Keepsakes).
       preview shows a clear, row-numbered error rather than crashing or silently skipping the bad row.
 - [ ] `/vendor/orders`: confirm you only see **paid** orders containing your own products — never another
       vendor's items, never someone else's unpaid draft order.
-- [ ] Accept and try to dispatch an order (courier booking will likely fail without real Shiprocket
-      credentials — that's expected locally; confirm you get a clear error rather than a silent hang or a
-      confusing crash).
+- [ ] Accept an order. **Before clicking "Book courier"**, remember this now calls the real, live Shiprocket
+      account — it will register a real pickup location (first time only), create a real Shiprocket order,
+      and request a real AWB. Only go through with it if you actually intend a real test booking; otherwise
+      skip this specific click and just confirm the button and the rest of the fulfilment page render
+      correctly. If you do book for real, confirm the AWB/courier name/tracking link appear on the order
+      afterward, and that the customer gets a "Your gift is packed" notification.
 - [ ] `/vendor/returns`: if a return has been requested on one of your products (see section 7), confirm it
       shows up here for you to act on.
 - [ ] `/vendor/payouts`: confirm your settlement ledger loads (even if empty/minimal in dev).
@@ -395,7 +420,8 @@ Sign in as `test-admin@giftping.test`.
       a subject containing a line break (refused); a message over 5,000 characters (refused). A valid draft opens its page with an email **preview**.
 - [ ] **Preview**: shows "Hi <name>,", your paragraphs (a blank line = new paragraph), the button, and a footer with the reason, an Unsubscribe link and a preferences link.
       Type `<b>bold</b>` or `<script>` in the message — it must appear as literal text, never as formatting.
-- [ ] **Test email**: "Send me a test" delivers one email to the admin's own address with "[TEST]" in the subject (needs a working Resend domain — see the compliance doc).
+- [ ] **Test email**: "Send me a test" delivers one email to the admin's own address with "[TEST]" in the subject. Resend's domain is now verified, so this is a **real email** — check the admin's actual inbox (and spam folder the first time).
+- [ ] **A real campaign now really sends**: with a verified Resend domain, starting a campaign for real sends actual email to whoever is opted in — make sure only accounts you control (or are happy to email) are opted in before clicking "Start" outside of careful, deliberate testing.
 - [ ] **Starting with nobody opted in** is refused with a clear message and the campaign stays a draft.
 - [ ] **Start a real campaign** (with a few opted-in test accounts): the confirm box states how many people and how long it will take at the current limit. After "Start",
       the page shows queued/sent/failed/skipped counts. With the free-tier default (50/day) a bigger audience is sent over several days; "Send next batch now" sends more immediately
@@ -413,9 +439,11 @@ Sign in as `test-admin@giftping.test`.
       message if you're testing as a vendor, have your review... etc.) and check the notification **bell**
       in the header updates its unread count, and the dropdown/inbox shows each one with sensible styling.
 - [ ] Mark a notification as read (or read them all) — confirm the unread count drops accordingly.
-- [ ] Email and web push are unlikely to fire for real in local dev (no configured email domain, no HTTPS
-      origin for push) — don't treat a missing real email/push as a bug locally; just confirm the *in-app*
-      notification always appears regardless.
+- [ ] Email now sends for real (Resend's domain is verified) regardless of whether you're on localhost or
+      `www.giftping.in` — check the recipient's actual inbox if you want to confirm it, not just the in-app
+      bell. Web push still needs a real HTTPS origin, so it won't fire from localhost — test it on
+      `www.giftping.in` instead if you want to confirm a real push notification, not locally. Either way, the
+      *in-app* notification should always appear regardless of whether email/push actually went out.
 
 ---
 
@@ -444,7 +472,7 @@ Sign in as `test-admin@giftping.test`.
 1. **Mall map** (`/mall`, desktop): hover numbers 2, 7, 5 — a robin flies there and the card under the map shows the place, a live count, a quote, three thumbnails and "Step inside". Move the mouse off the map: the robin stays. "Take a Tour" walks it through all nine places. **Phone:** first tap on a number shows the card; second tap goes in.
 2. **Shop-door transition** (use a normal browser window): on `/vendors` click a boutique — its shopfront picture should grow into the boutique's banner; browser Back should shrink it. Same from `/categories` into an occasion. If it just changes page, tell me which browser. (With "reduce motion" on, it should never animate.)
 3. **Waving robin:** `/sign-in`, `/sign-up`, `/reset-password` each show it above the form.
-4. **Festival mode:** `/admin/themes` → preview "Diwali". Home shows a maroon look, a "36 days to Diwali — order by 4 Nov" ribbon, rising lamps; the cart shows a one-line note; checkout, sign-in and the portals show no lamps. Stop the preview. **Confirm the Diwali date and the 4-day cut-off with the client before scheduling it for real.**
+4. **Festival mode:** `/admin/themes` → preview "Diwali". Home shows a maroon look, a countdown ribbon ("N days to Diwali — order by…"), rising lamps; the cart shows a one-line note; checkout, sign-in and the portals show no lamps. Stop the preview. Diwali is dated `2026-11-08` with a 4-day order cutoff — **it's now only weeks away, worth actually scheduling it for real via "Schedule a theme" rather than just previewing it, once the date/cutoff are confirmed.**
 5. **Shop-window cards:** on `/vendors` and `/categories` (desktop mouse), cards lean toward the cursor and a warm light follows it. On a phone nothing tilts.
 
 ## 14. Diary polish — countdown ribbons, wax seal, tape-peel
@@ -457,6 +485,16 @@ Sign in as `test-admin@giftping.test`.
    Refresh the page: the seal should be gone (just the checkmark text remains) — that is correct, not a bug.
 4. **Tape-peel:** add a new person — their photo should visibly drop in and its tape should peel down into place, not just appear. Refresh: it should sit
    there normally, not replay.
+
+## 15. Christmas festival theme *(new — 10 Oct; no dedicated art yet, just colours/countdown/ambience)*
+
+1. `/admin/themes` → preview "Christmas". The whole site should re-skin to a deep pine-green and holly-berry-red look (replacing the usual forest-green/copper), on a cooler frost-white canvas instead of the usual warm cream.
+2. **Countdown ribbon** on the homepage: should read "N days to Christmas — order by 20 Dec" (Christmas is `2026-12-25`, cutoff 5 days before). Confirm the day-count is right for today's date, and that it links to "Shop Christmas gifts" → `/categories/festivals`.
+3. **Snow ambience**: small white dots should drift down slowly behind the homepage hero and other non-money pages — same places the Diwali lamps/other festival ambience appear, never on checkout/cart/orders/admin/vendor portal/sign-in.
+4. **Contrast check**: read the header nav text, the "Explore the Mall"/"Watch Our Story" buttons, and the countdown ribbon's text on top of its pine-green bar — everything should stay clearly legible, not washed out.
+5. Stop the preview — confirm the site returns to its normal look for you, and check in an incognito/customer window that it was never changed for anyone else while you were only previewing.
+6. **Confirm the Dec 25 date and the 5-day cutoff with the client before scheduling this for real** — same rule as Diwali, and the cutoff in particular is just an assumption (December courier congestion) that needs an operations call, not a given.
+7. **No art yet**: the hero photo, mall map, and four homepage cards should all still show the regular native pictures while Christmas is active — this is expected (a brief for Christmas-dressed versions exists in `docs/design/asset-prompts.md` Batch 6, not yet generated), not a bug.
 
 ## Reporting a bug
 
