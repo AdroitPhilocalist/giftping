@@ -6,7 +6,7 @@ import { z } from "zod";
 import { checkoutRateLimit, checkRateLimit, deliveryRateLimit } from "@/lib/auth/rate-limit";
 import { getRequestIp } from "@/lib/auth/request-ip";
 import { getServerUser } from "@/lib/auth/session";
-import { loadCheckoutSnapshot, persistOrder, quoteFor } from "@/lib/commerce/checkout";
+import { loadCheckoutSnapshot, persistOrder, quoteFor, type ExpressSelection } from "@/lib/commerce/checkout";
 import { lookupCoupon } from "@/lib/commerce/coupons";
 import { checkDelivery, unserviceableMessage, type VendorDelivery } from "@/lib/commerce/delivery";
 import { computeQuote } from "@/lib/commerce/totals";
@@ -84,10 +84,20 @@ export async function placeOrderAction(raw: PlaceOrderInput): Promise<CheckoutAc
   if (snapshot.couponLookupError) return { error: `${snapshot.couponLookupError} Remove the coupon to continue.` };
 
   // Server-side, authoritative: a definite "no courier serves this pincode" blocks the order (unknown = allowed).
-  const blocked = unserviceableMessage(await checkDelivery(snapshot.lines, address.pincode), address.pincode);
+  const deliveryResults = await checkDelivery(snapshot.lines, address.pincode);
+  const blocked = unserviceableMessage(deliveryResults, address.pincode);
   if (blocked) return { error: blocked };
 
-  const quote = quoteFor(snapshot, input.giftWrap);
+  // Never trust which vendors the client claims have an Express option — only a vendor this FRESH check confirms
+  // genuinely has one is honoured; everything else silently falls back to Standard rather than erroring.
+  const expressEligible = new Map(deliveryResults.filter((d) => d.expressEtdDays !== null).map((d) => [d.vendorId, d]));
+  const expressSelections = new Map<string, ExpressSelection>();
+  for (const vendorId of input.expressVendorIds) {
+    const eligible = expressEligible.get(vendorId);
+    if (eligible) expressSelections.set(vendorId, { courierId: eligible.expressCourierId, etdDays: eligible.expressEtdDays });
+  }
+
+  const quote = quoteFor(snapshot, input.giftWrap, new Set(expressSelections.keys()));
   if (quote.couponError) return { error: `${quote.couponError} Remove the coupon to continue.` };
 
   const outcome = await persistOrder({
@@ -98,6 +108,7 @@ export async function placeOrderAction(raw: PlaceOrderInput): Promise<CheckoutAc
     giftWrap: input.giftWrap,
     giftMessage: input.giftMessage,
     idempotencyKey: input.idempotencyKey,
+    expressSelections,
   });
   if (!outcome.ok) return { error: outcome.error };
 

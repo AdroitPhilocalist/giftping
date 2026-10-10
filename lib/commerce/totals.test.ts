@@ -8,7 +8,7 @@ import {
   type QuoteSettings,
 } from "./totals";
 
-const settings: QuoteSettings = { deliveryCharge: 79, freeDeliveryThreshold: 999, giftWrapCharge: 49 };
+const settings: QuoteSettings = { deliveryCharge: 79, freeDeliveryThreshold: 999, giftWrapCharge: 49, expressSurcharge: 99 };
 const line = (over: Partial<QuoteLineInput> = {}): QuoteLineInput => ({
   key: "a",
   vendorId: "v1",
@@ -76,6 +76,28 @@ describe("computeQuote — plain cart", () => {
   it("adds gift wrap", () => {
     const q = computeQuote({ lines: [line()], coupon: null, giftWrap: true, settings });
     expect(q.total).toBe(1000 + 49);
+  });
+  it("charges the Express surcharge on top of the normal delivery charge", () => {
+    const q = computeQuote({ lines: [line({ unitPrice: 500 })], coupon: null, giftWrap: false, settings, expressVendorIds: new Set(["v1"]) });
+    expect(q.deliveryByVendor).toEqual({ v1: 79 + 99 });
+  });
+  it("Express still costs the surcharge even when the shipment would otherwise ship free", () => {
+    const q = computeQuote({ lines: [line({ unitPrice: 1500 })], coupon: null, giftWrap: false, settings, expressVendorIds: new Set(["v1"]) });
+    expect(q.deliveryByVendor).toEqual({ v1: 99 });
+  });
+  it("Express only applies to the vendor(s) actually selected", () => {
+    const q = computeQuote({
+      lines: [line({ key: "a", vendorId: "v1", unitPrice: 500 }), line({ key: "b", vendorId: "v2", unitPrice: 500 })],
+      coupon: null,
+      giftWrap: false,
+      settings,
+      expressVendorIds: new Set(["v1"]),
+    });
+    expect(q.deliveryByVendor).toEqual({ v1: 79 + 99, v2: 79 });
+  });
+  it("defaults to no Express charge when the selection is omitted entirely", () => {
+    const q = computeQuote({ lines: [line({ unitPrice: 500 })], coupon: null, giftWrap: false, settings });
+    expect(q.deliveryByVendor).toEqual({ v1: 79 });
   });
   it("commission on the full price with no coupon", () => {
     const q = computeQuote({ lines: [line()], coupon: null, giftWrap: false, settings });

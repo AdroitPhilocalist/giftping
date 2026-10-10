@@ -178,12 +178,13 @@ export async function loadCheckoutSnapshot(userId: string): Promise<CheckoutSnap
   };
 }
 
-export function quoteFor(snapshot: CheckoutSnapshot, giftWrap: boolean): Quote {
+export function quoteFor(snapshot: CheckoutSnapshot, giftWrap: boolean, expressVendorIds?: ReadonlySet<string>): Quote {
   return computeQuote({
     lines: snapshot.lines,
     coupon: snapshot.coupon,
     giftWrap,
     settings: snapshot.settings,
+    expressVendorIds,
   });
 }
 
@@ -204,6 +205,11 @@ export type PlaceOrderOutcome =
   | { ok: true; orderId: string; orderNumber: string }
   | { ok: false; error: string };
 
+export interface ExpressSelection {
+  courierId: number | null;
+  etdDays: number | null;
+}
+
 /** Builds the payload from the snapshot + quote and hands it to the atomic place_order() SQL function. */
 export async function persistOrder(args: {
   userId: string;
@@ -213,8 +219,18 @@ export async function persistOrder(args: {
   giftWrap: boolean;
   giftMessage: string | null;
   idempotencyKey: string;
+  /** Vendor ids that were validated (server-side, against a fresh serviceability check) as genuinely upgraded to Express. */
+  expressSelections?: ReadonlyMap<string, ExpressSelection>;
 }): Promise<PlaceOrderOutcome> {
   const { snapshot, quote } = args;
+  const expressSelections = args.expressSelections ?? new Map<string, ExpressSelection>();
+  const vendorIds = new Set(snapshot.lines.map((l) => l.vendorId));
+  const deliverySpeed = Object.fromEntries(
+    Array.from(vendorIds, (vendorId) => {
+      const express = expressSelections.get(vendorId);
+      return [vendorId, express ? { speed: "express", courierId: express.courierId, etdDays: express.etdDays } : { speed: "standard", courierId: null, etdDays: null }];
+    }),
+  );
   const applied = snapshot.coupon && !quote.couponError ? snapshot.coupon : null;
   const quoteByKey = new Map(quote.lines.map((l) => [l.key, l]));
 
@@ -257,6 +273,7 @@ export async function persistOrder(args: {
     total_amount: quote.total,
     coupon_id: applied?.id ?? null,
     coupon_code: applied?.code ?? null,
+    delivery_speed: deliverySpeed,
   };
 
   const { data, error } = await createAdminClient().rpc("place_order", {

@@ -496,6 +496,31 @@ Sign in as `test-admin@giftping.test`.
 6. **Confirm the Dec 25 date and the 5-day cutoff with the client before scheduling this for real** — same rule as Diwali, and the cutoff in particular is just an assumption (December courier congestion) that needs an operations call, not a given.
 7. **No art yet**: the hero photo, mall map, and four homepage cards should all still show the regular native pictures while Christmas is active — this is expected (a brief for Christmas-dressed versions exists in `docs/design/asset-prompts.md` Batch 6, not yet generated), not a bug.
 
+## 16. Delivery speed options — Standard vs Express *(new — 10 Oct; real Shiprocket data, test against a real route)*
+
+This one genuinely needs the real Shiprocket credentials (configured) and will call the real API — not everything
+here will work the same way on every route, because it depends entirely on what real couriers actually service it.
+
+1. Add a product from a vendor whose warehouse is in Jaipur (e.g. Lumière Keepsakes) to your cart.
+2. At checkout, pick (or add) a delivery address in **Delhi (pincode 110001)** — confirmed to offer a real Standard/Express
+   split at the time this was built (Standard ≈3 days/₹93.72, Express ≈2 days/₹112.22 — the exact numbers can drift as
+   Shiprocket's own rates change, that's expected). A single-courier route (try Mumbai 400001, Bangalore 560001, or
+   Chennai 600001) should show **no** Express option at all — that's correct, not a missing feature.
+3. Where an Express option exists: a Standard/Express radio pair appears under that vendor's delivery line, with real
+   day counts and a surcharge (+₹99 by default). Selecting Express should immediately bump the Delivery line and the
+   Total in the order summary by exactly the surcharge amount — nothing else should change.
+4. Switch to a different saved address — the Express selection should reset (a different pincode might not offer the
+   same upgrade, or any upgrade at all).
+5. Place the order with Express selected. On the next screen, the total charged should include the surcharge.
+6. **As the vendor** (`/vendor/orders`), the order should show "Customer paid for Express delivery — please accept and
+   dispatch promptly."
+7. **As the customer**, once the order has a real shipment (vendor has booked a courier), the order page should show a
+   small "Express" badge next to that vendor's shipment.
+8. **Multi-vendor cart**: add items from two different vendors, one with a real Express option and one without — confirm
+   only the eligible vendor shows the toggle, and the surcharge only applies to the vendor actually upgraded.
+9. **Edge case**: on a cart whose subtotal already qualifies for free standard delivery, Express should still cost the
+   surcharge (not be free) — free delivery waives the ordinary fee, not the speed upgrade.
+
 ## Reporting a bug
 
 For anything that doesn't match "Expected," note:

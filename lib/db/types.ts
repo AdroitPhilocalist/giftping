@@ -1297,6 +1297,7 @@ export type Database = {
           customer_id: string
           delivery_address: Json
           delivery_charge: number
+          delivery_speed: Json
           discount_amount: number
           gift_message: string | null
           gift_wrap_charge: number
@@ -1321,6 +1322,7 @@ export type Database = {
           customer_id: string
           delivery_address: Json
           delivery_charge?: number
+          delivery_speed?: Json
           discount_amount?: number
           gift_message?: string | null
           gift_wrap_charge?: number
@@ -1345,6 +1347,7 @@ export type Database = {
           customer_id?: string
           delivery_address?: Json
           delivery_charge?: number
+          delivery_speed?: Json
           discount_amount?: number
           gift_message?: string | null
           gift_wrap_charge?: number
@@ -2091,24 +2094,33 @@ export type Database = {
           courier_count: number
           delivery_pincode: string
           etd_days: number | null
+          express_courier_id: number | null
+          express_etd_days: number | null
           pickup_pincode: string
           serviceable: boolean
+          standard_etd_days: number | null
         }
         Insert: {
           checked_at?: string
           courier_count?: number
           delivery_pincode: string
           etd_days?: number | null
+          express_courier_id?: number | null
+          express_etd_days?: number | null
           pickup_pincode: string
           serviceable: boolean
+          standard_etd_days?: number | null
         }
         Update: {
           checked_at?: string
           courier_count?: number
           delivery_pincode?: string
           etd_days?: number | null
+          express_courier_id?: number | null
+          express_etd_days?: number | null
           pickup_pincode?: string
           serviceable?: boolean
+          standard_etd_days?: number | null
         }
         Relationships: []
       }

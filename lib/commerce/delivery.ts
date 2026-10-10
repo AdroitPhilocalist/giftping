@@ -19,6 +19,10 @@ export interface VendorDelivery {
   vendorName: string;
   status: DeliveryStatus;
   etdDays: number | null;
+  /** Standard/Express delivery-speed options for this vendor's shipment — null fields mean no real upgrade exists on this route. */
+  standardEtdDays: number | null;
+  expressEtdDays: number | null;
+  expressCourierId: number | null;
 }
 
 const DEFAULT_ITEM_WEIGHT_GRAMS = 500;
@@ -39,7 +43,9 @@ export async function checkDelivery(lines: DeliveryLine[], deliveryPincode: stri
     byVendor.set(line.vendorId, entry);
   }
 
-  const unknown = (vendorId: string, name: string): VendorDelivery => ({ vendorId, vendorName: name, status: "unknown", etdDays: null });
+  const unknown = (vendorId: string, name: string): VendorDelivery => ({
+    vendorId, vendorName: name, status: "unknown", etdDays: null, standardEtdDays: null, expressEtdDays: null, expressCourierId: null,
+  });
   if (!isShiprocketConfigured() || !/^[1-9]\d{5}$/.test(deliveryPincode)) {
     return Array.from(byVendor, ([id, v]) => unknown(id, v.name));
   }
@@ -58,12 +64,15 @@ export async function checkDelivery(lines: DeliveryLine[], deliveryPincode: stri
 
       const { data: cached } = await admin
         .from("serviceability_cache")
-        .select("serviceable, etd_days, checked_at")
+        .select("serviceable, etd_days, standard_etd_days, express_etd_days, express_courier_id, checked_at")
         .eq("pickup_pincode", pickup)
         .eq("delivery_pincode", deliveryPincode)
         .maybeSingle();
       if (cached && Date.now() - new Date(cached.checked_at).getTime() < CACHE_TTL_MS) {
-        return { vendorId, vendorName: v.name, status: cached.serviceable ? "ok" : "unserviceable", etdDays: cached.etd_days };
+        return {
+          vendorId, vendorName: v.name, status: cached.serviceable ? "ok" : "unserviceable", etdDays: cached.etd_days,
+          standardEtdDays: cached.standard_etd_days, expressEtdDays: cached.express_etd_days, expressCourierId: cached.express_courier_id,
+        };
       }
 
       try {
@@ -73,10 +82,16 @@ export async function checkDelivery(lines: DeliveryLine[], deliveryPincode: stri
           delivery_pincode: deliveryPincode,
           serviceable: result.serviceable,
           etd_days: result.etdDays,
+          standard_etd_days: result.standardEtdDays,
+          express_etd_days: result.expressEtdDays,
+          express_courier_id: result.expressCourierId,
           courier_count: result.courierCount,
           checked_at: new Date().toISOString(),
         });
-        return { vendorId, vendorName: v.name, status: result.serviceable ? "ok" : "unserviceable", etdDays: result.etdDays };
+        return {
+          vendorId, vendorName: v.name, status: result.serviceable ? "ok" : "unserviceable", etdDays: result.etdDays,
+          standardEtdDays: result.standardEtdDays, expressEtdDays: result.expressEtdDays, expressCourierId: result.expressCourierId,
+        };
       } catch (error) {
         console.error("Serviceability check failed; allowing checkout", error);
         return unknown(vendorId, v.name);

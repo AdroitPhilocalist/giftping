@@ -1,6 +1,6 @@
 import { personalizationSummary } from "@/lib/commerce/personalization";
 import { WRAP_STYLES, wrapStyleLabel } from "@/lib/commerce/wrap-styles";
-import { Gift } from "lucide-react";
+import { Gift, Zap } from "lucide-react";
 import { OrderFulfilment } from "@/components/vendor/OrderFulfilment";
 import { Badge } from "@/components/ui/Badge";
 import { getVendorOrders, requireApprovedVendor } from "@/lib/db/vendor-portal";
@@ -43,6 +43,12 @@ export default async function VendorOrdersPage() {
                     <p className="font-medium text-brand-dark">{formatCurrency(order.payout)}</p>
                   </div>
                 </div>
+
+                {order.expressRequested ? (
+                  <p className="flex items-center gap-1.5 rounded-xl bg-brand-secondary/15 px-3 py-2 text-xs font-semibold text-brand-secondary-dark">
+                    <Zap className="h-3.5 w-3.5" /> Customer paid for Express delivery — please accept and dispatch promptly.
+                  </p>
+                ) : null}
 
                 <ul className="divide-y divide-brand-dark/10 text-sm">
                   {order.items.map((item) => {

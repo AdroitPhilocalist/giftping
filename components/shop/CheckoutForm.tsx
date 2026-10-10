@@ -40,6 +40,7 @@ export function CheckoutForm({
   quote,
   giftWrapCharge,
   freeDeliveryThreshold,
+  expressSurcharge,
   returnDays,
   idempotencyKey,
   blocked,
@@ -49,6 +50,7 @@ export function CheckoutForm({
   quote: CheckoutQuoteView;
   giftWrapCharge: number;
   freeDeliveryThreshold: number;
+  expressSurcharge: number;
   returnDays: number;
   idempotencyKey: string;
   blocked: string | null;
@@ -66,6 +68,13 @@ export function CheckoutForm({
   const [isCouponPending, startCouponTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [deliveryResult, setDeliveryResult] = useState<{ addressId: string; vendors: VendorDelivery[] } | null>(null);
+  // Paired with the address it belongs to so a change of address resets it during render (React's own
+  // "adjust state when a prop changes" pattern) rather than via a separate reset-only effect: a different
+  // address might not offer Express on the same vendors (or at all), so a stale selection must not silently
+  // keep charging for an upgrade the new pincode never actually confirmed.
+  const [expressState, setExpressState] = useState<{ addressId: string | undefined; vendors: Set<string> }>({ addressId: selectedId, vendors: new Set() });
+  if (expressState.addressId !== selectedId) setExpressState({ addressId: selectedId, vendors: new Set() });
+  const expressVendors = expressState.vendors;
 
   // Serviceability + ETA for the chosen address. The server re-checks when the order is placed; this is for feedback.
   useEffect(() => {
@@ -86,13 +95,29 @@ export function CheckoutForm({
   const undeliverable = delivery.filter((d) => d.status === "unserviceable");
   // Only vendors we actually have something to say about (an unknown ETA renders nothing, not an empty bullet).
   const deliveryLines = delivery.flatMap((d) => {
-    if (d.status === "unserviceable") return [{ key: d.vendorId, bad: true, text: `${d.vendorName} can't deliver to this pincode yet.` }];
+    if (d.status === "unserviceable") return [{ key: d.vendorId, bad: true, text: `${d.vendorName} can't deliver to this pincode yet.`, express: null as typeof d | null }];
     if (d.status === "ok" && d.etdDays)
-      return [{ key: d.vendorId, bad: false, text: `${d.vendorName}: delivers in about ${d.etdDays} ${d.etdDays === 1 ? "day" : "days"} after dispatch.` }];
+      return [{
+        key: d.vendorId,
+        bad: false,
+        text: `${d.vendorName}: delivers in about ${d.etdDays} ${d.etdDays === 1 ? "day" : "days"} after dispatch.`,
+        express: d.expressEtdDays !== null ? d : null,
+      }];
     return [];
   });
 
-  const total = quote.totalBeforeWrap + (giftWrap ? giftWrapCharge : 0);
+  function toggleExpress(vendorId: string, on: boolean) {
+    setExpressState((prev) => {
+      const next = new Set(prev.vendors);
+      if (on) next.add(vendorId);
+      else next.delete(vendorId);
+      return { addressId: prev.addressId, vendors: next };
+    });
+  }
+
+  // Display-only arithmetic (same pattern as the gift-wrap fee above): the server recomputes everything
+  // authoritatively from a fresh serviceability check when the order is actually placed.
+  const total = quote.totalBeforeWrap + (giftWrap ? giftWrapCharge : 0) + expressVendors.size * expressSurcharge;
   const canPlace = !blocked && Boolean(selectedId) && !isPending && undeliverable.length === 0;
 
   function applyCoupon() {
@@ -118,7 +143,14 @@ export function CheckoutForm({
     if (!selectedId) return;
     setError(null);
     startTransition(async () => {
-      const result = await placeOrderAction({ addressId: selectedId, giftWrap, wrapStyle: giftWrap ? wrapStyle : undefined, giftMessage, idempotencyKey });
+      const result = await placeOrderAction({
+        addressId: selectedId,
+        giftWrap,
+        wrapStyle: giftWrap ? wrapStyle : undefined,
+        giftMessage,
+        idempotencyKey,
+        expressVendorIds: Array.from(expressVendors),
+      });
       if (result.error || !result.orderId) {
         setError(result.error ?? "We couldn't place your order. Please try again.");
         return;
@@ -138,11 +170,23 @@ export function CheckoutForm({
             <AddressBook addresses={addresses} selectedId={selectedId} onSelect={setSelectedId} />
           </div>
           {selectedId && (deliveryChecking || deliveryLines.length > 0) ? (
-            <ul className="mt-3 space-y-1 text-sm" aria-live="polite">
+            <ul className="mt-3 space-y-2 text-sm" aria-live="polite">
               {deliveryChecking && deliveryLines.length === 0 ? <li className="text-brand-dark/50">Checking delivery…</li> : null}
               {deliveryLines.map((line) => (
                 <li key={line.key} className={line.bad ? "font-medium text-red-700" : "text-brand-dark/60"}>
                   {line.text}
+                  {line.express ? (
+                    <div className="mt-1.5 flex flex-wrap gap-2" role="radiogroup" aria-label={`Delivery speed for ${line.express.vendorName}`}>
+                      <label className={cn("flex cursor-pointer items-center gap-1.5 rounded-button border px-3 py-1.5 text-xs transition-colors duration-200", !expressVendors.has(line.express.vendorId) ? "border-brand-secondary bg-brand-accent/60 font-medium text-brand-dark" : "border-brand-dark/15 text-brand-dark/60 hover:border-brand-dark/30")}>
+                        <input type="radio" name={`speed-${line.express.vendorId}`} className="sr-only" checked={!expressVendors.has(line.express.vendorId)} onChange={() => toggleExpress(line.express!.vendorId, false)} />
+                        Standard — {line.express.standardEtdDays ?? line.express.etdDays} {(line.express.standardEtdDays ?? line.express.etdDays) === 1 ? "day" : "days"}
+                      </label>
+                      <label className={cn("flex cursor-pointer items-center gap-1.5 rounded-button border px-3 py-1.5 text-xs transition-colors duration-200", expressVendors.has(line.express.vendorId) ? "border-brand-secondary bg-brand-accent/60 font-medium text-brand-dark" : "border-brand-dark/15 text-brand-dark/60 hover:border-brand-dark/30")}>
+                        <input type="radio" name={`speed-${line.express.vendorId}`} className="sr-only" checked={expressVendors.has(line.express.vendorId)} onChange={() => toggleExpress(line.express!.vendorId, true)} />
+                        Express — {line.express.expressEtdDays} {line.express.expressEtdDays === 1 ? "day" : "days"} (+{formatCurrency(expressSurcharge)})
+                      </label>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -258,7 +302,13 @@ export function CheckoutForm({
         <dl className="space-y-2 border-t border-brand-dark/10 pt-4 text-sm">
           <Row label={`Subtotal (${quote.itemCount} ${quote.itemCount === 1 ? "item" : "items"})`} value={formatCurrency(quote.subtotal)} />
           {quote.discount > 0 ? <Row label="Coupon discount" value={`− ${formatCurrency(quote.discount)}`} accent /> : null}
-          <Row label="Delivery" value={quote.delivery === 0 ? "Free" : formatCurrency(quote.delivery)} />
+          <Row
+            label="Delivery"
+            value={(() => {
+              const delivery = quote.delivery + expressVendors.size * expressSurcharge;
+              return delivery === 0 ? "Free" : formatCurrency(delivery);
+            })()}
+          />
           {giftWrap ? <Row label={`Gift wrapping · ${wrapStyleLabel(wrapStyle) ?? ""}`.replace(/ · $/, "")} value={formatCurrency(giftWrapCharge)} /> : null}
           <div className="flex justify-between border-t border-brand-dark/10 pt-3 font-heading text-lg text-brand-dark">
             <dt>Total</dt>

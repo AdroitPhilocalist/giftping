@@ -104,6 +104,7 @@ export default async function CheckoutPage() {
         }}
         giftWrapCharge={snapshot.settings.giftWrapCharge}
         freeDeliveryThreshold={snapshot.settings.freeDeliveryThreshold}
+        expressSurcharge={snapshot.settings.expressSurcharge}
         idempotencyKey={randomUUID()}
         returnDays={returnDays}
         blocked={blocked ?? quote.couponError}

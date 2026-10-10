@@ -14,6 +14,10 @@ export const placeOrderSchema = z.object({
     .transform((v) => (v ? v : null)),
   // Generated when the checkout page renders; lets a double-click / retry return the same order.
   idempotencyKey: z.string().uuid(),
+  // Vendor ids the shopper chose to upgrade to Express delivery. Re-validated server-side against a fresh
+  // serviceability check — a requested vendor with no real Express option on this route is silently dropped,
+  // never trusted or errored on.
+  expressVendorIds: z.array(z.string().uuid()).default([]),
 });
 
 export type PlaceOrderInput = z.input<typeof placeOrderSchema>;

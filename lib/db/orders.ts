@@ -2,7 +2,7 @@ import { createClient } from "@/lib/db/server";
 
 const ORDER_SELECT = `
   id, order_number, status, created_at, placed_at, delivery_address, gift_message, gift_wrap_selected, gift_wrap_style, gift_wrap_charge,
-  subtotal, discount_amount, delivery_charge, gst_amount, total_amount, coupon_code,
+  subtotal, discount_amount, delivery_charge, gst_amount, total_amount, coupon_code, delivery_speed,
   items:order_items (
     id, product_id, vendor_id, product_name, product_image, variant_label, personalization, quantity,
     unit_price, total_price, discount_amount, refunded_amount, returned_quantity,

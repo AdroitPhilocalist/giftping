@@ -2,7 +2,7 @@ import { personalizationSummary } from "@/lib/commerce/personalization";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { ExternalLink, Truck } from "lucide-react";
+import { ExternalLink, Truck, Zap } from "lucide-react";
 import { OrderCelebration } from "@/components/orders/OrderCelebration";
 import { OrderHero } from "@/components/orders/OrderHero";
 import { OrderStepper } from "@/components/orders/OrderStepper";
@@ -94,10 +94,14 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
               // Once delivered, the journey ends there: hide any stray scans the courier sent after the delivery scan.
               const deliveredAt = shipment?.status === "delivered" ? sorted.find((e) => e.raw_status === "DELIVERED")?.occurred_at : undefined;
               const events = deliveredAt ? sorted.filter((e) => +new Date(e.occurred_at) <= +new Date(deliveredAt)) : sorted;
+              const expressRequested = (order.delivery_speed as Record<string, { speed?: string }> | null)?.[vendorId]?.speed === "express";
               return (
                 <div key={vendorId} className="rounded-card border border-brand-dark/10 bg-brand-surface shadow-card p-4 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="font-heading text-brand-dark">{group.name}</p>
+                    <p className="flex items-center gap-1.5 font-heading text-brand-dark">
+                      {group.name}
+                      {expressRequested ? <span className="flex items-center gap-1 rounded-full bg-brand-secondary/15 px-2 py-0.5 font-sans text-[11px] font-semibold text-brand-secondary-dark"><Zap className="h-3 w-3" /> Express</span> : null}
+                    </p>
                     <Badge variant={shipment?.status === "delivered" ? "primary" : "gold"}>
                       {shipment?.awb_number
                         ? (SHIPMENT_STATUS_LABEL[shipment.status] ?? shipment.status)

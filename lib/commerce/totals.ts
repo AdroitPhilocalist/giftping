@@ -44,6 +44,8 @@ export interface QuoteSettings {
   deliveryCharge: number;
   freeDeliveryThreshold: number;
   giftWrapCharge: number;
+  /** Flat per-vendor-shipment upgrade fee for Express delivery — charged even when standard delivery would be free. */
+  expressSurcharge: number;
 }
 
 export interface QuoteLine {
@@ -109,8 +111,11 @@ export function computeQuote(input: {
   coupon: CouponRule | null;
   giftWrap: boolean;
   settings: QuoteSettings;
+  /** Vendor ids whose shipment the shopper upgraded to Express. Omit (or leave empty) for an all-Standard cart. */
+  expressVendorIds?: ReadonlySet<string>;
 }): Quote {
   const { lines, coupon, settings } = input;
+  const expressVendorIds = input.expressVendorIds ?? new Set<string>();
   const gross = lines.map((l) => round2(l.unitPrice * l.quantity));
   const subtotal = round2(gross.reduce((a, b) => a + b, 0));
 
@@ -167,7 +172,11 @@ export function computeQuote(input: {
   for (const line of quoteLines) netByVendor.set(line.vendorId, round2((netByVendor.get(line.vendorId) ?? 0) + line.net));
   const deliveryByVendor: Record<string, number> = {};
   for (const [vendorId, net] of netByVendor) {
-    deliveryByVendor[vendorId] = net >= settings.freeDeliveryThreshold ? 0 : settings.deliveryCharge;
+    // Express is a paid upgrade on top of whatever Standard would have cost — including free (a free threshold
+    // waives the ordinary delivery fee, not the premium for going faster).
+    const base = net >= settings.freeDeliveryThreshold ? 0 : settings.deliveryCharge;
+    const express = expressVendorIds.has(vendorId) ? settings.expressSurcharge : 0;
+    deliveryByVendor[vendorId] = round2(base + express);
   }
 
   const discount = round2(discounts.reduce((a, b) => a + b, 0));

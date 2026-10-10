@@ -63,10 +63,15 @@ export async function bookShipment(args: { vendorId: string; orderId: string; pk
 
   const { data: order } = await admin
     .from("orders")
-    .select("id, order_number, status, customer_id, delivery_address, placed_at")
+    .select("id, order_number, status, customer_id, delivery_address, placed_at, delivery_speed")
     .eq("id", orderId)
     .maybeSingle();
   if (!order || !PAID_STATES.includes(order.status)) return { error: "This order isn't ready to ship." };
+
+  // Captured at checkout from a real (then-current) serviceability check; it may no longer be bookable by
+  // dispatch time, so it's a best-effort preference, never a hard requirement (see assignAwb's own note).
+  const speed = (order.delivery_speed as Record<string, { speed?: string; courierId?: number | null }> | null)?.[vendorId];
+  const preferredCourierId = speed?.speed === "express" ? (speed.courierId ?? null) : null;
 
   const { data: items } = await admin
     .from("order_items")
@@ -177,20 +182,37 @@ export async function bookShipment(args: { vendorId: string; orderId: string; pk
         .eq("id", shipmentRowId);
     }
 
-    // ---- 4. courier + AWB
-    const { awb, courierName } = await assignAwb(shiprocketShipmentId);
+    // ---- 4. courier + AWB (the customer's Express courier preference, if any, is honoured on a best-effort
+    //         basis — it was captured at checkout and may no longer be assignable by now, so a rejection falls
+    //         back to Shiprocket's own auto-pick rather than blocking the booking over a stale preference)
+    let awb: string;
+    let courierName: string | null;
+    let expressDowngraded = false;
+    if (preferredCourierId) {
+      try {
+        ({ awb, courierName } = await assignAwb(shiprocketShipmentId, preferredCourierId));
+      } catch {
+        ({ awb, courierName } = await assignAwb(shiprocketShipmentId));
+        expressDowngraded = true;
+      }
+    } else {
+      ({ awb, courierName } = await assignAwb(shiprocketShipmentId));
+    }
     await admin
       .from("shipments")
       .update({ awb_number: awb, courier_name: courierName, tracking_url: trackingUrl(awb), status: "confirmed" })
       .eq("id", shipmentRowId);
 
     // ---- 5. ask the courier to collect (best effort: the AWB is already ours, a failed pickup request can be retried)
-    let warning: string | undefined;
+    let warning: string | undefined = expressDowngraded
+      ? "The customer's Express courier wasn't available anymore, so this booked with the next best option instead."
+      : undefined;
     try {
       await generatePickup(shiprocketShipmentId);
     } catch (error) {
       console.error("Pickup generation failed", error);
-      warning = "Courier booked, but the pickup request didn't go through — the courier may still collect it, or you can arrange it from your Shiprocket panel.";
+      const pickupWarning = "Courier booked, but the pickup request didn't go through — the courier may still collect it, or you can arrange it from your Shiprocket panel.";
+      warning = warning ? `${warning} ${pickupWarning}` : pickupWarning;
     }
 
     const base = appBaseUrl();

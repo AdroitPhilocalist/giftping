@@ -126,6 +126,8 @@ export interface VendorOrder {
   giftMessage: string | null;
   giftWrap: boolean;
   giftWrapStyle: string | null;
+  /** Only THIS vendor's own speed choice — never the raw delivery_speed blob, which also holds every other vendor's choice on a multi-vendor order. */
+  expressRequested: boolean;
   items: VendorOrderItem[];
   shipment: VendorOrderShipment | null;
   payout: number;
@@ -135,7 +137,7 @@ export interface VendorOrder {
 const VENDOR_ORDER_SELECT = `
   id, order_id, product_id, product_name, product_image, variant_label, personalization, quantity, total_price,
   discount_amount, fulfilment_status, created_at,
-  order:orders ( id, order_number, status, placed_at, delivery_address, gift_message, gift_wrap_selected, gift_wrap_style ),
+  order:orders ( id, order_number, status, placed_at, delivery_address, gift_message, gift_wrap_selected, gift_wrap_style, delivery_speed ),
   financials:order_item_financials ( vendor_payout )
 `;
 
@@ -188,6 +190,7 @@ export async function getVendorOrders(vendorId: string) {
       giftMessage: order.gift_message,
       giftWrap: order.gift_wrap_selected,
       giftWrapStyle: order.gift_wrap_style,
+      expressRequested: (order.delivery_speed as Record<string, { speed?: string }> | null)?.[vendorId]?.speed === "express",
       items: [],
       shipment: shipmentByOrder.get(row.order_id) ?? null,
       payout: 0,

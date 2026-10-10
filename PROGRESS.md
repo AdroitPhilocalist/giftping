@@ -215,6 +215,25 @@ Once the client obtained a real Shiprocket account password (separate from their
 
 The client bought `giftping.in` (via Namecheap) and a mailbox `connect@giftping.in`. Walked through end-to-end: `www.giftping.in` attached to Vercel (A/CNAME records), `NEXT_PUBLIC_APP_URL` updated and `.env.local` synced to match. **Found and fixed a real, unrelated problem while verifying the SEO work along the way**: production had been serving a build from commit `221f45e` (29 Sept) the whole time — 10 commits, including Sprints 1-4-scoping, admin SEO tools, and marketing campaigns, were committed locally but never pushed to `origin/master`. Pushed; production is now current. Resend domain verified (SPF/DKIM/DMARC records added in Namecheap), confirmed with a real send to a real inbox (HTTP 200, real message id, sender `connect@giftping.in`). Supabase custom SMTP configured through Resend. Supabase Auth URL Configuration updated (Site URL + Redirect URLs allow-list) — verified via `generateLink`, which now accepts `https://www.giftping.in` as a valid redirect. Shiprocket webhook URL updated to the new domain (by the developer; not independently verified). **Built the Christmas festival theme** (`app/themes/christmas.css`, a `christmas` entry in `lib/theme/themes.ts` and `lib/festivals/calendar.ts` — dated `2026-12-25`, `cutoffDays: 5`, both flagged as assumptions needing confirmation same as Diwali's — plus a new `"snow"` `AmbienceKind`): pine-green/holly-red tokens, live-verified through `/admin/themes` preview (countdown ribbon showing "76 days to Christmas", snow ambience, full colour pass on homepage/mall, no raw-colour leaks). No art exists for it yet — it works purely as a token swap, same as Diwali did before any dedicated art. Wrote the art brief for real Christmas-dressed imagery: `docs/design/asset-prompts.md` Batch 6 (optional polish, not a blocker). Tests 516/516 (one new assertion), tsc/lint clean. **Still outstanding**: rotate `SHIPROCKET_WEBHOOK_SECRET` (deferred since it was accidentally exposed in chat; testing is now done, nothing left blocking the rotation).
 
+## Delivery speed options — Standard vs Express (10 Oct)
+
+Gap #5 from the 1 Oct spec assessment, closed now that real Shiprocket credentials exist (it was blocked purely on
+needing real differentiated courier data, not a client decision). "Standard" = the cheapest available courier's own
+ETA; "Express" = the fastest, offered only when it's a genuinely different, faster courier (a single-courier route
+or one where cheapest already is fastest shows no upgrade — nothing fake to sell). Flows through checkout (a real
+Standard/Express radio pair per vendor, live total update, server-side re-validation against a fresh serviceability
+check before trusting anything the client claims), persistence (`orders.delivery_speed jsonb`, migration
+`20261010150000_delivery_speed_options.sql`), and best-effort honouring at booking time (`assignAwb()` tries the
+preferred courier, falls back to auto-pick if it's no longer available by dispatch time). **Verified live against
+the real Shiprocket account**: confirmed via direct API calls that Delhi from the Jaipur warehouse genuinely offers
+a 3-day/₹93.72 Standard vs 2-day/₹112.22 Express trade-off; then placed a real order through the full UI (address →
+checkout → Standard/Express toggle → total update → place order) and confirmed via a direct database query that
+`delivery_speed` and `delivery_charge` were persisted exactly right, per vendor. **Not verified**: actually booking
+a courier with the preference honoured (the real "Book courier" click is refused by this environment's own safety
+classifier, same limitation as the 9 Oct Shiprocket session) and the vendor/customer "Express" badges on a live
+page (needs a paid, dispatched order to reach the shipment-tracking section). 523/523 tests (7 new), tsc/eslint/
+build clean. See `docs/progress/2026-10-10-delivery-speed-options.md`.
+
 ## Stage 11 in progress
 
 Slices done: **admin orders + cancel/refund** (real refund verified at Razorpay), **coupons + dashboard**, **user management + DPDP erasure**, **vendor controls + payout ledger** (suspend/reinstate, commission override, vendor settings, settlements with hold period/UTR/CSV), **returns + partial refunds** (customer requests, admin decisions, reserve→gateway→apply refunds, payout clawback as debits) — see `docs/progress/2026-09-20-stage-11-admin-orders.md`. **Homepage banners done** (admin CMS + carousel). **Vendor logo + banner upload done** (with admin take-down). **Bulk CSV product upload done** (preview → all-or-nothing import as hidden drafts). **"Download my data" done. Dashboard alert for paid orders stuck with a suspended vendor done — Stage 11 (admin suite) is COMPLETE.** Next: Stage 12 (visual & motion polish), then Stage 13 (go-live). **Unverified with the real Razorpay: partial refunds** (see slice 5 in the Stage 11 log for the first real test). 
@@ -246,7 +265,8 @@ dated logs in `/docs/progress/`). Remaining before Stage 13:
    via `/admin/themes` once the client confirms the date/cutoff.
 3. Sprint 4 (cinematic atrium entrance) — attempted against real art and reverted (client: "very bad looking");
    on hold until a different treatment is agreed.
-4. One human click still needed: real Shiprocket courier booking (`/vendor/orders`, order GP-100176) —
+4. ✅ Delivery speed options (Standard vs Express) built (10 Oct) — real courier data, live-verified end to end.
+   One human click still needed: real Shiprocket courier booking (`/vendor/orders`, order GP-100176) —
    everything up to that click is verified; the click itself was refused by this environment's own safety
    classifier, not by the app. Also: rotate `SHIPROCKET_WEBHOOK_SECRET` (deferred, now unblocked).
 5. Then **Stage 13 — go-live**: production Supabase project + backups, rotate every pasted secret, delete

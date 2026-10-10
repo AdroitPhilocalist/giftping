@@ -126,7 +126,9 @@ export async function fetchServiceability(args: {
     return interpretServiceability(await call<unknown>(`/courier/serviceability/?${qs}`, { method: "GET" }));
   } catch (error) {
     // Some routes answer with a 404 instead of an empty 200; both mean "no courier serves this route".
-    if (error instanceof ShiprocketError && error.status === 404) return { serviceable: false, etdDays: null, courierCount: 0 };
+    if (error instanceof ShiprocketError && error.status === 404) {
+      return { serviceable: false, etdDays: null, courierCount: 0, standardEtdDays: null, expressEtdDays: null, expressCourierId: null };
+    }
     throw error;
   }
 }
@@ -219,12 +221,18 @@ export async function createShiprocketOrder(input: ShiprocketOrderInput) {
   return { shiprocketOrderId: String(json.order_id ?? ""), shipmentId: String(json.shipment_id) };
 }
 
-export async function assignAwb(shipmentId: string) {
+/**
+ * `preferredCourierId` (from an Express delivery-speed selection at checkout) asks Shiprocket to use that specific
+ * courier instead of letting it auto-pick; omitted, it auto-picks as before. The preference was captured at
+ * checkout time and may no longer be valid by the time a vendor actually dispatches (days or weeks later) — callers
+ * should retry without it on failure rather than treat a stale preference as a hard block (see lib/vendor/dispatch.ts).
+ */
+export async function assignAwb(shipmentId: string, preferredCourierId?: number | null) {
   const json = await call<{
     awb_assign_status?: number;
     response?: { data?: { awb_code?: string; courier_name?: string } };
     message?: string;
-  }>("/courier/assign/awb", { method: "POST", body: { shipment_id: shipmentId } });
+  }>("/courier/assign/awb", { method: "POST", body: { shipment_id: shipmentId, ...(preferredCourierId ? { courier_id: preferredCourierId } : {}) } });
   const data = json.response?.data;
   if (!data?.awb_code) throw new ShiprocketError(502, json.message ?? "No courier could be assigned");
   return { awb: data.awb_code, courierName: data.courier_name ?? null };
