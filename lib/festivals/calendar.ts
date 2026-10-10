@@ -8,6 +8,8 @@
  *   2. `cutoffDays`: how many days before the festival an order must be placed to arrive in time. 4 is an assumption (typical courier time + vendor dispatch
  *      time) — it is the client's/operations' call, and it should reflect the slowest realistic boutique, not the best case.
  */
+import type { AmbienceKind } from "@/components/shop/Ambience";
+
 export interface Festival {
   id: string;
   /** the id of its theme in lib/theme/themes.ts */
@@ -18,8 +20,8 @@ export interface Festival {
   cutoffDays: number;
   /** what to say next to the countdown */
   greeting: string;
-  /** what floats across the site while it is live (components/shop/Ambience.tsx kinds) */
-  ambience: "petals" | "confetti" | "hearts" | "sparks" | "diyas";
+  /** what floats across the site while it is live */
+  ambience: AmbienceKind;
   /** the Festivals category the "shop" button leads to */
   shopHref: string;
 }
@@ -33,6 +35,18 @@ export const FESTIVALS: Festival[] = [
     cutoffDays: 4,
     greeting: "Light up someone's Diwali",
     ambience: "diyas",
+    shopHref: "/categories/festivals",
+  },
+  {
+    id: "christmas",
+    themeId: "christmas",
+    name: "Christmas",
+    // Fixed calendar date, unlike Diwali — but cutoffDays is still an assumption (December courier congestion is worse than an ordinary week)
+    // and must be confirmed by the client/ops before this is scheduled live, same rule as every other entry in this file.
+    dates: ["2026-12-25", "2027-12-25"],
+    cutoffDays: 5,
+    greeting: "The season of giving is here",
+    ambience: "snow",
     shopHref: "/categories/festivals",
   },
 ];

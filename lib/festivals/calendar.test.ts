@@ -56,6 +56,7 @@ describe("festivalCountdown", () => {
 describe("festivalForTheme", () => {
   it("finds a festival by its theme and ignores others", () => {
     expect(festivalForTheme("diwali")?.name).toBe("Diwali");
+    expect(festivalForTheme("christmas")?.name).toBe("Christmas");
     expect(festivalForTheme("native")).toBeNull();
     expect(festivalForTheme(undefined)).toBeNull();
   });

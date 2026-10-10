@@ -1,0 +1,17 @@
+/* CHRISTMAS — frosted snow-white canvas, deep pine-green bars, holly-berry red accent (replaces copper for this theme). Colours only; nothing on any page
+   changes. Contrast checked: the accent (#b3121f) on the frost canvas is ~6.4:1, snow text on the pine bar is ~13:1. Scheduled/previewed from
+   /admin/themes; the countdown and floating snow ambience come with it (lib/festivals/calendar.ts, components/festival/). */
+:root[data-theme="christmas"] {
+  --gp-canvas: #f4f7f5;
+  --gp-surface: #ffffff;
+  --gp-peach: #f6d9da;
+  --gp-glow: rgb(179 18 31 / 0.16);
+  --gp-ink: #10241a;
+  --gp-primary: #0d3322;
+  --gp-primary-dark: #082018;
+  --gp-on-primary: #fdf6f2;
+  --gp-copper: #b3121f;
+  --gp-copper-dark: #7e0d16;
+  --gp-on-copper: #fff5f1;
+  --gp-hero-scrim: rgb(8 20 16 / 0.7);
+}

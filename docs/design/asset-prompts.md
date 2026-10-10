@@ -237,4 +237,33 @@ Same STYLE LINE as Batch 1. Same conversation if possible, so the lighting/palet
 | `atrium-layer-mid.png` | hanging gifts, fairy lights, balcony | medium |
 | `atrium-layer-near.png` | platform, shopfront edges, floor | fastest |
 
+---
+
+# Batch 6 — Christmas festival kit
+
+The Christmas theme is already built and live in `/admin/themes` (colours, the countdown ribbon, floating snow) — it works today with zero art, just like Diwali, because it's a token swap over the existing native pictures. This batch is **optional polish**: real Christmas-dressed versions of the hero/map/cards, exactly the way the Diwali entry in `lib/festivals/calendar.ts` could get the same treatment later if wanted.
+
+**Same rules as every batch**: one ChatGPT conversation, paste the STYLE LINE below first, no text/letters/numbers/logos in any picture (reply "regenerate with absolutely no text..." if one sneaks in), save as PNG with the exact file name, into a **new subfolder** `ui-references/batch-1/christmas/` (not the top level — the subfolder is what tells `npm run images:sync` these are the Christmas-only variants, keyed as `christmas/hero-atrium` etc., and they'll only show up on the site while the Christmas theme is live).
+
+## STYLE LINE for this batch (paste first, once)
+
+> Same warm, premium, cinematic gifting-mall aesthetic as before, now dressed for Christmas: deep pine green and holly-berry red take over from the usual forest-green-and-copper, brushed brass stays, add soft evergreen garlands with small gold baubles, a light dusting of snow on surfaces and windowsills (not snowing hard — just a frosted touch), warm fairy lights still everywhere. Tasteful and elegant, not a kitschy Santa's-workshop look — no Santa, no elves, no reindeer, no snowmen. Refined, luxurious, emotional, photorealistic, shallow depth of field, gentle film grain. ABSOLUTELY NO text, letters, numbers, logos, signs with writing, or watermarks anywhere in any image. No people's faces unless I say so.
+
+## The pictures (same file names as the native set, same shapes)
+
+**1 · `hero-atrium.png` — homepage hero** · **landscape**
+> The same grand gifting-mall atrium as the native hero, now dressed for Christmas: pine-green garlands with gold baubles wound around the balcony railings, the hanging gift boxes now in red and gold ribbon instead of copper, a light frost of snow on the central marble platform's edge, warm fairy lights throughout. LEFT THIRD calmer and darker for a headline to sit on. Wide cinematic composition.
+
+**2 · `hero-atrium-mobile.png` — same scene, portrait**
+> The same Christmas-dressed atrium as a tall portrait composition: garlanded balconies and the glowing skylight in the top half, the frosted central platform in the middle, soft darkness at the bottom for text.
+
+**3 · `mall-map.png` — the mall directory, dressed for Christmas** · **square** · plain cream background
+> The same isometric mall floor-plan illustration as the native one, now with pine garlands strung along the ring-shaped promenade, small gold baubles and a light snow dusting on the rooftops of each shop zone, warm amber shop windows. No numbers, no text — I add markers myself.
+
+**4 · `card-collections.png`, `card-boutiques.png`, `card-diary.png`, `card-services.png` — the four homepage cards, dressed for Christmas** · **landscape** each
+> (a) A dark pine-green gift box with a wide holly-red satin ribbon on a warm wooden surface, a sprig of real holly and a few gold baubles beside it, warm side light. (b) The interior of a luxury boutique at Christmas: dark wood shelves lit from within, a garland along the top shelf, candles and small wrapped gifts, amber glow. (c) An open cream leather diary with a brass pen and a small sprig of holly on a wooden desk, a few fairy lights out of focus in the background, warm morning light. (d) Hands tying a holly-red satin ribbon on a kraft-wrapped gift with a small gold bauble tucked into the bow, warm light, close-up.
+
+## What this unlocks
+Once synced, these replace the native pictures automatically — and only — while the Christmas theme is the live/previewed one (`siteImage(key, "christmas")` in `lib/content/imagery.ts` already prefers a theme-specific picture over the native one). Nothing to build: this is a pure drop-in, same as Batch 1 was for the native look.
+
 Until these exist, Sprint 4 (B2 cinematic entrance, B5 parallax hero) stays on hold — see `PROGRESS.md`. The flat `hero-atrium.png` keeps doing its current job (the plain homepage hero) regardless; these three are additional files, not a replacement for it.
