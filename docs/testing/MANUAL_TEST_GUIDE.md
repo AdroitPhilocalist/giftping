@@ -538,6 +538,20 @@ An **admin**-only action — `/vendor/returns` stays read-only, GiftPing books t
 4. **Edge case**: click "Book pickup" a second time on the same return — confirm it's refused ("A return pickup
    is already booked for this item"), not a duplicate booking.
 
+## 18. Brand & SEO polish *(new — 11 Oct; quick visual checks, not a full workflow)*
+
+1. **Browser tab icon**: on any page, look at the actual browser tab — it should show the real GiftPing mark (the
+   forest-green "Gp" monogram with the robin perched on top), not a generic icon. Same mark should appear if you
+   bookmark the site or (on a phone) "Add to Home Screen."
+2. **Product page title**: open any product, then look at the browser tab title (or hover a bookmark/history
+   entry) — it should read `"<Product Name> — GiftPing"`, not just the bare product name.
+3. **Google's real rich-results check** (optional, needs no sign-in): paste a real product URL into
+   [search.google.com/test/rich-results](https://search.google.com/test/rich-results) — should report 4 valid
+   items (Product, Merchant listing, Breadcrumbs, Reviews), no errors.
+4. **Not something to click-test**: the Google search snippet itself (showing `https://` instead of `http://`,
+   the real logo instead of a placeholder) updates on Google's own schedule, not ours — expect it to look right
+   within a week or two of the fixes going live, not instantly.
+
 ## Reporting a bug
 
 For anything that doesn't match "Expected," note:
