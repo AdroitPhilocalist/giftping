@@ -234,6 +234,20 @@ classifier, same limitation as the 9 Oct Shiprocket session) and the vendor/cust
 page (needs a paid, dispatched order to reach the shipment-tracking section). 523/523 tests (7 new), tsc/eslint/
 build clean. See `docs/progress/2026-10-10-delivery-speed-options.md`.
 
+## Technical SEO audit (11 Oct)
+
+Full pass against the real live site (not code-reading guesses): crawlability, indexability, structured data via
+Google's own Rich Results Test, a broken-link sample crawl. Mostly clean (robots/sitemap/canonicals/noindex/404
+handling/alt text all verified correct). **Two real issues found and fixed**: every product page was shipping a
+bare, brandless `<title>` (the one page template that didn't append "— GiftPing" like every other page does —
+fixed to match); Google flagged two missing-but-available Merchant-listing fields (`shippingDetails`,
+`hasMerchantReturnPolicy`), added using real data already on the page (delivery charge/threshold, return window)
+— deliberately **not** adding `deliveryTime` (varies per courier/pincode, no fixed claim exists to make honestly)
+or `returnFees` (the refund policy page never actually states who pays return shipping — omitted rather than
+guessed). 529/529 tests (6 new), tsc/eslint/build clean. **Honest gap**: Core Web Vitals couldn't be measured in
+this environment (no local Chrome, PageSpeed Insights' hosted tool hung) — worth a human check once. See
+`docs/progress/2026-10-11-technical-seo-audit.md`.
+
 ## Real favicon + Organization/WebSite structured data (11 Oct)
 
 The client searched "giftping" on Google and the result looked amateur — turned out `app/favicon.ico` was still

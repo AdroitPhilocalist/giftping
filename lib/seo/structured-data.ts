@@ -44,11 +44,46 @@ export interface ProductJsonLd {
   brand: { "@type": "Brand"; name: string };
   description?: string;
   sku?: string;
-  offers: { "@type": "Offer"; url: string; priceCurrency: string; price: string; availability: string };
+  offers: {
+    "@type": "Offer";
+    url: string;
+    priceCurrency: string;
+    price: string;
+    availability: string;
+    shippingDetails?: {
+      "@type": "OfferShippingDetails";
+      shippingRate: { "@type": "MonetaryAmount"; value: string; currency: string };
+      shippingDestination: { "@type": "DefinedRegion"; addressCountry: "IN" };
+      // Deliberately no `deliveryTime`: real transit time varies per courier/pincode (see the Standard/Express
+      // delivery-speed work) — nothing on the product page makes a single fixed day-range claim, so the schema
+      // doesn't either. Adding a guessed range here would be exactly the kind of unverifiable claim this file's
+      // own rule (structured data only describes what the page already shows) exists to prevent.
+    };
+    hasMerchantReturnPolicy?: {
+      "@type": "MerchantReturnPolicy";
+      applicableCountry: "IN";
+      returnPolicyCategory: string;
+      merchantReturnDays?: number;
+      // Who pays return shipping is never actually stated on the refund policy page, so `returnFees` is
+      // deliberately omitted rather than guessed — same discipline as leaving `deliveryTime` off above.
+      returnMethod: "https://schema.org/ReturnByMail";
+    };
+  };
   aggregateRating?: { "@type": "AggregateRating"; ratingValue: string; reviewCount: number };
 }
 
-export function productJsonLd(product: ProductForSchema): ProductJsonLd {
+/**
+ * Real facts the page already shows in plain text (the delivery charge/threshold and return window, both visible
+ * on every product page) — never invented just for the schema. Optional because a caller testing `productJsonLd`
+ * in isolation, or a future one without this data loaded, still gets valid markup without it.
+ */
+export interface ProductPolicies {
+  deliveryCharge: number;
+  freeDeliveryThreshold: number;
+  returnWindowDays: number;
+}
+
+export function productJsonLd(product: ProductForSchema, policies?: ProductPolicies): ProductJsonLd {
   const price = computeUnitPrice({ basePrice: product.base_price, salePrice: product.sale_price, adjustments: [] });
   const json: ProductJsonLd = {
     "@context": "https://schema.org",
@@ -71,6 +106,26 @@ export function productJsonLd(product: ProductForSchema): ProductJsonLd {
   // searcher to check it against.
   if (product.review_count > 0) {
     json.aggregateRating = { "@type": "AggregateRating", ratingValue: product.average_rating.toFixed(1), reviewCount: product.review_count };
+  }
+  if (policies) {
+    // The product page's delivery charge is a FLAT fee waived at the free-delivery threshold — below it, that flat
+    // fee really is "the" shipping rate; at or above it the page already says "Free", which 0 correctly represents too.
+    const net = price >= policies.freeDeliveryThreshold ? 0 : policies.deliveryCharge;
+    json.offers.shippingDetails = {
+      "@type": "OfferShippingDetails",
+      shippingRate: { "@type": "MonetaryAmount", value: net.toFixed(2), currency: "INR" },
+      shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+    };
+    json.offers.hasMerchantReturnPolicy =
+      policies.returnWindowDays > 0
+        ? {
+            "@type": "MerchantReturnPolicy",
+            applicableCountry: "IN",
+            returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+            merchantReturnDays: policies.returnWindowDays,
+            returnMethod: "https://schema.org/ReturnByMail",
+          }
+        : { "@type": "MerchantReturnPolicy", applicableCountry: "IN", returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted", returnMethod: "https://schema.org/ReturnByMail" };
   }
   return json;
 }

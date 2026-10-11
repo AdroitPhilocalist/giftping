@@ -64,6 +64,43 @@ describe("productJsonLd", () => {
     const many = productJsonLd({ ...base, images: Array.from({ length: 12 }, (_, i) => ({ url: `/images/${i}.webp` })) });
     expect(many.image).toHaveLength(8);
   });
+
+  it("omits shipping/return details entirely when no policies are given (back-compatible)", () => {
+    const json = productJsonLd(base);
+    expect(json.offers.shippingDetails).toBeUndefined();
+    expect(json.offers.hasMerchantReturnPolicy).toBeUndefined();
+  });
+
+  it("charges the real flat delivery rate below the free-delivery threshold", () => {
+    // base price 2499, threshold 3000 -> below threshold, real flat fee applies
+    const json = productJsonLd(base, { deliveryCharge: 79, freeDeliveryThreshold: 3000, returnWindowDays: 7 });
+    expect(json.offers.shippingDetails).toEqual({
+      "@type": "OfferShippingDetails",
+      shippingRate: { "@type": "MonetaryAmount", value: "79.00", currency: "INR" },
+      shippingDestination: { "@type": "DefinedRegion", addressCountry: "IN" },
+    });
+    expect(json.offers.hasMerchantReturnPolicy).toEqual({
+      "@type": "MerchantReturnPolicy",
+      applicableCountry: "IN",
+      returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+      merchantReturnDays: 7,
+      returnMethod: "https://schema.org/ReturnByMail",
+    });
+    // never claims a specific transit time or who pays return shipping — neither is a fact this page actually states
+    expect(json.offers.shippingDetails).not.toHaveProperty("deliveryTime");
+    expect(json.offers.hasMerchantReturnPolicy).not.toHaveProperty("returnFees");
+  });
+
+  it("matches the page's own 'Free' delivery claim at or above the threshold", () => {
+    const json = productJsonLd(base, { deliveryCharge: 79, freeDeliveryThreshold: 2000, returnWindowDays: 7 });
+    expect(json.offers.shippingDetails?.shippingRate.value).toBe("0.00");
+  });
+
+  it("declares returns not permitted, honestly, when the window is 0", () => {
+    const json = productJsonLd(base, { deliveryCharge: 79, freeDeliveryThreshold: 3000, returnWindowDays: 0 });
+    expect(json.offers.hasMerchantReturnPolicy?.returnPolicyCategory).toBe("https://schema.org/MerchantReturnNotPermitted");
+    expect(json.offers.hasMerchantReturnPolicy).not.toHaveProperty("merchantReturnDays");
+  });
 });
 
 describe("breadcrumbJsonLd", () => {

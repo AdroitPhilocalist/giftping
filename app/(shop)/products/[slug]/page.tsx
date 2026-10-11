@@ -30,7 +30,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const { slug } = await params;
   const product = await getProductBySlug(slug);
   if (!product) return {};
-  const title = product.meta_title || product.name;
+  // Same fallback convention as every other page type (categories, vendors, fixed pages): a custom meta_title is
+  // used exactly as written, but the default is suffixed with the brand — found missing here during a technical
+  // SEO audit (11 Oct), product pages were the one template silently shipping a bare, brandless title.
+  const title = product.meta_title || `${product.name} — GiftPing`;
   const description = product.meta_description || product.short_description || undefined;
   const path = `/products/${slug}`;
   return {
@@ -69,7 +72,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     ...(product.category ? [{ name: product.category.name, path: `/categories/${product.category.slug}` }] : []),
     { name: product.name, path: `/products/${product.slug}` },
   ];
-  const productSchema = productJsonLd(product);
+  const productSchema = productJsonLd(product, { deliveryCharge: settings.deliveryCharge, freeDeliveryThreshold: settings.freeDeliveryThreshold, returnWindowDays: returnDays });
   const breadcrumbSchema = breadcrumbJsonLd(breadcrumbItems);
 
   const tags = [...product.occasion_tags, ...product.recipient_tags];
