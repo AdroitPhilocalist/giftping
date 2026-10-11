@@ -7,7 +7,6 @@ import type { MouseEvent } from "react";
 import { Briefcase, Cake, ChevronRight, DoorOpen, Flower2, Gem, Gift, Heart, Pause, Play, Store, Watch } from "lucide-react";
 import { MallMapArt } from "@/components/art/MallMapArt";
 import { Robin } from "@/components/art/Robin";
-import { ProductImage } from "@/components/shop/ProductImage";
 import type { PlaceSummary } from "@/lib/mall-summaries";
 import "../shop/shop.css";
 import { IMAGE_POSITIONS, MALL_ZONES, PLAN_POSITIONS, type ZoneIcon } from "@/lib/mall";
@@ -15,7 +14,21 @@ import { cn } from "@/lib/utils/cn";
 
 const ICONS: Record<ZoneIcon, typeof Gift> = { door: DoorOpen, cake: Cake, gem: Gem, heart: Heart, store: Store, flower: Flower2, watch: Watch, briefcase: Briefcase, gift: Gift };
 const TOUR_STEP_MS = 2600;
-const DEFAULT_PREVIEW = "atrium";
+
+/**
+ * Where the floating preview card sits relative to its marker, so it never spills off the map's edge: flips to
+ * whichever side of the marker has room, purely from the marker's own (x, y) percentage — no measuring needed.
+ * A marker in the top half gets a card BELOW it (nothing to spill into above); bottom half gets one ABOVE.
+ * A marker near the left/right edge gets the card anchored to that same edge (extending inward) instead of
+ * centered, so it can't run off the side; a marker near the middle gets it centered.
+ */
+function overlayTransform(x: number, y: number): string {
+  const tx = x < 35 ? "0%" : x > 65 ? "-100%" : "-50%";
+  const ty = y < 50 ? "0%" : "-100%";
+  const gx = x < 35 ? "14px" : x > 65 ? "-14px" : "0px";
+  const gy = y < 50 ? "14px" : "-14px";
+  return `translate(calc(${tx} + ${gx}), calc(${ty} + ${gy}))`;
+}
 
 /**
  * The interactive floor plan. Numbered markers are real links (keyboard-focusable, announced by screen readers); the list beside the map mirrors them, and hovering
@@ -34,8 +47,6 @@ export function MallDirectory({ image, previews, summaries }: { image: { src: st
   if (active && active !== perch.id) {
     setPerch({ id: active, facing: positions[active].x < positions[perch.id].x ? -1 : 1 });
   }
-  const perched = MALL_ZONES.find((z) => z.id === perch.id) ?? MALL_ZONES[0];
-  const summary = summaries[perched.id];
   // On a touch screen the first tap on a number shows its card and only a second tap goes in (there is no hover to preview with).
   const tappedOnce = useRef<string | null>(null);
   const enter = (e: MouseEvent<HTMLAnchorElement>, id: string) => {
@@ -64,20 +75,21 @@ export function MallDirectory({ image, previews, summaries }: { image: { src: st
     setActive(id);
   };
   const current = MALL_ZONES.find((z) => z.id === active);
+  const summary = current ? summaries[current.id] : undefined;
+  const currentPos = current ? positions[current.id] : null;
 
   return (
-    // Three functional pieces — the map, the directory list, and the "what is this place" preview — used to be
-    // stacked as map-then-button-then-preview-then-card in one tall column, with the directory as a SEPARATE,
-    // shorter column merely centered against that whole stack. On any viewport shorter than that combined
-    // height, hovering a number on the map meant the preview (and sometimes the directory entry) needed a
-    // scroll to actually see — defeating the point of a hover preview. Fixed by grouping the directory and the
-    // preview into ONE column that sits beside the map (top-aligned, not centered), and — on phones, where
-    // there's no side-by-side room at all — putting the live preview directly after the map (the thing you
-    // need to see right after touching a number) with the full directory list further down (a secondary,
-    // browse-everything view, not something you need mid-hover).
+    // The map and the directory sit side by side (top-aligned, not centered — a previous pass fixed the
+    // directory being merely vertically centered against the map, which could leave it oddly offset from
+    // whatever you were actually hovering). The "what is this place" preview no longer has a column of its
+    // own at all: a static block — wherever it sat — needed a scroll past everything above it on any ordinary
+    // laptop height, and worse on phones. It's now a small floating card that appears ON the map itself,
+    // anchored right next to whichever marker you're on (overlayTransform flips it above/below and left/right
+    // so it never runs off the map's edge), the same positioning trick the robin already uses. It shows only
+    // while something is actually active — unlike the old card, it isn't meant to linger once you look away.
     <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-6">
       {/* the map */}
-      <div className="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
+      <div className="lg:col-start-2">
         <div className="relative mx-auto w-full max-w-[38rem]">
           <div className={cn("relative", image ? "" : "aspect-[600/640]")}>
             {image ? (
@@ -115,6 +127,31 @@ export function MallDirectory({ image, previews, summaries }: { image: { src: st
                 </Link>
               );
             })}
+            {/* the floating preview: photo + name for whichever place is active, right on the map next to its
+                marker — a single card that re-anchors itself rather than nine pre-placed ones, since the content
+                always belongs to "whatever's active right now", not to a fixed marker. Hovering the card itself
+                also counts as staying on it (same as a marker), so moving from the dot onto the card to click
+                through doesn't make it vanish out from under the pointer. */}
+            {current && currentPos && previews[current.id] ? (
+              <Link
+                href={current.href}
+                aria-label={`${current.n}. ${current.title} — Step inside`}
+                onMouseEnter={() => touch(current.id)}
+                onMouseLeave={() => touch(null)}
+                style={{ left: `${currentPos.x}%`, top: `${currentPos.y}%`, transform: overlayTransform(currentPos.x, currentPos.y) }}
+                className="absolute z-30 block w-44 overflow-hidden rounded-card border border-brand-dark/10 bg-brand-surface shadow-lift sm:w-56"
+              >
+                <span className="relative block aspect-[4/3] w-full">
+                  <Image src={previews[current.id]} alt="" fill sizes="224px" className="object-cover" />
+                  <span className="absolute inset-0 bg-gradient-to-t from-brand-primary-dark/85 via-brand-primary-dark/10 to-transparent" aria-hidden="true" />
+                  {summary ? <span className="absolute left-2 top-2 rounded-full bg-brand-surface/90 px-2 py-0.5 text-[10px] font-medium text-brand-secondary-dark">{summary.label}</span> : null}
+                  <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-2.5">
+                    <span className="font-heading text-sm leading-tight text-white">{current.n}. {current.title}</span> {/* theme-safe: text on a photo scrim */}
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand-secondary text-brand-on-secondary"><ChevronRight className="h-4 w-4" aria-hidden="true" /></span>
+                  </span>
+                </span>
+              </Link>
+            ) : null}
           </div>
 
           <div className="mt-4 flex justify-center">
@@ -130,54 +167,8 @@ export function MallDirectory({ image, previews, summaries }: { image: { src: st
         </div>
       </div>
 
-      {/* the live preview — photo + info card for whatever's currently hovered/tapped. Right after the map on
-          phones (the thing you actually want to see the moment you touch a number); beside the directory, BELOW
-          it, on desktop (same column, so it never ends up under the fold while the map is still in view). */}
-      <div className="order-2 lg:order-none lg:col-start-3 lg:row-start-2 lg:self-start">
-        <div className="mx-auto w-full max-w-[38rem] lg:mx-0 lg:max-w-none">
-          {Object.keys(previews).length > 0 ? (
-            <div className="relative aspect-[16/9] overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-accent shadow-card" aria-hidden="true">
-              {Object.entries(previews).map(([id, src]) => (
-                <Image key={id} src={src} alt="" fill sizes="(min-width: 1024px) 34vw, 90vw" className={cn("object-cover transition-opacity duration-700", (active ?? DEFAULT_PREVIEW) === id ? "opacity-100" : "opacity-0")} />
-              ))}
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-primary-dark/80 to-transparent px-4 pb-3 pt-10">
-                <p className="font-heading text-lg text-white">{(current ?? MALL_ZONES.find((z) => z.id === DEFAULT_PREVIEW))?.title}</p> {/* theme-safe: text on a photo scrim */}
-              </div>
-            </div>
-          ) : null}
-          <div className="mt-4 min-h-[9.5rem] rounded-card border border-brand-dark/[0.06] bg-brand-surface p-4 shadow-card" aria-live="polite">
-            <div key={perched.id} className="rise">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="font-heading text-lg leading-tight text-brand-dark">{perched.n}. {perched.title}</p>
-                  <p className="mt-0.5 text-sm text-brand-dark/65">{perched.sub}</p>
-                </div>
-                {summary ? <span className="shrink-0 rounded-full bg-brand-accent px-3 py-1 text-xs font-medium text-brand-secondary-dark">{summary.label}</span> : null}
-              </div>
-              <p className="mt-2 text-[13px] italic text-brand-dark/60">“{perched.guide}”</p>
-              <div className="mt-3 flex items-center justify-between gap-3">
-                {summary && summary.items.length > 0 ? (
-                  <ul className="flex gap-2">
-                    {summary.items.map((item) => (
-                      <li key={item.id}>
-                        <Link href={item.href} title={item.name} aria-label={item.name} className="block h-12 w-12 overflow-hidden rounded-xl ring-1 ring-brand-dark/10 transition-transform duration-300 hover:-translate-y-0.5">
-                          <ProductImage src={item.image} alt="" sizes="48px" className="h-full w-full" />
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : <span />}
-                <Link href={perched.href} className="inline-flex items-center gap-1 rounded-button bg-brand-secondary px-4 py-2 text-sm font-medium text-brand-on-secondary shadow-card transition-transform duration-300 hover:-translate-y-px">
-                  {perched.id === "entrance" ? "Back to the front door" : "Step inside"} <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* the directory list */}
-      <div className="order-3 lg:order-none lg:col-start-3 lg:row-start-1 lg:self-start">
+      <div className="lg:col-start-3">
         <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.28em] text-brand-dark/60">Directory <span className="text-brand-secondary">—</span></p>
         <ul className="divide-y divide-brand-dark/[0.07] overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card">
           {MALL_ZONES.map((z) => {
