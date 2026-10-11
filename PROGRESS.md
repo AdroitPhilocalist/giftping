@@ -234,6 +234,20 @@ classifier, same limitation as the 9 Oct Shiprocket session) and the vendor/cust
 page (needs a paid, dispatched order to reach the shipment-tracking section). 523/523 tests (7 new), tsc/eslint/
 build clean. See `docs/progress/2026-10-10-delivery-speed-options.md`.
 
+## Real favicon + Organization/WebSite structured data (11 Oct)
+
+The client searched "giftping" on Google and the result looked amateur — turned out `app/favicon.ico` was still
+the stock Next.js starter icon from the project's very first day (16 Sept), never replaced despite the real "Gp"
+monogram + robin logo existing since 5 Oct. Generated a real icon set from the actual logo (`app/icon.png`,
+`app/apple-icon.png`, a proper multi-resolution `favicon.ico`, plus `/icons/icon-192.png` / `-512.png` for a new
+`app/manifest.ts`), and added Organization + WebSite JSON-LD to the homepage so Google has an explicit,
+machine-readable link between the domain, the real brand name, and the real logo. Verified live: all icon routes
+serve correctly with the right content types, the rendered `<head>` has the right `<link>` tags, the JSON-LD
+renders with real production URLs. 525/525 tests (2 new), tsc/eslint/build clean. **Not instant**: Google is
+known to be slow (1–4 weeks) refreshing a favicon in live search results specifically, separate from ordinary
+page reindexing — the fix is correct and deployed, the public snippet updating just takes its own time. See
+`docs/progress/2026-10-11-real-favicon-and-brand-schema.md`.
+
 ## Return shipment / reverse-pickup booking (10 Oct)
 
 Gap #6 from the 1 Oct spec assessment, closed alongside #5 now that real Shiprocket credentials exist. Approving a

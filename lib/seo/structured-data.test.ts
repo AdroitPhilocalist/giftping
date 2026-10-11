@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { breadcrumbJsonLd, jsonLdScript, productJsonLd, type ProductForSchema } from "./structured-data";
+import { breadcrumbJsonLd, jsonLdScript, organizationJsonLd, productJsonLd, websiteJsonLd, type ProductForSchema } from "./structured-data";
 
 const base: ProductForSchema = {
   name: "Luxe Memory Hamper",
@@ -71,6 +71,25 @@ describe("breadcrumbJsonLd", () => {
     const json = breadcrumbJsonLd([{ name: "Home", path: "/" }, { name: "Birthday", path: "/categories/birthday" }, { name: "Luxe Memory Hamper", path: "/products/luxe-memory-hamper" }]);
     expect(json.itemListElement.map((i) => i.position)).toEqual([1, 2, 3]);
     expect(json.itemListElement[1].item).toMatch(/\/categories\/birthday$/);
+  });
+});
+
+describe("organizationJsonLd", () => {
+  it("names the real brand and logo, as absolute URLs", () => {
+    const json = organizationJsonLd();
+    expect(json["@type"]).toBe("Organization");
+    expect(json.name).toBe("GiftPing");
+    expect(json.url).toMatch(/^https?:\/\//);
+    expect(json.logo).toMatch(/^https?:\/\/.*logo-gp\.webp$/);
+  });
+});
+
+describe("websiteJsonLd", () => {
+  it("points the search action at the real search page with the right query placeholder", () => {
+    const json = websiteJsonLd();
+    expect(json["@type"]).toBe("WebSite");
+    expect(json.potentialAction.target).toMatch(/\/search\?q=\{search_term_string\}$/);
+    expect(json.potentialAction["query-input"]).toBe("required name=search_term_string");
   });
 });
 

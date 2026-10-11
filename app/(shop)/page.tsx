@@ -21,6 +21,7 @@ import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getHomeBanners } from "@/lib/db/banners";
 import { pageMetadata } from "@/lib/seo/site-seo";
+import { jsonLdScript, organizationJsonLd, websiteJsonLd } from "@/lib/seo/structured-data";
 
 export const generateMetadata = (): Promise<Metadata> => pageMetadata("home");
 
@@ -37,6 +38,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ a
 
   return (
     <>
+      {/* Who GiftPing IS (said once, homepage only) — the standard lever for Google to show the real logo/name for this domain, not a guess. */}
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdScript(organizationJsonLd()) }} />
+      <script type="application/ld+json" suppressHydrationWarning dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd()) }} />
+
       {accountDeleted ? (
         <p role="status" className="bg-brand-accent px-4 py-3 text-center text-sm text-brand-dark">
           Your account has been deleted and your personal data erased. We&apos;re sorry to see you go — you&apos;re always welcome back.

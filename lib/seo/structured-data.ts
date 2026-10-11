@@ -91,6 +91,51 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]): Bread
 }
 
 /**
+ * schema.org/Organization + WebSite for the homepage only (not every page — this describes the BUSINESS, said once). Gives Google a confident,
+ * machine-readable link between the domain, the real brand name, and the real logo (not whatever generic favicon happened to be in place) — the
+ * standard lever for a more "legitimate business" treatment in search results over time (Knowledge Panel eligibility, a correct site icon, etc.).
+ * `sameAs` is deliberately omitted until the client has real, live social profiles to list — a dead/placeholder link here would be worse than none.
+ */
+export interface OrganizationJsonLd {
+  "@context": "https://schema.org";
+  "@type": "Organization";
+  name: string;
+  url: string;
+  logo: string;
+  description: string;
+}
+
+export function organizationJsonLd(): OrganizationJsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "GiftPing",
+    url: absoluteUrl("/"),
+    logo: absoluteUrl("/images/logo-gp.webp"),
+    description: "A premium virtual gifting mall — in-house and partner-vendor gifts for every occasion, with a Personal Gifting Diary so you never miss a moment.",
+  };
+}
+
+export interface WebsiteJsonLd {
+  "@context": "https://schema.org";
+  "@type": "WebSite";
+  name: string;
+  url: string;
+  potentialAction: { "@type": "SearchAction"; target: string; "query-input": string };
+}
+
+/** `potentialAction` is what makes Google consider showing a search box directly under the site's result ("sitelinks search box"). */
+export function websiteJsonLd(): WebsiteJsonLd {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "GiftPing",
+    url: absoluteUrl("/"),
+    potentialAction: { "@type": "SearchAction", target: `${absoluteUrl("/search")}?q={search_term_string}`, "query-input": "required name=search_term_string" },
+  };
+}
+
+/**
  * Safe to drop straight into `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ... }}>`. `JSON.stringify` already escapes quotes, but a
  * literal `</script` inside a string value (a product name/description a vendor wrote) would still close the tag early and let the rest run as HTML — so
  * every `<` is additionally escaped the way Next itself escapes JSON-LD it emits.
