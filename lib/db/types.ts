@@ -2088,6 +2088,30 @@ export type Database = {
           },
         ]
       }
+      search_synonyms: {
+        Row: {
+          created_at: string
+          id: string
+          synonyms: string[]
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          synonyms?: string[]
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          synonyms?: string[]
+          term?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       serviceability_cache: {
         Row: {
           checked_at: string
@@ -2841,6 +2865,10 @@ export type Database = {
         }
         Returns: Json
       }
+      expand_search_tsquery: {
+        Args: { search_text: string; use_prefix?: boolean }
+        Returns: unknown
+      }
       export_user_data: { Args: { p_user_id: string }; Returns: Json }
       export_user_data_core: { Args: { p_user_id: string }; Returns: Json }
       fail_refund: {
@@ -2853,6 +2881,7 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_service_role: { Args: never; Returns: boolean }
+      is_valid_word_array: { Args: { words: string[] }; Returns: boolean }
       is_vendor_owner: { Args: { target_vendor_id: string }; Returns: boolean }
       mark_settlement_paid: {
         Args: {
@@ -2899,6 +2928,56 @@ export type Database = {
       }
       search_products: {
         Args: { search_query: string }
+        Returns: {
+          approved_at: string | null
+          average_rating: number
+          barcode: string | null
+          base_price: number
+          care_instructions: string | null
+          category_id: string | null
+          created_at: string
+          description: string | null
+          dimensions: Json | null
+          gst_rate: number
+          hsn_code: string | null
+          id: string
+          is_giftwrap_available: boolean
+          is_in_house: boolean
+          max_order_quantity: number | null
+          meta_description: string | null
+          meta_title: string | null
+          min_order_quantity: number
+          name: string
+          occasion_tags: string[]
+          personalization_options: Json
+          recipient_tags: string[]
+          rejection_reason: string | null
+          review_count: number
+          sale_price: number | null
+          search_vector: unknown
+          short_description: string | null
+          sku: string | null
+          slug: string
+          status: string
+          stock_quantity: number
+          tags: string[]
+          thumbnail_url: string | null
+          total_sold: number
+          updated_at: string
+          vendor_id: string
+          video_url: string | null
+          view_count: number
+          weight_grams: number | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "products"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      search_products_fuzzy: {
+        Args: { match_limit?: number; search_query: string }
         Returns: {
           approved_at: string | null
           average_rating: number
