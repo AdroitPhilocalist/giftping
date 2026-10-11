@@ -66,9 +66,18 @@ export function MallDirectory({ image, previews, summaries }: { image: { src: st
   const current = MALL_ZONES.find((z) => z.id === active);
 
   return (
-    <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-6">
+    // Three functional pieces — the map, the directory list, and the "what is this place" preview — used to be
+    // stacked as map-then-button-then-preview-then-card in one tall column, with the directory as a SEPARATE,
+    // shorter column merely centered against that whole stack. On any viewport shorter than that combined
+    // height, hovering a number on the map meant the preview (and sometimes the directory entry) needed a
+    // scroll to actually see — defeating the point of a hover preview. Fixed by grouping the directory and the
+    // preview into ONE column that sits beside the map (top-aligned, not centered), and — on phones, where
+    // there's no side-by-side room at all — putting the live preview directly after the map (the thing you
+    // need to see right after touching a number) with the full directory list further down (a secondary,
+    // browse-everything view, not something you need mid-hover).
+    <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-6">
       {/* the map */}
-      <div className="order-first lg:order-none lg:col-start-2">
+      <div className="order-1 lg:order-none lg:col-start-2 lg:row-start-1">
         <div className="relative mx-auto w-full max-w-[38rem]">
           <div className={cn("relative", image ? "" : "aspect-[600/640]")}>
             {image ? (
@@ -118,8 +127,16 @@ export function MallDirectory({ image, previews, summaries }: { image: { src: st
               {touring ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />} {touring ? "Pause the tour" : "Take a Tour"}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* the live preview — photo + info card for whatever's currently hovered/tapped. Right after the map on
+          phones (the thing you actually want to see the moment you touch a number); beside the directory, BELOW
+          it, on desktop (same column, so it never ends up under the fold while the map is still in view). */}
+      <div className="order-2 lg:order-none lg:col-start-3 lg:row-start-2 lg:self-start">
+        <div className="mx-auto w-full max-w-[38rem] lg:mx-0 lg:max-w-none">
           {Object.keys(previews).length > 0 ? (
-            <div className="relative mt-4 aspect-[16/9] overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-accent shadow-card" aria-hidden="true">
+            <div className="relative aspect-[16/9] overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-accent shadow-card" aria-hidden="true">
               {Object.entries(previews).map(([id, src]) => (
                 <Image key={id} src={src} alt="" fill sizes="(min-width: 1024px) 34vw, 90vw" className={cn("object-cover transition-opacity duration-700", (active ?? DEFAULT_PREVIEW) === id ? "opacity-100" : "opacity-0")} />
               ))}
@@ -160,7 +177,7 @@ export function MallDirectory({ image, previews, summaries }: { image: { src: st
       </div>
 
       {/* the directory list */}
-      <div className="lg:col-start-3 lg:row-start-1">
+      <div className="order-3 lg:order-none lg:col-start-3 lg:row-start-1 lg:self-start">
         <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.28em] text-brand-dark/60">Directory <span className="text-brand-secondary">—</span></p>
         <ul className="divide-y divide-brand-dark/[0.07] overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card">
           {MALL_ZONES.map((z) => {
