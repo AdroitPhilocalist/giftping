@@ -84,12 +84,29 @@ export function HeroBanners({ banners }: { banners: HomeBanner[] }) {
 
         {count > 1 ? (
           <>
-            <button type="button" onClick={() => go(-1)} aria-label="Previous offer" className="absolute left-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-surface/80 text-brand-dark shadow hover:bg-brand-surface sm:flex">
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-            <button type="button" onClick={() => go(1)} aria-label="Next offer" className="absolute right-3 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-brand-surface/80 text-brand-dark shadow hover:bg-brand-surface sm:flex">
-              <ChevronRight className="h-5 w-5" />
-            </button>
+            {/* Grouped prev/next pill in the top-right corner — clear of the text block, which is always left-aligned
+                and can run from top to bottom of the banner (items-end on phones, items-center from sm up). A pair of
+                thin circles at the vertical mid-point used to land right on top of the headline/subheading on the left
+                half of every slide. One solid card, same shadow-card + near-opaque surface the gallery's own arrows use. */}
+            <div className="absolute right-3 top-3 hidden items-center gap-0.5 rounded-full bg-brand-surface/95 p-1 shadow-card backdrop-blur-sm sm:flex sm:right-4 sm:top-4">
+              <button
+                type="button"
+                onClick={() => go(-1)}
+                aria-label="Previous offer"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-brand-dark transition-all duration-300 hover:scale-105 hover:bg-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <span className="h-5 w-px bg-brand-dark/15" aria-hidden="true" />
+              <button
+                type="button"
+                onClick={() => go(1)}
+                aria-label="Next offer"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-brand-dark transition-all duration-300 hover:scale-105 hover:bg-brand-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
             <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-2" role="tablist" aria-label="Choose an offer">
               {banners.map((banner, i) => (
                 <button
