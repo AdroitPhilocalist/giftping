@@ -104,8 +104,8 @@ All 17 Batch 2 files are live (occasion worlds, boutique fronts, diary desk, ord
 | File | Verdict |
 |---|---|
 | `world-anniversary`, `world-wedding`, `world-atrium`, `world-boutiques`, `diary-desk`, `order-hero`, `auth-welcome`, `shopfront-perfume/jewellery/florist` | Great — keep. |
-| `world-for-her` | **Regenerate.** Real brand names are visible ("Miss Dior", "Chanel Gabrielle", "Chanel" on the box) plus slogans on books and a candle. Using those on a commercial site is a trademark risk. |
-| `world-for-him` | **Regenerate.** "Bleu de Chanel" on the bottle, a monogram on the wallet, and slogans on books, a mug and a poster. |
+| `world-for-her` | **Regenerated 11 Oct — clean, wired.** Unbranded perfume bottle, jewellery box, silk scarf, no readable text anywhere. |
+| `world-for-him` | **Regenerated 11 Oct — clean, wired.** Unbranded cologne bottle, watch, wallet, notebook, no readable text anywhere. |
 | `world-corporate-gifting` | Regenerate if you can: readable slogans everywhere ("Good Ideas Build Brighter Tomorrows", "Big Ideas Brighter People", book spines). Not a legal risk, just off-brand. |
 | `world-birthday` | Regenerate if you can: a neon "Happy Birthday", "Good People Brighter Days" on the cake and a framed card. Charming, but it says words we didn't write. |
 
@@ -139,10 +139,10 @@ nothing in the app reads them. No action needed — just don't expect them to ap
 in a different folder (`ui-references/products/`) and a different script (`npm run seed:images` +
 `npm run seed:demo`), not `images:sync`.
 
-**Still flagged from Batch 2, not yet done**: `world-for-her`/`world-for-him` (real Dior/Chanel branding —
-a trademark risk, currently held back from the new `/categories` photo cards specifically because of this)
-and `world-corporate-gifting`/`world-birthday` (readable slogans, off-brand but not a legal risk) all still
-need regenerating with the "no readable text/brand names" line added to the prompt.
+**`world-for-her`/`world-for-him` regenerated and wired 11 Oct** — clean, no readable text or brand names,
+confirmed by eye before wiring in. `world-corporate-gifting`/`world-birthday` (readable slogans, off-brand
+but not a legal risk) still need regenerating with the "no readable text/brand names" line added to the
+prompt.
 
 ## Batch 3 — what would make the site feel even more like a place (each one has a slot already wired)
 
@@ -198,7 +198,7 @@ Each one: *"The front of a small boutique on an Indian mall street at dusk, seen
 They appear automatically on Boutique Avenue and boutique pages (each boutique picks one and gets its own awning colour).
 
 ### B. Occasion worlds still missing
-`world-housewarming.png`, `world-thank-you.png`, `world-festivals.png`, `world-kids-baby.png` — a 16:9 painterly *room/scene* for that occasion with generous empty space on the left for the headline (see `world-wedding` for the composition). Regenerate `world-for-her`, `world-for-him`, `world-corporate-gifting`, `world-birthday` with the "no text or brand names" line if you haven't yet.
+`world-housewarming.png`, `world-thank-you.png`, `world-festivals.png`, `world-kids-baby.png` — a 16:9 painterly *room/scene* for that occasion with generous empty space on the left for the headline (see `world-wedding` for the composition). Regenerate `world-corporate-gifting`, `world-birthday` with the "no text or brand names" line if you haven't yet (`world-for-her`/`world-for-him` are done — see Batch 2 status above).
 
 ### C. Scenes for the next pages (I will build these next)
 | File | Prompt |
