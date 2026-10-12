@@ -71,6 +71,37 @@
   rotate: -8deg;
 }
 
+/* every card is already "a wrapped gift": a small ribbon rides the photo's bottom-right corner at rest, and perks up on hover — the same bow drawing
+   DeliveryRibbon.tsx's free-delivery ribbon uses, so the two "there's a real ribbon on this" moments in the shop read as one idea. Lives on its own layer
+   (a sibling of the <Image>, not nested inside its scaling transform) per the placement-transform rule elsewhere in this file. */
+.gift-corner-ribbon { position: absolute; z-index: 2; inset: 0; pointer-events: none; overflow: hidden; border-radius: inherit; }
+/* Anchored exactly on the photo's own corner point (right:0/bottom:0) then re-centred there with translate(50%,50%) before rotating — the strip's
+   middle always sits precisely on the corner this way, instead of guessed pixel offsets that only line up by luck. A white rim + dark shadow on the
+   strip (and the same on the bow) is what actually makes it read against ANY photo tone, light or dark, rather than blending into a warm-toned one. */
+.gift-corner-ribbon-strip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 8rem;
+  height: 1.45rem;
+  transform: translate(50%, 50%) rotate(-45deg);
+  background: linear-gradient(90deg, var(--gp-copper-dark), var(--gp-copper) 42%, color-mix(in srgb, var(--gp-peach) 70%, white) 50%, var(--gp-copper) 58%, var(--gp-copper-dark));
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.4), 0 3px 8px -2px rgb(28 25 22 / 0.55);
+  transition: filter 0.5s var(--gp-ease);
+}
+.gift-corner-ribbon-bow {
+  position: absolute;
+  right: -0.1rem;
+  bottom: -0.1rem;
+  width: 2.5rem;
+  height: 1.8rem;
+  filter: drop-shadow(0 0 2px var(--gp-surface)) drop-shadow(0 0 2px var(--gp-surface)) drop-shadow(0 3px 4px rgb(28 25 22 / 0.45));
+  transform-origin: 65% 65%;
+  transition: transform 0.45s var(--gp-ease);
+}
+.gift-tag:hover .gift-corner-ribbon-strip { filter: brightness(1.18); }
+.gift-tag:hover .gift-corner-ribbon-bow { transform: scale(1.14) rotate(-8deg); }
+
 /* ---------------------------------------------------------------- boutique street */
 .awning { --awn-a: var(--gp-primary); --awn-b: var(--gp-peach); position: absolute; z-index: 3; left: 0; right: 0; top: 0; height: 1.9rem; transform-origin: 50% 0;
   background: repeating-linear-gradient(90deg, var(--awn-a) 0 1.6rem, var(--awn-b) 1.6rem 3.2rem);
@@ -179,6 +210,17 @@
   background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--gp-peach) 70%, white) 0%, transparent 58%);
   mix-blend-mode: soft-light; opacity: calc(var(--glow, 0) * 0.85); transition: opacity 0.4s;
 }
+
+/* "Boutique spotlight" (components/motion/SpotlightSection.tsx): the room-scale version of the same idea — a warm light that drifts across a whole grid
+   of cards as the cursor moves over it, like walking under track lighting, rather than one card lighting up on its own. Same pointer-events:none / soft-light
+   overlay technique as .gp-tilt above, just scoped to a much bigger, softer radius and living on the section instead of each card. */
+.gp-spotlight { position: relative; }
+.gp-spotlight::before {
+  content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(44rem circle at var(--sx, 50%) var(--sy, 50%), color-mix(in srgb, var(--gp-peach) 55%, white) 0%, transparent 60%);
+  mix-blend-mode: soft-light; opacity: calc(var(--spot, 0) * 0.65); transition: opacity 0.5s;
+}
+.gp-spotlight > * { position: relative; z-index: 2; }
 
 
 

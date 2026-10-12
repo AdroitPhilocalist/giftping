@@ -43,6 +43,18 @@ export function ProductCard({
           </Link>
           {hasDiscount ? <span className="gift-seal"><span>{discountPercent}%<br />OFF</span></span> : null}
           <WishlistButton productId={product.id} initialWishlisted={isWishlisted} className="absolute right-2 top-2 z-[2]" />
+          {/* every product is already "wrapped" — a corner ribbon rides the photo always, and perks up on hover like it's about to be untied */}
+          <span className="gift-corner-ribbon" aria-hidden="true">
+            <span className="gift-corner-ribbon-strip" />
+            <svg viewBox="0 0 28 20" className="gift-corner-ribbon-bow" focusable="false">
+              <path d="M14 10C10 2 2 1 1 6s6 6 13 4z" fill="var(--gp-copper-dark)" />
+              <path d="M14 10c4-8 12-9 13-4s-6 6-13 4z" fill="var(--gp-copper-dark)" />
+              <path d="M14 10C10 17 4 19 2 15s5-5 12-5z" fill="var(--gp-copper)" opacity="0.85" />
+              <path d="M14 10c4 7 10 9 12 5s-5-5-12-5z" fill="var(--gp-copper)" opacity="0.85" />
+              <circle cx="14" cy="10" r="3.2" fill="var(--gp-copper-dark)" />
+              <circle cx="13" cy="9" r="1" fill="var(--gp-surface)" opacity="0.5" />
+            </svg>
+          </span>
         </div>
         <p className="gift-price">
           {formatCurrency(hasDiscount ? product.sale_price! : product.base_price)}

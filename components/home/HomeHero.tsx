@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Briefcase, Cake, Gem, Heart, LayoutGrid, Play } from "lucide-react";
 import { AtriumScene } from "@/components/art/AtriumScene";
 import { HeroHeaderFlag } from "@/components/layout/HeroHeaderFlag";
+import { Ambience } from "@/components/shop/Ambience";
 import { OrnamentDivider } from "@/components/ornaments/Divider";
 import { SearchBar } from "@/components/shop/SearchBar";
 import { Button } from "@/components/ui/Button";
@@ -47,6 +48,9 @@ export async function HomeHero() {
             </>
           )}
           <div className="gp-hero-scrim absolute inset-0" aria-hidden="true" />
+          {/* sunlight through the atrium's skylight, catching the dust — the same drifting mechanism occasion pages already use for petals/confetti/
+              sparks, just a new, calmer "kind" for the one place in the app that's meant to feel like real, lit, indoor air rather than a themed moment. */}
+          <Ambience kind="motes" count={14} />
         </div>
 
         <div className="relative flex min-h-[30rem] flex-col justify-end px-4 pb-24 pt-28 sm:min-h-[34rem] sm:px-6 sm:pb-28 lg:min-h-[640px] lg:justify-center lg:pb-32 lg:pt-24">

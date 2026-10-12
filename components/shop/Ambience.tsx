@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 
-export type AmbienceKind = "petals" | "confetti" | "hearts" | "sparks" | "diyas" | "snow";
+export type AmbienceKind = "petals" | "confetti" | "hearts" | "sparks" | "diyas" | "snow" | "motes";
 
 /** What drifts across an occasion's header: confetti for birthdays, hearts for anniversaries, petals for weddings and "for her", gold sparks otherwise. */
 export function ambienceFor(slug: string): AmbienceKind {
@@ -35,6 +35,8 @@ function Shape({ kind }: { kind: AmbienceKind }) {
       );
     case "snow": // a soft snowflake — always frost-white, the same "always itself" exception as the diya flame above
       return <svg viewBox="0 0 20 20" className="h-full w-full"><circle cx="10" cy="10" r="4.5" fill="#fdfefe" />{/* theme-safe: snow is always white */}</svg>;
+    case "motes": // soft dust catching sunlight through a skylight — a blurred, low-opacity speck rather than a crisp shape, for the atrium hero
+      return <svg viewBox="0 0 20 20" className="h-full w-full" style={{ filter: "blur(1px)" }}><circle cx="10" cy="10" r="5" fill="currentColor" opacity="0.6" /></svg>;
     default:
       return <svg viewBox="0 0 20 20" className="h-full w-full"><path d="M10 0l2.200 7.800L20 10l-7.800 2.200L10 20l-2.200-7.800L0 10l7.800-2.200z" fill="currentColor" /></svg>;
   }

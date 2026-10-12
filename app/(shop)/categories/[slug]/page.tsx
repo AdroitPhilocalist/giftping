@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CLEAR_ALL } from "@/lib/shop/filters";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductGrid } from "@/components/shop/ProductGrid";
+import { SpotlightSection } from "@/components/motion/SpotlightSection";
 import { ShopFilters } from "@/components/shop/ShopFilters";
 import { ShopToolbar } from "@/components/shop/ShopToolbar";
 import { WorldHero } from "@/components/shop/WorldHero";
@@ -131,11 +132,13 @@ export default async function CategoryPage({
                 <Link href={hrefFor(CLEAR_ALL)} className="font-medium text-brand-secondary-dark underline">Clear all filters</Link>
               </p>
             ) : (
-              <ProductGrid>
-                {products.map((product) => (
-                  <ProductCard key={product.id} product={product} isWishlisted={wishlistIds.has(product.id)} />
-                ))}
-              </ProductGrid>
+              <SpotlightSection>
+                <ProductGrid>
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} isWishlisted={wishlistIds.has(product.id)} />
+                  ))}
+                </ProductGrid>
+              </SpotlightSection>
             )}
             <Pagination page={page} totalPages={totalPages} buildHref={buildHref} />
           </div>
