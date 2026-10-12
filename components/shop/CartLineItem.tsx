@@ -46,17 +46,23 @@ export function CartLineItem({ line }: { line: CartLine }) {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             {line.slug ? (
-              <Link href={`/products/${line.slug}`} className="font-heading text-base text-brand-dark hover:underline">
+              <Link href={`/products/${line.slug}`} className="font-heading text-lg leading-snug text-brand-dark transition-colors hover:text-brand-secondary-dark">
                 {line.name}
               </Link>
             ) : (
-              <span className="font-heading text-base text-brand-dark/60">{line.name}</span>
+              <span className="font-heading text-lg leading-snug text-brand-dark/60">{line.name}</span>
             )}
             {line.variantLabels.length > 0 ? (
-              <p className="mt-0.5 text-xs text-brand-dark/60">{line.variantLabels.join(" · ")}</p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {line.variantLabels.map((label) => (
+                  <span key={label} className="rounded-full bg-brand-accent/70 px-2.5 py-0.5 text-[11px] font-medium text-brand-dark/70">
+                    {label}
+                  </span>
+                ))}
+              </div>
             ) : null}
             {engraving || recipientName || giftMessage || occasion ? (
-              <div className="mt-1 space-y-0.5 text-xs text-brand-dark/60">
+              <div className="mt-1.5 space-y-0.5 text-xs text-brand-dark/60">
                 {engraving ? <p className="font-medium text-brand-secondary-dark">Engraving: “{engraving}”</p> : null}
                 {recipientName ? <p>For: {recipientName}</p> : null}
                 {occasion ? <p>Occasion: {occasion}</p> : null}
@@ -64,14 +70,19 @@ export function CartLineItem({ line }: { line: CartLine }) {
               </div>
             ) : null}
           </div>
-          <p
-            className={cn(
-              "shrink-0 font-heading text-base text-brand-dark",
-              line.status !== "ok" && "text-brand-dark/40 line-through",
-            )}
-          >
-            {formatCurrency(line.lineTotal)}
-          </p>
+          <div className="shrink-0 text-right">
+            <p
+              className={cn(
+                "font-heading text-xl font-semibold leading-tight text-brand-dark",
+                line.status !== "ok" && "text-brand-dark/40 line-through",
+              )}
+            >
+              {formatCurrency(line.lineTotal)}
+            </p>
+            {line.status === "ok" && line.quantity > 1 ? (
+              <p className="mt-0.5 text-xs text-brand-dark/45">{formatCurrency(line.unitPrice)} each</p>
+            ) : null}
+          </div>
         </div>
 
         {line.status !== "ok" ? (
@@ -115,15 +126,13 @@ export function CartLineItem({ line }: { line: CartLine }) {
             type="button"
             onClick={remove}
             disabled={isPending}
-            className="flex items-center gap-1 text-xs text-brand-dark/50 hover:text-red-700"
+            aria-label="Remove from cart"
+            className="group flex items-center gap-1.5 rounded-full border border-transparent px-3 py-2 text-xs font-medium text-brand-dark/55 transition-colors duration-200 hover:border-red-100 hover:bg-red-50 hover:text-red-700 disabled:pointer-events-none disabled:opacity-40"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-3.5 w-3.5 transition-transform duration-200 group-hover:scale-110" />
             Remove
           </button>
         </div>
-        {line.status === "ok" && line.quantity > 1 ? (
-          <p className="mt-1 text-xs text-brand-dark/40">{formatCurrency(line.unitPrice)} each</p>
-        ) : null}
       </div>
     </li>
   );
