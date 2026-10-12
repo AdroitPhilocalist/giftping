@@ -173,21 +173,56 @@ h1, h2, h3, .font-heading {
    animation-duration to ~0) neutralises them for free, exactly like every other animation on the site.
    ============================================================================ */
 
-/* "Add to cart": a small gift arcs from the button to the cart icon, then the cart icon gives it a bounce. */
+/* "Add to cart": a gift tumbles from the button to the cart icon along a proper arc (five stops, not three — a quick spring-launch squash, a high
+   mid-arc peak, a fast descent, then settling into the icon), trailed by two faint, blurred echoes of itself for a cheap sense of real motion (same
+   keyframes, just started a beat later and dimmer — no extra JS, no physics engine). Landing triggers three small, independent payoffs: the icon
+   bounces, a handful of copper sparks burst from where the gift landed, and the count badge gives its own sharper pop — several small, cheap effects
+   read as far more "designed" than one plain fly+scale, without any of them being individually expensive (every node here is gone within ~1s). */
 @keyframes gp-cart-fly {
-  0% { transform: translate(0, 0) scale(1) rotate(-4deg); opacity: 1; }
-  55% { transform: translate(calc(var(--fly-dx) * 0.5), calc(var(--fly-dy) * 0.5 - 64px)) scale(0.85) rotate(10deg); opacity: 1; }
-  100% { transform: translate(var(--fly-dx), var(--fly-dy)) scale(0.3) rotate(-6deg); opacity: 0; }
+  0%   { transform: translate(0, 0) scale(1, 1) rotate(0deg); opacity: 1; }
+  10%  { transform: translate(calc(var(--fly-dx) * 0.05), calc(var(--fly-dy) * 0.05 - 8px)) scale(1.22, 0.8) rotate(16deg); opacity: 1; }
+  42%  { transform: translate(calc(var(--fly-dx) * 0.4), calc(var(--fly-dy) * 0.4 - 88px)) scale(0.88, 0.88) rotate(168deg); opacity: 1; }
+  74%  { transform: translate(calc(var(--fly-dx) * 0.8), calc(var(--fly-dy) * 0.8 - 32px)) scale(0.56, 0.56) rotate(306deg); opacity: 1; }
+  100% { transform: translate(var(--fly-dx), var(--fly-dy)) scale(0.2, 0.2) rotate(396deg); opacity: 0; }
 }
-.gp-cart-fly { animation: gp-cart-fly 0.7s var(--gp-ease) forwards; }
+.gp-cart-fly { animation: gp-cart-fly 0.68s var(--gp-ease) forwards; }
+
+/* the trail: identical path, dimmer and softer at every stop, started a little later than the leader so it visibly lags behind it */
+@keyframes gp-cart-fly-ghost {
+  0%   { transform: translate(0, 0) scale(1, 1) rotate(0deg); opacity: 0.4; }
+  10%  { transform: translate(calc(var(--fly-dx) * 0.05), calc(var(--fly-dy) * 0.05 - 8px)) scale(1.22, 0.8) rotate(16deg); opacity: 0.38; }
+  42%  { transform: translate(calc(var(--fly-dx) * 0.4), calc(var(--fly-dy) * 0.4 - 88px)) scale(0.88, 0.88) rotate(168deg); opacity: 0.26; }
+  74%  { transform: translate(calc(var(--fly-dx) * 0.8), calc(var(--fly-dy) * 0.8 - 32px)) scale(0.56, 0.56) rotate(306deg); opacity: 0.12; }
+  100% { transform: translate(var(--fly-dx), var(--fly-dy)) scale(0.2, 0.2) rotate(396deg); opacity: 0; }
+}
+.gp-cart-fly-ghost { animation: gp-cart-fly-ghost 0.68s var(--gp-ease) forwards; filter: blur(1.5px); }
 
 @keyframes gp-cart-bounce {
   0%, 100% { transform: scale(1) rotate(0); }
-  30% { transform: scale(1.32) rotate(-10deg); }
-  55% { transform: scale(0.92) rotate(6deg); }
-  78% { transform: scale(1.08) rotate(-2deg); }
+  28% { transform: scale(1.38) rotate(-11deg); }
+  52% { transform: scale(0.9) rotate(7deg); }
+  72% { transform: scale(1.1) rotate(-3deg); }
+  88% { transform: scale(0.97) rotate(1deg); }
 }
-.gp-cart-bounce { animation: gp-cart-bounce 0.55s var(--gp-ease); }
+.gp-cart-bounce { animation: gp-cart-bounce 0.6s var(--gp-ease); }
+
+/* the count badge's own, sharper pop — layered on top of the icon's bounce rather than replacing it, so a number that just changed reads clearly as
+   its own small event (the same instinct behind a Slack/Gmail unread-count bump) */
+@keyframes gp-badge-pop {
+  0%   { transform: scale(1); }
+  35%  { transform: scale(1.6); }
+  60%  { transform: scale(0.85); }
+  100% { transform: scale(1); }
+}
+.gp-badge-pop { animation: gp-badge-pop 0.45s var(--gp-ease); }
+
+/* a handful of copper sparks bursting from the point of impact — each one is a single div, positioned and given its own direction by
+   --spark-dx/--spark-dy (set inline, same technique as --fly-dx/--fly-dy above), gone within half a second */
+@keyframes gp-cart-spark {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--spark-dx)), calc(-50% + var(--spark-dy))) scale(0); opacity: 0; }
+}
+.gp-cart-spark { animation: gp-cart-spark 0.46s var(--gp-ease) forwards; }
 
 /* ── The basket (LiveBasket.tsx, MiniBasket.tsx, DeliveryRibbon.tsx, OrderCelebration's unwrap) ─────────────────────────────────────────────────────
    Animations sit on an INNER element, never the one carrying the placement transform (CLAUDE.md's CSS gotcha: transform properties compose). All colours are
