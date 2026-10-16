@@ -79,11 +79,21 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ a
           <Reveal>
             <SectionHeading eyebrow="Boutique Avenue" title="Step into a boutique" subtitle="Every boutique is a shop of its own — its own story, its own shelves." />
           </Reveal>
-          <div className={`mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 ${vendors.length === 1 ? "mx-auto max-w-sm sm:grid-cols-1 lg:grid-cols-1" : vendors.length === 2 ? "mx-auto max-w-3xl lg:grid-cols-2" : ""}`}>
+          {/* Phones: one swipeable row (the next boutique peeks in at the edge to say "more this way") instead of a tall stack; from `sm` up it is the normal grid. */}
+          <div
+            role="region"
+            aria-label="Featured boutiques"
+            tabIndex={0}
+            className={`-mx-4 mt-10 flex scroll-px-4 snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-6 pt-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:snap-none sm:gap-5 sm:overflow-visible sm:px-0 sm:pb-0 sm:pt-0 sm:grid-cols-2 [&::-webkit-scrollbar]:hidden ${
+              vendors.length === 1 ? "sm:mx-auto sm:max-w-sm sm:grid-cols-1" : vendors.length === 2 ? "sm:mx-auto sm:max-w-3xl" : vendors.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3"
+            }`}
+          >
             {vendors.map((vendor, i) => (
-              <Reveal key={vendor.id} delay={i * 90}>
-                <VendorCard vendor={vendor} />
-              </Reveal>
+              <div key={vendor.id} className={`shrink-0 snap-start sm:w-auto ${vendors.length === 1 ? "w-full" : "w-[78%]"}`}>
+                <Reveal delay={i * 90} className="h-full">
+                  <VendorCard vendor={vendor} />
+                </Reveal>
+              </div>
             ))}
           </div>
           <p className="mt-8 text-center">
