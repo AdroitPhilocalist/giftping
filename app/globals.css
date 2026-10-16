@@ -39,6 +39,11 @@
   --gp-hero-scrim: rgb(12 42 29 / 0.72);
   --gp-bar-top: color-mix(in srgb, var(--gp-primary) 92%, white 8%); /* the header/announcement-strip panel's shared starting shade — see .gp-bar-gradient below */
   --gp-ornament: var(--gp-copper);
+  /* champagne gold for type that sits ON the hero photograph. The copper accent is the same warm hue as the photo's lamplight, so copper text sank into it;
+     a light metallic gold keeps its warmth but stands clear of both the scrim and the lamplight. Themes may override these three. */
+  --gp-hero-gold-light: #ffe9b0;
+  --gp-hero-gold: #f6cb72;
+  --gp-hero-gold-deep: #eab955;
   /* a warm brushed-gold shimmer (light gold → copper → a brighter gold highlight → copper → light gold), used only as a thin gilded edge around the
      header pill (see .gp-header-inner::before below) — a "premium" touch the client asked for directly, kept to a single hairline rather than a flat
      gold fill so it reads as a deliberate metallic accent, not a colour change to the whole bar. */
@@ -155,6 +160,69 @@ h1, h2, h3, .font-heading {
 @media (max-width: 639px) {
   /* a phone crops the same photo much narrower, so the diagonal wash alone isn't enough — add a flatter bottom-up fade behind the stacked text */
   .gp-hero-scrim { background: linear-gradient(to top, var(--gp-hero-scrim) 0%, color-mix(in srgb, var(--gp-hero-scrim) 70%, transparent) 45%, color-mix(in srgb, var(--gp-hero-scrim) 20%, transparent) 75%, transparent 100%); }
+}
+
+/* The hero's type: a cream serif headline with depth, one champagne-gold italic phrase with a slow metallic sheen, a gold eyebrow and a gilded rule.
+   Gold comes from the --gp-hero-gold* tokens, not --gp-copper, because copper is the photo's own colour (see the token comment). The photograph is deliberately left
+   un-darkened (no extra scrim behind the words) — the type holds its edge against the brightest parts of the picture through tight shadows around the letters. */
+.gp-hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--gp-hero-gold);
+  text-shadow: 0 0 2px rgb(0 0 0 / 0.7), 0 1px 4px rgb(0 0 0 / 0.65), 0 2px 14px rgb(0 0 0 / 0.55);
+}
+.gp-hero-eyebrow::before {
+  content: "";
+  width: 2.6rem;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gp-hero-gold));
+}
+.gp-hero-title {
+  color: var(--gp-on-primary);
+  letter-spacing: -0.022em;
+  text-shadow: 0 0 2px rgb(0 0 0 / 0.45), 0 2px 6px rgb(0 0 0 / 0.5), 0 3px 22px rgb(0 0 0 / 0.55);
+}
+.gp-hero-gold {
+  display: inline-block;
+  padding: 0 0.08em 0.04em 0; /* italic letters overhang their box, and background-clip:text clips at the box edge */
+  font-style: italic;
+  background-image: linear-gradient(100deg, var(--gp-hero-gold) 0%, var(--gp-hero-gold-light) 32%, var(--gp-hero-gold) 56%, var(--gp-hero-gold-deep) 82%, var(--gp-hero-gold) 100%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none; /* inherited from .gp-hero-title it would be painted OVER the gradient (the glyphs are transparent) and muddy the gold; the filter below is the halo */
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.55)) drop-shadow(0 0 12px rgb(0 0 0 / 0.5)) drop-shadow(0 4px 22px rgb(0 0 0 / 0.45));
+  animation: gp-gold-sheen 9s ease-in-out infinite;
+}
+@keyframes gp-gold-sheen { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
+.gp-hero-rule {
+  position: relative;
+  display: block;
+  width: 7.5rem;
+  height: 1px;
+  margin-top: 1.6rem;
+  background: linear-gradient(90deg, var(--gp-hero-gold), transparent);
+}
+.gp-hero-rule::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.46rem;
+  height: 0.46rem;
+  background: var(--gp-hero-gold);
+  transform: translateY(-50%) rotate(45deg);
+}
+.gp-hero-lede {
+  color: color-mix(in srgb, var(--gp-on-primary) 90%, transparent);
+  text-shadow: 0 0 2px rgb(0 0 0 / 0.55), 0 1px 5px rgb(0 0 0 / 0.55), 0 1px 16px rgb(0 0 0 / 0.5);
 }
 
 @keyframes gp-fade { from { opacity: 0; } to { opacity: 1; } }
