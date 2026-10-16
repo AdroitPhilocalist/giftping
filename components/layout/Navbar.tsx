@@ -10,6 +10,7 @@ import { NavLinks } from "@/components/layout/NavLinks";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { getServerUser } from "@/lib/auth/session";
 import { getFeaturedCategories } from "@/lib/db/categories";
+import { getActiveProductTypes } from "@/lib/db/product-types";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getFeaturedVendors } from "@/lib/db/vendors";
 import { getCartCount } from "@/lib/commerce/cart";
@@ -22,20 +23,22 @@ const iconButton = "relative rounded-full p-2 text-brand-on-primary/85 transitio
 const badge = "absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold ring-2 ring-brand-primary";
 export async function Navbar() {
   const user = await getServerUser();
-  const [wishlistCount, cartCount, unreadCount, categories, vendors] = await Promise.all([
+  const [wishlistCount, cartCount, unreadCount, categories, vendors, productTypes] = await Promise.all([
     user ? getWishlistProductIds(user.id).then((ids) => ids.size) : 0,
     getCartCount(),
     user ? getUnreadNotificationCount(user.id) : 0,
     getFeaturedCategories(),
     getFeaturedVendors(),
+    getActiveProductTypes(),
   ]);
+  const topLevelProductTypes = productTypes.filter((t) => !t.parent_id).sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name));
 
   return (
     <>
       <HeaderShell>
         <div className="gp-header-inner gp-header-glass mx-auto flex max-w-[92rem] items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Logo className="shrink-0 xl:mr-4 2xl:mr-8" tone="light" priority />
-          <NavLinks categories={categories} vendors={vendors} />
+          <NavLinks categories={categories} vendors={vendors} productTypes={topLevelProductTypes} />
 
           <div className="flex items-center gap-0.5 sm:gap-1">
             <Link href="/search" aria-label="Search" className={iconButton}><Search className="h-5 w-5" /></Link>

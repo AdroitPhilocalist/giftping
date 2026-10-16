@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Baby, Briefcase, Cake, Check, ChevronDown, ChevronRight, Flower2, Gem, Gift, Heart, Home as HomeIcon, IndianRupee, Package, SlidersHorizontal, Store, Users, Watch } from "lucide-react";
+import { Baby, Briefcase, Cake, Check, ChevronDown, ChevronRight, Flower2, Gem, Gift, Heart, Home as HomeIcon, IndianRupee, Package, SlidersHorizontal, Store, Tag, Users, Watch } from "lucide-react";
 import { VendorLogo } from "@/components/shop/VendorLogo";
 import { OCCASION_TAGS, RECIPIENT_TAGS, labelForTag } from "@/lib/catalog/tags";
-import { CLEAR_ALL, PRICE_PRESETS, activePricePreset, appliedFilters, type FilterPatch, type FilterState } from "@/lib/shop/filters";
+import { attributeAppliedFilters, clearAllPatch, PRICE_PRESETS, activePricePreset, appliedFilters, type AttributeFilterSection, type FilterPatch, type FilterState } from "@/lib/shop/filters";
 import { cn } from "@/lib/utils/cn";
 import "./shop.css";
 
@@ -45,8 +45,13 @@ function Chip({ href, selected, icon: Icon, children }: { href: string; selected
  * The filter sections, as plain links to the same page with one thing changed — server-rendered, shareable, works without JavaScript. Tapping the chosen option
  * again clears it. Used inside the desktop panel (`ShopFilters`) and inside the phone's bottom sheet (`FilterDrawer`).
  */
-export function FilterSections({ vendors, current, hrefFor, hide }: { vendors: Vendor[]; current: FilterState; hrefFor: (patch: FilterPatch) => string; hide?: Hide }) {
+export function FilterSections({ vendors, current, hrefFor, hide, attributeSections = [] }: { vendors: Vendor[]; current: FilterState; hrefFor: (patch: FilterPatch) => string; hide?: Hide; attributeSections?: AttributeFilterSection[] }) {
   const toggle = (key: keyof FilterState, value: string) => hrefFor({ [key]: current[key] === value ? undefined : value });
+  const toggleAttr = (attr: AttributeFilterSection, value: string) => {
+    const isSelected = attr.selected.includes(value);
+    const next = attr.inputType === "multi_select" ? (isSelected ? attr.selected.filter((v) => v !== value) : [...attr.selected, value]) : isSelected ? [] : [value];
+    return hrefFor({ [`attr_${attr.key}`]: next.length > 0 ? next.join(",") : undefined });
+  };
   const preset = activePricePreset(current);
   const customPrice = preset === -1 && Boolean(current.minPrice || current.maxPrice);
   const inStock = current.inStock === "true";
@@ -85,6 +90,14 @@ export function FilterSections({ vendors, current, hrefFor, hide }: { vendors: V
           </ul>
         </Section>
       ) : null}
+      {/* A type can carry many attribute filters (a necklace has five); the first three start open, the rest are one tap away — unless something in them is already chosen. */}
+      {attributeSections.map((attr, i) => (
+        <Section key={attr.key} title={attr.label} icon={Tag} active={attr.selected.length > 0} defaultOpen={i < 3 || attr.selected.length > 0}>
+          <div className="flex flex-wrap gap-2">
+            {attr.options.map((opt) => <Chip key={opt} href={toggleAttr(attr, opt)} selected={attr.selected.includes(opt)}>{opt}</Chip>)}
+          </div>
+        </Section>
+      ))}
       <Section title="Price" icon={IndianRupee} active={Boolean(current.minPrice || current.maxPrice)}>
         <div className="flex flex-wrap gap-2">
           {PRICE_PRESETS.map((p, i) => (
@@ -115,8 +128,8 @@ export function FilterSections({ vendors, current, hrefFor, hide }: { vendors: V
 }
 
 /** The desktop panel: a paper gift tag with a header (how many filters are on, and Clear all) over the sections. */
-export function ShopFilters({ vendors, current, hrefFor, hide }: { vendors: Vendor[]; current: FilterState; hrefFor: (patch: FilterPatch) => string; hide?: Hide }) {
-  const count = appliedFilters(current, vendors).length;
+export function ShopFilters({ vendors, current, hrefFor, hide, attributeSections = [] }: { vendors: Vendor[]; current: FilterState; hrefFor: (patch: FilterPatch) => string; hide?: Hide; attributeSections?: AttributeFilterSection[] }) {
+  const count = appliedFilters(current, vendors, attributeAppliedFilters(attributeSections)).length;
   return (
     <section aria-label="Filters" className="relative rounded-card border border-brand-secondary/20 bg-brand-surface shadow-card">
       <span className="gift-tag-hole !-top-1.5" aria-hidden="true" />
@@ -126,10 +139,10 @@ export function ShopFilters({ vendors, current, hrefFor, hide }: { vendors: Vend
           Filters
           {count > 0 ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-secondary px-1.5 font-sans text-[11px] font-semibold text-brand-on-secondary">{count}</span> : null}
         </h2>
-        {count > 0 ? <Link href={hrefFor(CLEAR_ALL)} className="text-xs font-medium text-brand-secondary-dark underline-offset-2 hover:underline">Clear all</Link> : null}
+        {count > 0 ? <Link href={hrefFor(clearAllPatch(attributeSections))} className="text-xs font-medium text-brand-secondary-dark underline-offset-2 hover:underline">Clear all</Link> : null}
       </header>
       <div className="gf-scroll px-5 py-3 lg:max-h-[calc(100vh-15rem)] lg:overflow-y-auto">
-        <FilterSections vendors={vendors} current={current} hrefFor={hrefFor} hide={hide} />
+        <FilterSections vendors={vendors} current={current} hrefFor={hrefFor} hide={hide} attributeSections={attributeSections} />
       </div>
     </section>
   );

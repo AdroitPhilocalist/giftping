@@ -13,7 +13,10 @@ export interface FilterState {
   minPrice?: string;
   maxPrice?: string;
 }
-export type FilterPatch = Partial<Record<keyof FilterState, string | undefined>>;
+// Widened past `keyof FilterState` on purpose: a /shop/... page also patches dynamic `attr_<key>` params
+// (one per category-specific attribute) that FilterState can't name statically. Every existing caller's
+// object literal still type-checks unchanged — this only loosens what's additionally allowed.
+export type FilterPatch = Record<string, string | undefined>;
 
 export const SORT_OPTIONS = [
   { value: "popularity", label: "Popular" },
@@ -65,8 +68,8 @@ export interface AppliedFilter {
   clear: FilterPatch;
 }
 
-/** Everything currently narrowing the results, as removable chips. Sort is not a filter and is not listed. */
-export function appliedFilters(state: FilterState, vendors: { slug: string; business_name: string }[]): AppliedFilter[] {
+/** Everything currently narrowing the results, as removable chips. Sort is not a filter and is not listed. `extra` carries dynamic attribute chips a page builds via attributeAppliedFilters(). */
+export function appliedFilters(state: FilterState, vendors: { slug: string; business_name: string }[], extra: AppliedFilter[] = []): AppliedFilter[] {
   const out: AppliedFilter[] = [];
   if (state.recipient) out.push({ key: "recipient", label: labelForTag(state.recipient), clear: { recipient: undefined } });
   if (state.occasion) out.push({ key: "occasion", label: labelForTag(state.occasion), clear: { occasion: undefined } });
@@ -74,8 +77,45 @@ export function appliedFilters(state: FilterState, vendors: { slug: string; busi
   const price = priceLabel(state);
   if (price) out.push({ key: "price", label: price, clear: { minPrice: undefined, maxPrice: undefined } });
   if (state.inStock === "true") out.push({ key: "inStock", label: "In stock", clear: { inStock: undefined } });
+  out.push(...extra);
   return out;
 }
 
 /** The patch that removes every filter but keeps the chosen sort. */
 export const CLEAR_ALL: FilterPatch = { vendor: undefined, occasion: undefined, recipient: undefined, inStock: undefined, minPrice: undefined, maxPrice: undefined };
+
+/** A `attr_<id>=value1,value2` query param back into the selected values it stands for. */
+export function decodeAttrValues(raw: string | undefined): string[] {
+  return raw ? raw.split(",").map((v) => v.trim()).filter(Boolean) : [];
+}
+
+/** One category-specific attribute (Flavor, Metal...) as the filter panel renders it — `key` is the attribute's id, since its own `key` string is only unique within one product type. */
+export interface AttributeFilterSection {
+  key: string;
+  label: string;
+  inputType: string; // "select" | "multi_select"
+  options: string[];
+  selected: string[];
+}
+
+/** CLEAR_ALL plus every attribute section's own param — a /shop/... page has dynamic attribute params CLEAR_ALL can't name statically. */
+export function clearAllPatch(attributeSections: AttributeFilterSection[] = []): FilterPatch {
+  const patch: FilterPatch = { ...CLEAR_ALL };
+  for (const s of attributeSections) patch[`attr_${s.key}`] = undefined;
+  return patch;
+}
+
+/** One removable chip per currently-selected attribute value, for appliedFilters' `extra` param. */
+export function attributeAppliedFilters(sections: AttributeFilterSection[]): AppliedFilter[] {
+  const out: AppliedFilter[] = [];
+  for (const s of sections) {
+    for (const value of s.selected) {
+      out.push({
+        key: `attr_${s.key}:${value}`,
+        label: value,
+        clear: { [`attr_${s.key}`]: s.selected.filter((v) => v !== value).join(",") || undefined },
+      });
+    }
+  }
+  return out;
+}

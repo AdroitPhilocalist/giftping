@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.17"
   }
   graphql_public: {
     Tables: {
@@ -1511,6 +1511,92 @@ export type Database = {
           },
         ]
       }
+      product_attribute_values: {
+        Row: {
+          attribute_id: string
+          created_at: string
+          id: string
+          product_id: string
+          value: string
+        }
+        Insert: {
+          attribute_id: string
+          created_at?: string
+          id?: string
+          product_id: string
+          value: string
+        }
+        Update: {
+          attribute_id?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_attribute_values_attribute_id_fkey"
+            columns: ["attribute_id"]
+            isOneToOne: false
+            referencedRelation: "product_attributes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_attribute_values_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_attributes: {
+        Row: {
+          created_at: string
+          id: string
+          input_type: string
+          is_active: boolean
+          key: string
+          label: string
+          options: string[]
+          product_type_id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_type?: string
+          is_active?: boolean
+          key: string
+          label: string
+          options?: string[]
+          product_type_id: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_type?: string
+          is_active?: boolean
+          key?: string
+          label?: string
+          options?: string[]
+          product_type_id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_attributes_product_type_id_fkey"
+            columns: ["product_type_id"]
+            isOneToOne: false
+            referencedRelation: "product_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_images: {
         Row: {
           alt_text: string | null
@@ -1654,6 +1740,59 @@ export type Database = {
           },
         ]
       }
+      product_types: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          meta_description: string | null
+          meta_title: string | null
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          meta_description?: string | null
+          meta_title?: string | null
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_types_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "product_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variants: {
         Row: {
           barcode: string | null
@@ -1727,6 +1866,7 @@ export type Database = {
           name: string
           occasion_tags: string[]
           personalization_options: Json
+          product_type_id: string | null
           recipient_tags: string[]
           rejection_reason: string | null
           review_count: number
@@ -1768,6 +1908,7 @@ export type Database = {
           name: string
           occasion_tags?: string[]
           personalization_options?: Json
+          product_type_id?: string | null
           recipient_tags?: string[]
           rejection_reason?: string | null
           review_count?: number
@@ -1809,6 +1950,7 @@ export type Database = {
           name?: string
           occasion_tags?: string[]
           personalization_options?: Json
+          product_type_id?: string | null
           recipient_tags?: string[]
           rejection_reason?: string | null
           review_count?: number
@@ -1834,6 +1976,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_product_type_id_fkey"
+            columns: ["product_type_id"]
+            isOneToOne: false
+            referencedRelation: "product_types"
             referencedColumns: ["id"]
           },
           {
@@ -2950,6 +3099,7 @@ export type Database = {
           name: string
           occasion_tags: string[]
           personalization_options: Json
+          product_type_id: string | null
           recipient_tags: string[]
           rejection_reason: string | null
           review_count: number
@@ -3000,6 +3150,7 @@ export type Database = {
           name: string
           occasion_tags: string[]
           personalization_options: Json
+          product_type_id: string | null
           recipient_tags: string[]
           rejection_reason: string | null
           review_count: number

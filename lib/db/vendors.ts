@@ -51,6 +51,27 @@ export async function getVendorsForCategory(categoryId: string) {
   return Array.from(seen.values()).sort((a, b) => a.business_name.localeCompare(b.business_name));
 }
 
+/** Same shape as getVendorsForCategory, scoped to a product-type node + its descendants instead of a category. */
+export async function getVendorsForProductTypes(productTypeIds: string[]) {
+  if (productTypeIds.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("vendor:vendors!inner( id, business_name, slug, logo_url )")
+    .in("product_type_id", productTypeIds)
+    .eq("status", "active")
+    .eq("vendor.status", "approved");
+
+  if (error) throw error;
+
+  const seen = new Map<string, { id: string; business_name: string; slug: string; logo_url: string | null }>();
+  for (const row of data ?? []) {
+    const vendor = Array.isArray(row.vendor) ? row.vendor[0] : row.vendor;
+    if (vendor) seen.set(vendor.slug, vendor);
+  }
+  return Array.from(seen.values()).sort((a, b) => a.business_name.localeCompare(b.business_name));
+}
+
 export const getVendorBySlug = cache(async function getVendorBySlug(slug: string) {
   const supabase = await createClient();
   const { data, error } = await supabase

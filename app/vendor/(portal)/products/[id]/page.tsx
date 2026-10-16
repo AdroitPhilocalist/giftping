@@ -3,13 +3,23 @@ import { notFound } from "next/navigation";
 import { ImageManager } from "@/components/vendor/ImageManager";
 import { ProductForm } from "@/components/vendor/ProductForm";
 import { Badge } from "@/components/ui/Badge";
-import { getActiveCategoryOptions, getVendorProduct, requireApprovedVendor } from "@/lib/db/vendor-portal";
+import { getActiveCategoryOptions, getProductAttributeOptions, getProductTypeOptions, getVendorProduct, requireApprovedVendor } from "@/lib/db/vendor-portal";
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { vendor } = await requireApprovedVendor();
-  const [product, categories] = await Promise.all([getVendorProduct(vendor.id, id), getActiveCategoryOptions()]);
+  const [product, categories, productTypes, productAttributes] = await Promise.all([
+    getVendorProduct(vendor.id, id),
+    getActiveCategoryOptions(),
+    getProductTypeOptions(),
+    getProductAttributeOptions(),
+  ]);
   if (!product) notFound();
+
+  const attributeValuesDefault: Record<string, string[]> = {};
+  for (const row of product.attributeValues) {
+    (attributeValuesDefault[row.attribute_id] ??= []).push(row.value);
+  }
 
   const engravingSetup = parsePersonalizationOptions(product.personalization_options);
   const engravingDefaults = engravingSetup ? { enabled: true, ...engravingSetup } : undefined;
@@ -32,10 +42,14 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
       <ProductForm
         productId={product.id}
         categories={categories}
+        productTypes={productTypes}
+        productAttributes={productAttributes}
         primaryImageUrl={images[0]?.medium_url ?? images[0]?.url ?? null}
         defaultValues={{
           name: product.name,
           categoryId: product.category_id ?? "",
+          productTypeId: product.product_type_id ?? null,
+          attributeValues: attributeValuesDefault,
           shortDescription: product.short_description ?? "",
           description: product.description ?? "",
           basePrice: product.base_price,

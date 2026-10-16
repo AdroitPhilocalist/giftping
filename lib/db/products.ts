@@ -19,6 +19,10 @@ export interface ProductListFilters {
   sort?: "popularity" | "price_asc" | "price_desc" | "newest" | "rating";
   page?: number;
   pageSize?: number;
+  /** A product-type node and every one of its descendants (the shop-by-type axis — separate from categorySlug). */
+  productTypeIds?: string[];
+  /** attribute id -> selected values (OR within one attribute, AND across attributes). */
+  attributes?: Record<string, string[]>;
 }
 
 export async function listProducts(filters: ProductListFilters = {}) {
@@ -56,6 +60,19 @@ export async function listProducts(filters: ProductListFilters = {}) {
   if (filters.minPrice !== undefined) query = query.gte("base_price", filters.minPrice);
   if (filters.maxPrice !== undefined) query = query.lte("base_price", filters.maxPrice);
   if (filters.inStockOnly) query = query.gt("stock_quantity", 0);
+  if (filters.productTypeIds) query = query.in("product_type_id", filters.productTypeIds.length ? filters.productTypeIds : ["00000000-0000-0000-0000-000000000000"]);
+
+  // Each selected attribute is its own EXISTS-style subquery, chained so multiple attributes AND together
+  // (a join would multiply rows and OR across them instead — product_attribute_values is one row per
+  // product+attribute+value, not one row per product).
+  if (filters.attributes) {
+    for (const [attributeId, values] of Object.entries(filters.attributes)) {
+      if (values.length === 0) continue;
+      const { data: matches } = await supabase.from("product_attribute_values").select("product_id").eq("attribute_id", attributeId).in("value", values);
+      const ids = [...new Set((matches ?? []).map((m) => m.product_id))];
+      query = query.in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+    }
+  }
 
   switch (filters.sort) {
     case "price_asc":

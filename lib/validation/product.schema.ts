@@ -7,6 +7,15 @@ const optionalInt = z.preprocess(
   z.coerce.number().int().min(0).optional(),
 );
 
+/**
+ * One attribute's chosen values. react-hook-form reports an untouched group of checkboxes as `false` (the first checkbox registers before its siblings, so the
+ * group is still a single box then) and a lone value as a string — both mean "a list", so normalise rather than reject a field the vendor never saw.
+ */
+export const attributeValueList = z.preprocess(
+  (v) => (Array.isArray(v) ? v : typeof v === "string" && v !== "" ? [v] : []),
+  z.array(z.string().max(100)).max(30),
+);
+
 export const variantSchema = z.object({
   // A hidden form input submits "" for a brand-new variant; treat that as "no id yet".
   id: z.preprocess((v) => (v === "" ? undefined : v), z.string().uuid().optional()),
@@ -38,6 +47,7 @@ export const productSchema = z
   .object({
     name: z.string().trim().min(3, "Name must be at least 3 characters").max(200),
     categoryId: z.string().uuid("Choose a category"),
+    productTypeId: z.preprocess((v) => (v === "" || v === undefined ? null : v), z.string().uuid().nullable()),
     shortDescription: z.string().trim().max(500).optional().or(z.literal("")),
     description: z.string().trim().max(5000).optional().or(z.literal("")),
     basePrice: z.coerce.number().positive("Enter a price").max(10_000_000),
@@ -54,6 +64,10 @@ export const productSchema = z
     occasionTags: z.array(z.enum(OCCASION_TAGS)).default([]),
     recipientTags: z.array(z.enum(RECIPIENT_TAGS)).default([]),
     variants: z.array(variantSchema).max(20).default([]),
+    // Keyed by product_attributes.id (not its `key` string — a key is only unique within one product type,
+    // not globally). Values are re-validated against the live attribute definitions in saveProductAction,
+    // since the form's own copy could be stale if an admin edited the attribute since the page loaded.
+    attributeValues: z.record(z.string(), attributeValueList).default({}),
     engraving: engravingSetupSchema.optional(),
   })
   .refine((v) => v.salePrice === undefined || v.salePrice < v.basePrice, {

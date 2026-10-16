@@ -2,7 +2,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { FilterDrawer } from "@/components/shop/FilterDrawer";
 import { FilterSections } from "@/components/shop/ShopFilters";
-import { CLEAR_ALL, DEFAULT_SORT, SORT_OPTIONS, appliedFilters, type FilterPatch, type FilterState } from "@/lib/shop/filters";
+import { attributeAppliedFilters, clearAllPatch, DEFAULT_SORT, SORT_OPTIONS, appliedFilters, type AttributeFilterSection, type FilterPatch, type FilterState } from "@/lib/shop/filters";
 import "./shop.css";
 
 /**
@@ -10,22 +10,23 @@ import "./shop.css";
  * removable chips with a Clear all. Everything is a plain link, so it works without JavaScript (only the phone sheet needs it).
  */
 export function ShopToolbar({
-  total, vendors, current, hrefFor, hide,
+  total, vendors, current, hrefFor, hide, attributeSections = [],
 }: {
   total: number;
   vendors: { slug: string; business_name: string; logo_url?: string | null }[];
   current: FilterState;
   hrefFor: (patch: FilterPatch) => string;
   hide?: "occasion" | "recipient";
+  attributeSections?: AttributeFilterSection[];
 }) {
-  const applied = appliedFilters(current, vendors);
+  const applied = appliedFilters(current, vendors, attributeAppliedFilters(attributeSections));
   const sort = current.sort && SORT_OPTIONS.some((o) => o.value === current.sort) ? current.sort : DEFAULT_SORT;
   return (
     <div className="mb-5 space-y-3">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <p className="font-heading text-lg italic text-brand-dark/70">{total} {total === 1 ? "gift" : "gifts"} found</p>
         <FilterDrawer count={applied.length} total={total}>
-          <FilterSections vendors={vendors} current={current} hrefFor={hrefFor} hide={hide} />
+          <FilterSections vendors={vendors} current={current} hrefFor={hrefFor} hide={hide} attributeSections={attributeSections} />
         </FilterDrawer>
         <nav aria-label="Sort" className="-mx-1 flex w-full items-center gap-1.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:ml-auto sm:w-auto sm:pb-0 [&::-webkit-scrollbar]:hidden">
           <span className="shrink-0 pr-1 text-[11px] font-medium uppercase tracking-[0.18em] text-brand-dark/50">Sort</span>
@@ -42,7 +43,7 @@ export function ShopToolbar({
               <X className="h-3 w-3" strokeWidth={2.4} aria-hidden="true" />
             </Link>
           ))}
-          <Link href={hrefFor(CLEAR_ALL)} className="ml-1 text-xs font-medium text-brand-secondary-dark underline-offset-2 hover:underline">Clear all</Link>
+          <Link href={hrefFor(clearAllPatch(attributeSections))} className="ml-1 text-xs font-medium text-brand-secondary-dark underline-offset-2 hover:underline">Clear all</Link>
         </div>
       ) : null}
     </div>

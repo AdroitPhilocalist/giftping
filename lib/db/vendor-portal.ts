@@ -49,7 +49,7 @@ export async function getVendorProduct(vendorId: string, productId: string) {
   const { data, error } = await supabase
     .from("products")
     .select(
-      "*, images:product_images(id, url, thumb_url, medium_url, alt_text, sort_order, is_primary), variants:product_variants(id, name, value, price_adjustment, stock_quantity, is_active)",
+      "*, images:product_images(id, url, thumb_url, medium_url, alt_text, sort_order, is_primary), variants:product_variants(id, name, value, price_adjustment, stock_quantity, is_active), attributeValues:product_attribute_values(attribute_id, value)",
     )
     .eq("id", productId)
     .eq("vendor_id", vendorId)
@@ -92,6 +92,26 @@ export async function getVendorOrderItems(vendorId: string) {
 export async function getActiveCategoryOptions() {
   const supabase = await createClient();
   const { data, error } = await supabase.from("categories").select("id, name").eq("is_active", true).order("sort_order");
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** The product-type tree (Jewellery, Necklaces, ...) — separate from the occasion categories above. Small table, fetched in full. */
+export async function getProductTypeOptions() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("product_types").select("id, parent_id, name, slug, sort_order, is_active").eq("is_active", true).order("sort_order");
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Every category-specific attribute definition (Flavor, Placement, Metal...) across all product types. Small table, fetched in full — the form computes each type's effective (inherited) set itself. */
+export async function getProductAttributeOptions() {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("product_attributes")
+    .select("id, product_type_id, key, label, input_type, options")
+    .eq("is_active", true)
+    .order("sort_order");
   if (error) throw error;
   return data ?? [];
 }

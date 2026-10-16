@@ -50,6 +50,13 @@ export const SEO_PAGES = [
     description: "Meet the independent boutiques on GiftPing — handpicked sellers of thoughtful, giftable things from across India.",
   },
   {
+    key: "shop",
+    label: "Shop by type page",
+    path: "/shop",
+    title: "Shop by Type — GiftPing",
+    description: "Jewellery, candles, chocolates, flowers and more — browse GiftPing by what a gift actually is, not just the occasion it's for.",
+  },
+  {
     key: "gift-finder",
     label: "Gift finder",
     path: "/gift-finder",

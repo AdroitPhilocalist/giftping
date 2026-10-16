@@ -10,10 +10,38 @@ import { Plus, Trash2 } from "lucide-react";
 import { saveProductAction } from "@/lib/vendor/actions";
 import { productSchema, type ProductFormInput, type ProductInput } from "@/lib/validation/product.schema";
 import { OCCASION_TAGS, RECIPIENT_TAGS, labelForTag } from "@/lib/catalog/tags";
+import { ancestorChain, type ProductTypeRow } from "@/lib/catalog/product-types";
 import { Button } from "@/components/ui/Button";
 import { FieldError, Input, Label, Textarea } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { toast } from "@/components/ui/Toast";
+
+export interface ProductAttributeOption {
+  id: string;
+  product_type_id: string;
+  key: string;
+  label: string;
+  input_type: string; // "select" | "multi_select"
+  options: string[];
+}
+
+/** The first problem react-hook-form found, as "field: message" — so a field the vendor can't see (or an error with no message under it) is still reported. */
+function firstFieldError(errors: unknown, path = ""): string | null {
+  if (!errors || typeof errors !== "object") return null;
+  const node = errors as Record<string, unknown>;
+  if (typeof node.message === "string" && node.message) return path ? `${path}: ${node.message}` : node.message;
+  for (const [key, value] of Object.entries(node)) {
+    if (key === "ref") continue;
+    const found = firstFieldError(value, path ? `${path}.${key}` : key);
+    if (found) return found;
+  }
+  return null;
+}
+
+/** A single-choice attribute's current answer (the form holds every answer as a list). */
+const firstAnswer = (v: unknown): string => (Array.isArray(v) && typeof v[0] === "string" ? v[0] : "");
+
+const TYPE_LEVEL_LABELS = ["Product type", "Subcategory", "Sub-subcategory"];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -27,11 +55,17 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export function ProductForm({
   productId,
   categories,
+  productTypes,
+  productAttributes,
   defaultValues,
   primaryImageUrl,
 }: {
   productId: string | null;
   categories: { id: string; name: string }[];
+  /** the product-type tree (Jewellery, Necklaces, ...) — a separate axis from the occasion categories above */
+  productTypes: ProductTypeRow[];
+  /** every type's attribute definitions (Flavor, Metal, ...); filtered down to one type's effective set below */
+  productAttributes: ProductAttributeOption[];
   defaultValues?: Partial<ProductFormInput>;
   /** the product's main photo — the engraving editor draws on it (null until a photo has been uploaded) */
   primaryImageUrl?: string | null;
@@ -45,6 +79,7 @@ export function ProductForm({
     control,
     handleSubmit,
     setValue,
+    getValues,
     formState: { errors },
   } = useForm<ProductFormInput, unknown, ProductInput>({
     resolver: zodResolver(productSchema),
@@ -54,6 +89,8 @@ export function ProductForm({
       occasionTags: [],
       recipientTags: [],
       variants: [],
+      productTypeId: null,
+      attributeValues: {},
       ...defaultValues,
       engraving: { enabled: false, ...DEFAULT_ENGRAVING, ...defaultValues?.engraving },
     },
@@ -80,6 +117,38 @@ export function ProductForm({
   // keyName: useFieldArray otherwise uses "id" as its internal key, which would clobber each variant's real DB id.
   const variants = useFieldArray({ control, name: "variants", keyName: "fieldKey" });
 
+  // Product type: one cascading select per level of the tree (Jewellery → Necklaces, or Home & Living → Home Decor → Wall Art & Frames), all writing the one
+  // `productTypeId`. A level's blank option means "stop here" — the product belongs to that parent type itself.
+  const productTypeId = (useWatch({ control, name: "productTypeId" }) ?? null) as string | null;
+  const chain = productTypeId ? ancestorChain(productTypes, productTypeId) : [];
+  const typeLevels: { label: string; options: ProductTypeRow[]; value: string; parentId: string | null }[] = [];
+  for (let parentId: string | null = null, depth = 0; ; depth++) {
+    const options = productTypes.filter((t) => (t.parent_id ?? null) === parentId);
+    if (options.length === 0) break;
+    const picked = chain[depth];
+    typeLevels.push({ label: TYPE_LEVEL_LABELS[Math.min(depth, TYPE_LEVEL_LABELS.length - 1)], options, value: picked?.id ?? "", parentId });
+    if (!picked) break;
+    parentId = picked.id;
+  }
+
+  // Effective attribute set = this type's own attributes + every ancestor's (e.g. "Metal" defined on "Jewellery" still applies to a product tagged "Necklaces").
+  const attributesFor = (typeId: string | null) => {
+    if (!typeId) return [];
+    const chainIds = new Set(ancestorChain(productTypes, typeId).map((t) => t.id));
+    return productAttributes.filter((a) => chainIds.has(a.product_type_id));
+  };
+  const effectiveAttributes = attributesFor(productTypeId);
+  const attributeValues = useWatch({ control, name: "attributeValues" }) ?? {};
+
+  function chooseTypeAt(depth: number, id: string) {
+    const next = id || typeLevels[depth].parentId;
+    setValue("productTypeId", next, { shouldDirty: true });
+    // Moving between related types (Jewellery → Necklaces) keeps the answers that still apply; only the questions that no longer exist are dropped.
+    const stillAsked = new Set(attributesFor(next).map((a) => a.id));
+    const answers = Object.entries(getValues("attributeValues") ?? {}).filter(([attributeId]) => stillAsked.has(attributeId));
+    setValue("attributeValues", Object.fromEntries(answers), { shouldDirty: true });
+  }
+
   const onSubmit = handleSubmit((values) => {
     setServerError(null);
     startTransition(async () => {
@@ -95,7 +164,7 @@ export function ProductForm({
         router.refresh();
       }
     });
-  });
+  }, (invalid) => setServerError(`Please check the form — ${firstFieldError(invalid) ?? "a field is not valid"}`));
 
   return (
     <form onSubmit={onSubmit} className="space-y-6" noValidate>
@@ -119,6 +188,20 @@ export function ProductForm({
           </Select>
           <FieldError message={errors.categoryId?.message} />
         </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {typeLevels.map((level, depth) => (
+            <div key={depth}>
+              <Label htmlFor={`productType-${depth}`}>{level.label}</Label>
+              <Select id={`productType-${depth}`} value={level.value} onChange={(e) => chooseTypeAt(depth, e.target.value)}>
+                <option value="">{depth === 0 ? "What kind of thing is this?" : `General ${chain[depth - 1]?.name ?? ""}`}</option>
+                {level.options.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </Select>
+              {depth === 0 ? <p className="mt-1 text-xs text-brand-dark/50">Separate from the category above — e.g. Jewellery, Candles, Flowers &amp; Plants.</p> : null}
+            </div>
+          ))}
+        </div>
         <div>
           <Label htmlFor="shortDescription">Short description</Label>
           <Input id="shortDescription" {...register("shortDescription")} />
@@ -130,6 +213,40 @@ export function ProductForm({
           <FieldError message={errors.description?.message} />
         </div>
       </Section>
+
+      {effectiveAttributes.length > 0 ? (
+        <Section title="Type-specific details">
+          <p className="-mt-2 text-xs text-brand-dark/50">Optional, but every answer helps shoppers find this product with the filters on its category page.</p>
+          <div className="grid gap-x-4 gap-y-5 sm:grid-cols-2">
+          {effectiveAttributes.map((attr) => (
+            <div key={attr.id} className={attr.input_type === "multi_select" ? "sm:col-span-2" : undefined}>
+              <Label htmlFor={`attr-${attr.id}`}>{attr.label}</Label>
+              {attr.input_type === "multi_select" ? (
+                <div className="flex flex-wrap gap-x-5 gap-y-2">
+                  {attr.options.map((opt) => (
+                    <label key={opt} className="flex items-center gap-2 text-sm text-brand-dark/80">
+                      <input type="checkbox" value={opt} className="h-4 w-4" {...register(`attributeValues.${attr.id}`)} />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <Select
+                  id={`attr-${attr.id}`}
+                  value={firstAnswer(attributeValues[attr.id])}
+                  onChange={(e) => setValue(`attributeValues.${attr.id}`, e.target.value ? [e.target.value] : [], { shouldDirty: true })}
+                >
+                  <option value="">Choose {attr.label.toLowerCase()}</option>
+                  {attr.options.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </Select>
+              )}
+            </div>
+          ))}
+          </div>
+        </Section>
+      ) : null}
 
       <Section title="Pricing & stock">
         <div className="grid gap-4 sm:grid-cols-3">

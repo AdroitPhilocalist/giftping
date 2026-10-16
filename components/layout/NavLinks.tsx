@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils/cn";
 
 export interface MegaCategory { id: string; name: string; slug: string }
 export interface MegaVendor { id: string; business_name: string; slug: string; logo_url: string | null; short_description: string | null }
+export interface MegaProductType { id: string; name: string; slug: string }
 
 /** A little icon per occasion, guessed from the slug — the same idea as the homepage's occasion strip, just for whichever categories are actually featured. */
 function occasionIcon(slug: string) {
@@ -30,12 +31,12 @@ function occasionIcon(slug: string) {
  * a few featured categories/vendors, not the full list. Held open across the small gap between the trigger and the panel with a short close delay, so
  * moving the mouse down into it doesn't lose it.
  */
-export function NavLinks({ categories, vendors }: { categories: MegaCategory[]; vendors: MegaVendor[] }) {
+export function NavLinks({ categories, vendors, productTypes }: { categories: MegaCategory[]; vendors: MegaVendor[]; productTypes: MegaProductType[] }) {
   const pathname = usePathname();
-  const [openMenu, setOpenMenu] = useState<"occasions" | "boutiques" | null>(null);
+  const [openMenu, setOpenMenu] = useState<"occasions" | "boutiques" | "types" | null>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const openNow = (key: "occasions" | "boutiques") => {
+  const openNow = (key: "occasions" | "boutiques" | "types") => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     setOpenMenu(key);
   };
@@ -48,7 +49,8 @@ export function NavLinks({ categories, vendors }: { categories: MegaCategory[]; 
     <nav aria-label="Main" className="hidden items-center xl:flex">
       {NAV_ITEMS.map((item, index) => {
         const current = isCurrent(pathname, item.href);
-        const mega: "occasions" | "boutiques" | null = item.label === "Occasions" ? "occasions" : item.label === "Boutiques" ? "boutiques" : null;
+        const mega: "occasions" | "boutiques" | "types" | null =
+          item.label === "Occasions" ? "occasions" : item.label === "Boutiques" ? "boutiques" : item.label === "Shop by Type" ? "types" : null;
         const divider = index < NAV_ITEMS.length - 1 ? <span aria-hidden="true" className="mx-0.5 text-brand-on-primary/25 2xl:mx-1">|</span> : null;
         const linkEl = (
           <Link
@@ -72,9 +74,13 @@ export function NavLinks({ categories, vendors }: { categories: MegaCategory[]; 
                 <MegaPanel open={openMenu === "occasions"} onMouseEnter={() => openNow("occasions")} onMouseLeave={closeSoon}>
                   <OccasionsPanel categories={categories} />
                 </MegaPanel>
-              ) : (
+              ) : mega === "boutiques" ? (
                 <MegaPanel open={openMenu === "boutiques"} onMouseEnter={() => openNow("boutiques")} onMouseLeave={closeSoon}>
                   <BoutiquesPanel vendors={vendors} />
+                </MegaPanel>
+              ) : (
+                <MegaPanel open={openMenu === "types"} onMouseEnter={() => openNow("types")} onMouseLeave={closeSoon}>
+                  <TypesPanel productTypes={productTypes} />
                 </MegaPanel>
               )}
             </div>
@@ -126,6 +132,29 @@ function OccasionsPanel({ categories }: { categories: MegaCategory[] }) {
         })}
       </ul>
       <PanelFooterLink href="/categories">See every occasion</PanelFooterLink>
+    </>
+  );
+}
+
+function TypesPanel({ productTypes }: { productTypes: MegaProductType[] }) {
+  if (productTypes.length === 0) {
+    return <EmptyPanelLink href="/shop">Browse every type →</EmptyPanelLink>;
+  }
+  return (
+    <>
+      <ul className="grid grid-cols-3 gap-1.5">
+        {productTypes.slice(0, 12).map((t) => (
+          <li key={t.id}>
+            <Link href={`/shop/${t.slug}`} className="group flex flex-col items-center gap-2 rounded-2xl px-2 py-3.5 text-center transition-colors duration-200 hover:bg-brand-accent">
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-brand-accent text-brand-secondary-dark transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105">
+                <GiftIcon className="h-5 w-5" strokeWidth={1.6} aria-hidden="true" />
+              </span>
+              <span className="text-xs font-medium leading-tight text-brand-dark">{t.name}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+      <PanelFooterLink href="/shop">See every type</PanelFooterLink>
     </>
   );
 }

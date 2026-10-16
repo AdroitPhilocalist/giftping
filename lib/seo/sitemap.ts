@@ -10,6 +10,8 @@ export interface SitemapSource {
   products: { slug: string; updated_at: string | null }[];
   /** slugs of the "gifts for <someone>" pages */
   relationships: string[];
+  /** full /shop/<...> paths (already resolved from the product-type tree, parent slugs included) */
+  productTypePaths: { path: string; updated_at: string | null }[];
 }
 
 const when = (iso: string | null | undefined): Date | undefined => {
@@ -44,5 +46,6 @@ export function buildSitemapEntries(src: SitemapSource, env?: Record<string, str
   for (const r of src.relationships) add(`/gifts-for/${encodeURIComponent(r)}`, "weekly", 0.6);
   for (const v of src.vendors) add(`/vendors/${encodeURIComponent(v.slug)}`, "weekly", 0.7, when(v.updated_at));
   for (const p of src.products) add(`/products/${encodeURIComponent(p.slug)}`, "weekly", 0.6, when(p.updated_at));
+  for (const t of src.productTypePaths) add(t.path, "weekly", 0.7, when(t.updated_at));
   return out;
 }

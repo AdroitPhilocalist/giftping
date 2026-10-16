@@ -12,6 +12,7 @@
     "db:types": "supabase gen types typescript --linked > lib/db/types.ts",
     "test": "vitest run",
     "seed:images": "tsx scripts/make-seed-images.ts",
+    "seed:taxonomy": "tsx scripts/seed-taxonomy.ts",
     "seed:demo": "tsx scripts/seed-demo.ts"
   },
   "dependencies": {

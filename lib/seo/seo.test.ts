@@ -103,12 +103,13 @@ describe("sitemap", () => {
     vendors: [{ slug: "lumiere-keepsakes", updated_at: null }],
     products: [{ slug: "luxe-memory-hamper", updated_at: "2026-10-01T10:00:00Z" }, { slug: "luxe-memory-hamper", updated_at: null }],
     relationships: ["mom"],
+    productTypePaths: [{ path: "/shop/jewellery", updated_at: "2026-10-16T00:00:00Z" }, { path: "/shop/jewellery/necklaces", updated_at: null }],
   };
   const urls = (s: SitemapSource) => buildSitemapEntries(s, env).map((e) => e.url);
 
   it("lists the fixed pages, legal pages and every category/boutique/product/relationship", () => {
     const u = urls(src);
-    for (const expected of ["https://giftping.example", "https://giftping.example/mall", "https://giftping.example/categories", "https://giftping.example/privacy", "https://giftping.example/categories/birthday", "https://giftping.example/vendors/lumiere-keepsakes", "https://giftping.example/products/luxe-memory-hamper", "https://giftping.example/gifts-for/mom"]) expect(u).toContain(expected);
+    for (const expected of ["https://giftping.example", "https://giftping.example/mall", "https://giftping.example/categories", "https://giftping.example/privacy", "https://giftping.example/categories/birthday", "https://giftping.example/vendors/lumiere-keepsakes", "https://giftping.example/products/luxe-memory-hamper", "https://giftping.example/gifts-for/mom", "https://giftping.example/shop/jewellery", "https://giftping.example/shop/jewellery/necklaces"]) expect(u).toContain(expected);
   });
   it("de-duplicates", () => {
     const u = urls(src);

@@ -8,6 +8,7 @@ import { getServerUser } from "@/lib/auth/session";
 import { authRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
 import { getRequestIp } from "@/lib/auth/request-ip";
 import { getMyVendor } from "@/lib/db/vendor-portal";
+import { ancestorChain } from "@/lib/catalog/product-types";
 import { encryptSecret } from "@/lib/security/encryption";
 import { removeProductImageFiles } from "@/lib/storage/upload";
 import { uniqueSlug } from "@/lib/utils/slug";
@@ -115,6 +116,7 @@ export async function saveProductAction(
   const supabase = await createClient();
   const fields = {
     category_id: input.categoryId,
+    product_type_id: input.productTypeId,
     name: input.name,
     short_description: input.shortDescription || null,
     description: input.description || null,
@@ -155,8 +157,54 @@ export async function saveProductAction(
   const variantError = await syncVariants(supabase, id, input.variants);
   if (variantError) return { error: variantError, id };
 
+  const attributeError = await syncAttributeValues(supabase, id, input.productTypeId, input.attributeValues);
+  if (attributeError) return { error: attributeError, id };
+
   revalidatePath("/vendor/products");
   return { success: true, id };
+}
+
+/**
+ * Replaces this product's attribute-value rows (delete-then-reinsert — nothing references
+ * product_attribute_values.id by FK, unlike variants/order_items, so no soft-delete is needed).
+ * Re-validates against the LIVE attribute definitions rather than trusting the form: an admin could have
+ * edited/removed an attribute (or its options) since the page loaded, so a submitted attribute id outside
+ * the product's own effective set (its type + every ancestor type), or a value not in that attribute's
+ * current options, is silently dropped instead of trusted as-is.
+ */
+async function syncAttributeValues(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  productId: string,
+  productTypeId: string | null,
+  attributeValues: Record<string, string[]>,
+): Promise<string | null> {
+  const { error: deleteError } = await supabase.from("product_attribute_values").delete().eq("product_id", productId);
+  if (deleteError) return "Product saved, but its attributes couldn't be updated.";
+  if (!productTypeId || Object.keys(attributeValues).length === 0) return null;
+
+  const { data: types } = await supabase.from("product_types").select("id, parent_id, name, slug, sort_order, is_active");
+  const chainIds = new Set(ancestorChain(types ?? [], productTypeId).map((t) => t.id));
+  if (chainIds.size === 0) return null;
+
+  const { data: attributes } = await supabase
+    .from("product_attributes")
+    .select("id, product_type_id, options, input_type")
+    .eq("is_active", true)
+    .in("id", Object.keys(attributeValues));
+  const validAttributes = new Map((attributes ?? []).filter((a) => chainIds.has(a.product_type_id)).map((a) => [a.id, { options: new Set(a.options), multi: a.input_type === "multi_select" }]));
+
+  const rows = Object.entries(attributeValues).flatMap(([attributeId, values]) => {
+    const valid = validAttributes.get(attributeId);
+    if (!valid) return [];
+    // A single-choice attribute holds exactly one value, whatever a hand-built request claims.
+    const accepted = [...new Set(values.filter((v) => valid.options.has(v)))];
+    return (valid.multi ? accepted : accepted.slice(0, 1)).map((value) => ({ product_id: productId, attribute_id: attributeId, value }));
+  });
+  if (rows.length === 0) return null;
+
+  const { error: insertError } = await supabase.from("product_attribute_values").insert(rows);
+  if (insertError) return "Product saved, but its attributes couldn't be saved.";
+  return null;
 }
 
 async function syncVariants(
