@@ -674,9 +674,10 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
    cues — the top bar for any link, the dot for the nav you clicked.
    ============================================================================ */
 
-/* The 2px bar, pinned to the very top edge: above the header pill (z-40), below dialogs (z-50). It creeps to 85%
-   while navigating, snaps to 100% and fades on arrival — and only appears if the hop takes a moment, so a fast
-   (prefetched) navigation never flashes it. Never in the layout flow, so it can't shift anything. */
+/* The 2px bar, pinned to the very top edge: above the header pill (z-40), below dialogs (z-50). While navigating it
+   creeps steadily toward the end but deliberately never arrives, then snaps to 100% and fades when the route
+   changes — and it only appears if the hop takes a moment, so a fast (prefetched) navigation never flashes it.
+   Never in the layout flow, so it can't shift anything. */
 .gp-progress {
   position: fixed;
   left: 0;
@@ -700,8 +701,28 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
   background: linear-gradient(90deg, var(--gp-copper), var(--gp-card-edge-lit));
   box-shadow: 0 0 8px color-mix(in srgb, var(--gp-copper) 55%, transparent);
 }
-.gp-progress[data-phase="loading"] .gp-progress-bar { transform: scaleX(0.85); transition: transform 4.2s cubic-bezier(0.1, 0.6, 0.3, 1); }
+/* Creeps toward — but deliberately never reaches — the end for as long as the hop is pending, so a slow
+   navigation can never *look* finished. It used to snap to 85% in 4.2s and then simply sit there, which
+   reads as "done" while the page is still changing (that was reported back as exactly that: "it went in
+   full, but it did not go"). */
+@keyframes gp-progress-creep {
+  0% { transform: scaleX(0); }
+  10% { transform: scaleX(0.32); }
+  30% { transform: scaleX(0.55); }
+  60% { transform: scaleX(0.72); }
+  100% { transform: scaleX(0.9); }
+}
+.gp-progress[data-phase="loading"] .gp-progress-bar {
+  animation: gp-progress-creep 20s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
 .gp-progress[data-phase="done"] .gp-progress-bar { transform: scaleX(1); transition: transform 0.2s var(--gp-ease); }
+
+/* The blanket reduced-motion rule above collapses the animation to nothing, which would leave the bar
+   parked on its 100% keyframe — i.e. looking finished. Park it mid-way instead: still reads as "in
+   progress", just without movement. */
+@media (prefers-reduced-motion: reduce) {
+  .gp-progress[data-phase="loading"] .gp-progress-bar { animation: none; transform: scaleX(0.5); }
+}
 
 /* The per-link dot (components/motion/LinkPending.tsx): absolutely positioned in the nav pill's top-right corner,
    so it costs zero layout in a row that is already width-guarded. Waits ~120ms, then fades in and pulses. */

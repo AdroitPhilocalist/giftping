@@ -7,7 +7,7 @@ import { createClient } from "@/lib/db/server";
 import { createAdminClient } from "@/lib/db/admin";
 import { MARKETING_NOTICE_VERSION } from "@/lib/marketing/consent";
 import { mergeGuestCartIntoUser } from "@/lib/commerce/cart";
-import { safeRedirectPath } from "@/lib/auth/redirect";
+import { postLoginPath } from "@/lib/auth/redirect";
 import { authRateLimit, checkRateLimit } from "@/lib/auth/rate-limit";
 import { notifyUser } from "@/lib/notifications/notify";
 import { buildWelcomeEmail } from "@/lib/notifications/templates";
@@ -131,7 +131,17 @@ export async function signInAction(_prev: ActionResult, formData: FormData): Pro
 
   // Carry anything they put in a guest cart over to their account before landing anywhere.
   if (data.user) await mergeGuestCartIntoUser(data.user.id);
-  redirect(safeRedirectPath(formData.get("redirectTo")));
+
+  // They may have been bounced here from a page that needs a role they don't have (a customer
+  // following /vendor/dashboard). Resolve the destination against the role from the database —
+  // never a role claim from the client — so the browser is only sent somewhere it can actually
+  // land, rather than being bounced by proxy.ts mid-redirect. See postLoginPath.
+  let role = "customer";
+  if (data.user) {
+    const { data: profile } = await supabase.from("users").select("role").eq("id", data.user.id).maybeSingle();
+    role = profile?.role ?? "customer";
+  }
+  redirect(postLoginPath(formData.get("redirectTo"), role));
 }
 
 export async function signOutAction(): Promise<void> {

@@ -1,11 +1,12 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { z } from "zod";
 import { endOfDayIST, startOfDayIST } from "@/lib/admin/coupons";
 import { getServerUser, requireRole } from "@/lib/auth/session";
 import { createClient } from "@/lib/db/server";
+import { SITE_THEMES_TAG } from "@/lib/db/themes";
 import { THEME_PREVIEW_COOKIE } from "@/lib/theme/preview";
 import { isThemeId, schedulableThemes } from "@/lib/theme/themes";
 import { themeScheduleSchema, type ThemeScheduleInput } from "@/lib/validation/theme-schedule.schema";
@@ -18,6 +19,10 @@ async function admin() {
 const idSchema = z.string().uuid();
 
 function refresh() {
+  // The schedule is cached across requests (lib/db/themes.ts) — drop it here so a schedule change is
+  // visible on the very next request instead of up to a minute later. updateTag (not revalidateTag)
+  // because we want read-your-own-writes: the admin sees their own change immediately.
+  updateTag(SITE_THEMES_TAG);
   revalidatePath("/admin/themes");
   revalidatePath("/", "layout");
 }

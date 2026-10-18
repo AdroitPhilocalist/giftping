@@ -77,12 +77,49 @@ sites), which evicts the affected cached segment.
 
 These cut real milliseconds and are independent of the above:
 
-1. **Match the Vercel function region to the Supabase region** (`vercel.json` `regions`) — biggest single win.
+1. ✅ **DONE** — Match the Vercel function region to the Supabase region: `vercel.json` now sets
+   `"regions": ["hnd1"]` (Tokyo, matching Supabase `ap-northeast-1`).
 2. **Stop verifying the session twice** — `getClaims()` (local JWT verification) instead of `getUser()` in
-   `proxy.ts`/`session.ts`.
-3. **Cache the theme schedule** (`getScheduledThemeId`) with `"use cache"`/`unstable_cache` + a short revalidate.
-4. **Sentry `tracesSampleRate` 1.0 → ~0.1** in all three configs.
+   `proxy.ts`/`session.ts`. **Explained, deliberately not applied** — it widens password-reset session
+   revocation from immediate to "within the access-token lifetime".
+3. ✅ **DONE** — Cache the theme schedule (`getScheduledThemeId`) with `unstable_cache` + a 60s revalidate and
+   an `updateTag` from the admin actions.
+4. ✅ **DONE** — Sentry `tracesSampleRate` 1.0 → **0.1** in all three configs. Errors are not sampled by it,
+   so error reporting is unchanged; it now reads `TRACES_SAMPLE_RATE` from `lib/observability/sentry.ts` so
+   the three runtimes can't drift.
 5. Longer term: **Partial Prerendering** (`cacheComponents`) so a static shell streams from the CDN.
+
+1, 3 and 4 are implemented and verified — see `docs/progress/2026-10-18-region-and-theme-cache.md` for the
+measurements, the service-role justification, and the security analysis behind 2.
 
 Note: Server Action buttons (sign-in, add-to-cart) do **not** change the URL, so the top bar intentionally does
 not fire for them — they are already covered by `useFormStatus` in `components/auth/SubmitButton.tsx`.
+
+## Addendum (same day): prefetching here is load-bearing — do **not** disable it
+
+One fix that looks obvious is "stop prefetching dynamic routes" (`prefetch={false}`, or the `NoPrefetchLink`
+wrapper in Next's own `guides/prefetching`). **Measured before doing it, and it would be a regression.**
+
+Next's guide is explicit (`node_modules/next/dist/docs/01-app/02-guides/prefetching.md:31`): without Cache
+Components, **a dynamic route is not prefetched at all — unless it has a `loading.js` boundary.** Every route in
+this app is dynamic, so before the skeletons above were added, **nothing was prefetched anywhere**. Adding
+`app/**/loading.tsx` switched prefetching *on* for every link in the viewport, and what it fetches is the
+payload the table calls "Layout to first loading boundary" — i.e. exactly the skeleton.
+
+A/B on a real production build, one link with `prefetch={false}` and the equivalent link left at the default,
+`Network.emulateNetworkConditions` at 800ms latency:
+
+| | skeleton appears on click |
+| --- | --- |
+| link with prefetch (default) | **38ms / 43ms** |
+| same kind of link with `prefetch={false}` | **859ms**, and once **never** (came straight to the finished page) |
+
+So the prefetch *is* the instant "yes, your click registered" the whole slice was for: without it the old page
+stays on screen for a full round trip — the original complaint, restored. Cost is real though — sitting idle on
+`/mall` fired **8 RSC requests** in one run and **37** (14 aborted) in another, and each one re-runs `proxy.ts`
+and the root layout.
+
+The right lever is therefore **not** to remove the prefetch but to make each one cheap: item 2 below
+(`getClaims()` instead of the doubled `getUser()`) removes a Supabase round trip from *every prefetch as well as*
+every real navigation. Revisit `prefetch={false}` only per-link, for links that are numerous and rarely clicked,
+and re-measure that A/B each time.

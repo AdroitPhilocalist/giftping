@@ -3,7 +3,8 @@ import { createClient } from "@/lib/db/server";
 import { createAdminClient } from "@/lib/db/admin";
 import { MARKETING_NOTICE_VERSION } from "@/lib/marketing/consent";
 import { mergeGuestCartIntoUser } from "@/lib/commerce/cart";
-import { safeRedirectPath } from "@/lib/auth/redirect";
+import { postLoginPath, safeRedirectPath } from "@/lib/auth/redirect";
+import { isAdminPath, isVendorPath } from "@/lib/auth/paths";
 import { notifyUser } from "@/lib/notifications/notify";
 import { buildWelcomeEmail } from "@/lib/notifications/templates";
 
@@ -18,8 +19,8 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
-  const destination = safeRedirectPath(next);
-  const isRecovery = destination === "/update-password";
+  const requested = safeRedirectPath(next);
+  const isRecovery = requested === "/update-password";
 
   if (code) {
     const supabase = await createClient();
@@ -59,6 +60,14 @@ export async function GET(request: Request) {
             email: buildWelcomeEmail({ firstName: (profile?.full_name ?? "there").split(" ")[0], mallUrl: `${appUrl}/mall`, diaryUrl: `${appUrl}/diary`, preferencesUrl: `${appUrl}/account/notifications` }),
           });
         }
+      }
+      // `next` is attacker-supplied, so the landing page has to agree with the role we just
+      // established: sending a customer to /vendor/* would bounce them through proxy.ts mid-redirect
+      // (see postLoginPath). Only pay for the extra read when the target is actually a role's portal.
+      let destination = requested;
+      if (data.user && (isAdminPath(requested) || isVendorPath(requested))) {
+        const { data: profile } = await supabase.from("users").select("role").eq("id", data.user.id).maybeSingle();
+        destination = postLoginPath(requested, profile?.role ?? "customer");
       }
       return NextResponse.redirect(`${origin}${destination}`);
     }

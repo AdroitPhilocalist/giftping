@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isAdminPath, isAuthPath, isProtectedCustomerPath, isVendorPath } from "@/lib/auth/paths";
 
 const CSP_HEADER = "Content-Security-Policy";
 
@@ -51,37 +52,6 @@ function buildCsp(nonce: string): string {
     `frame-ancestors 'none'`,
     `upgrade-insecure-requests`,
   ].join("; ");
-}
-
-const VENDOR_PUBLIC_PATHS = ["/vendor/register"];
-
-function isProtectedCustomerPath(pathname: string) {
-  return (
-    pathname.startsWith("/account") ||
-    pathname.startsWith("/diary") ||
-    pathname.startsWith("/checkout") ||
-    pathname.startsWith("/orders") ||
-    pathname.startsWith("/notifications")
-  );
-}
-
-// Matches the /vendor/* portal (vendor/admin only) without also matching /vendors/* — the
-// public shop's vendor storefront pages. `startsWith("/vendor")` alone catches both, since
-// "/vendors/aurelia-gifts" starts with the substring "/vendor" too — confirmed by hand-testing
-// (a signed-in customer got silently bounced from a public storefront page).
-function isVendorPath(pathname: string) {
-  return (
-    (pathname === "/vendor" || pathname.startsWith("/vendor/")) &&
-    !VENDOR_PUBLIC_PATHS.some((path) => pathname.startsWith(path))
-  );
-}
-
-function isAdminPath(pathname: string) {
-  return pathname.startsWith("/admin");
-}
-
-function isAuthPath(pathname: string) {
-  return pathname.startsWith("/sign-in") || pathname.startsWith("/sign-up");
 }
 
 // This is an "optimistic" check per Supabase's own guidance (see
