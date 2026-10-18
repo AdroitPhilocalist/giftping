@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { NAV_ITEMS, isCurrent } from "@/lib/nav";
 import { cn } from "@/lib/utils/cn";
+import { LinkPending } from "@/components/motion/LinkPending";
 
 export interface MegaCategory { id: string; name: string; slug: string }
 export interface MegaVendor { id: string; business_name: string; slug: string; logo_url: string | null; short_description: string | null }
@@ -63,6 +64,7 @@ export function NavLinks({ categories, vendors, productTypes }: { categories: Me
             )}
           >
             {item.label}
+            <LinkPending />
           </Link>
         );
         if (!mega) return <span key={item.label} className="flex items-center">{linkEl}{divider}</span>;

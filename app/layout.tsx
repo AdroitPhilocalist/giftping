@@ -1,6 +1,7 @@
 import { SEO_PAGES } from "@/lib/seo/pages";
 import { baseOpenGraph, siteUrl } from "@/lib/seo/site";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { DM_Sans, Newsreader } from "next/font/google";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -15,6 +16,7 @@ import { FestivalFx } from "@/components/festival/FestivalFx";
 import { Ambience } from "@/components/shop/Ambience";
 import { festivalForTheme } from "@/lib/festivals/calendar";
 import { RobinCursor } from "@/components/motion/RobinCursor";
+import { NavProgress } from "@/components/motion/NavProgress";
 import { siteImage } from "@/lib/content/imagery";
 import { getActiveTheme } from "@/lib/theme/active";
 import { getThemePreviewOverride } from "@/lib/theme/preview";
@@ -67,6 +69,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${newsreader.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">
+        {/* Global navigation feedback: the top gold bar for every link on the site. Suspense-wrapped because it
+            reads `useSearchParams` (Next's requirement for that hook). Purely visual — `aria-hidden`. */}
+        <Suspense fallback={null}>
+          <NavProgress />
+        </Suspense>
         <TooltipProvider>
           <Navbar />
           {/* Matches .gp-header's own height exactly (globals.css) — the header is `fixed`, so it no longer reserves this space itself; every

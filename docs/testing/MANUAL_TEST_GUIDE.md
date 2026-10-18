@@ -2660,6 +2660,28 @@ intentional, not a missing feature.
 
 **❌ Something's wrong if:** These animations still play despite the setting being on.
 
+### 12.7 — Navigation feedback: skeletons, top bar, pending dot
+
+Every page here is rendered on the server (nothing is pre-built), so a click can take a moment. Three cues now
+make that moment legible instead of looking like a dead click. This is easiest to see with the browser's network
+throttled (DevTools → Network → "Slow 3G"), or just on the deployed site.
+
+**Steps:**
+1. Click a main nav link (e.g. **Occasions**) from any page.
+2. Watch the very top edge of the window and the page body as it loads.
+
+**✅ Correct if:**
+- A **thin gold bar** crosses the very top edge, immediately (creeping while it waits, then snapping across and fading).
+- The nav link you clicked shows a **small pulsing gold dot** in its top-right corner.
+- The page you left is replaced by a **grey skeleton** (heading bars + placeholder cards) as soon as the response starts, with the header and footer staying put — then the real page appears over it.
+
+**❌ Something's wrong if:** The bar sticks at part-way and never completes (it has a 12-second safety net, so it
+should always clear); the skeleton never appears and the old page just freezes; or anything on the page jumps or
+shifts when the skeleton swaps in.
+
+**Note:** Buttons that save something rather than change the page (sign-in, add-to-cart) show the button's own
+spinner instead — that's deliberate, since the URL doesn't change.
+
 ---
 
 ## 13. The mall as a place

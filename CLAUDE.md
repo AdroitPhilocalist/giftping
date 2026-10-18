@@ -185,6 +185,19 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
   `@sentry/nextjs/config` (not the deprecated `@sentry/nextjs` root export); source-map upload to Sentry
   is skipped until a `SENTRY_AUTH_TOKEN` is set at go-live — error capture works fine without it.
 - **Motion**: the `motion` package IS installed (16 Oct), but only its **springs** (`useSpring`) are used, in `components/motion/GlowCard.tsx` — not its components or gesture/animation feature bundle (`LazyMotion`/`domAnimation`/`m.*`), which cost ~30 KB for things a few pointer events do. `m` without features renders but does NOT paint motion values onto `style` (cards stayed flat until the springs were written to `element.style.transform` by hand, once per frame). **`GlowCard`** is the shared "lit glass" card shell (spring lean + rise, a gold edge and soft light that follow the pointer, `.gp-glow-parallax`/`.gp-glow-float` children drifting against/with it, press-in on touch; styles in `globals.css` `.gp-glow`, colours from `--gp-card-edge-lit`). Wrap a card in it and REMOVE the card's own hover-lift (two transforms stack). Used by `VendorCard` and `ProductTypeCard`. **`WorldCard`** is the occasion cards' (`CategoryCard`) deliberately DIFFERENT treatment: the frame holds still while the world inside answers: a slow, deep zoom drifting toward the pointer, light spilling OUT of the frame, the occasion's own `Ambience` drifting inside the pane and a sheen across the glass (styles in `globals.css` `.gp-world`; plain `--wpx`/`--wpy`, no springs). The older CSS `TiltCard` was retired with this change. The homepage **`DiscoverCards`** use a third, pure-CSS idiom — a framed print (`globals.css` `.gp-gallery`): the picture sits in a mounted frame and grows out to fill it on hover.
+- **Navigation feedback / perceived speed**: every page is dynamically rendered (the root layout reads cookies +
+  a per-request CSP nonce), so the App Router keeps nothing in its client cache and each navigation is a full
+  server render — which used to mean the old page sat still, with no sign the click registered, until it finished.
+  Three layers answer that, cheapest first: **(1) route skeletons** — `loading.tsx` in `app/`, `app/(shop)/`,
+  `app/(auth)/` and `app/admin/` paint instantly (`/diary` keeps its own, more fitting one). **(2)**
+  `components/motion/NavProgress.tsx` — a 2px gold bar on the top edge (`.gp-progress` in globals.css) that starts
+  on any same-origin `Link` click and finishes when the route changes; the App Router has no router events, so it
+  infers both, with a safety timeout so a bar can never stick. **(3)** `components/motion/LinkPending.tsx` — a
+  `useLinkStatus` dot that rides the main nav links, absolutely positioned so it can never shift the width-guarded
+  header. `next.config.ts`'s `experimental.staleTimes` (`dynamic: 30`) then makes re-visits/back-forward instant;
+  it's safe because every mutating action already calls `revalidatePath`. **Any new route group should ship a
+  `loading.tsx`** — the single biggest perceived-speed win, and it costs nothing. Server-action buttons are a
+  separate path and already covered by `useFormStatus` (`components/auth/SubmitButton.tsx`).
 - **Mall experience**: illustrated + Framer Motion animated pages
   using AI-generated imagery from `ui-references/` and future client-supplied images — not a real 3D/WebGL
   scene.

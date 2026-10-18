@@ -17,6 +17,15 @@ const nextConfig: NextConfig = {
     // image either way. Already covered by the Vercel Pro image-optimization allowance (see CLAUDE.md).
     formats: ["image/avif", "image/webp"],
   },
+  // PERCEIVED SPEED. Every page here is dynamically rendered (the root layout reads cookies + a per-request CSP
+  // nonce), so Next's client router cache no longer keeps visited pages at all — the 15.x default `dynamic: 0`
+  // means a back/forward or a re-visit re-runs the full server render from scratch. A short window makes those
+  // instant; mutations stay correct because every Server Action/route that changes data already calls
+  // revalidatePath (which evicts the cached segment). `static` covers anything Next is able to prerender.
+  // Tune down if a page ever shows an update more slowly than expected; see the Next docs' `staleTimes` page.
+  experimental: {
+    staleTimes: { dynamic: 30, static: 180 },
+  },
   // Baseline hardening headers on every response — Next/Vercel don't set any of these on their own (Vercel's
   // own HSTS only covers a verified custom domain, not these). The Content-Security-Policy lives in proxy.ts
   // instead, not here: it's a per-request nonce (Next's own recommended pattern), and only middleware can mint
