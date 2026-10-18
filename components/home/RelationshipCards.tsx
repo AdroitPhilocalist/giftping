@@ -7,11 +7,18 @@ import { siteImage } from "@/lib/content/imagery";
 import { RELATIONSHIPS } from "@/lib/relationships";
 import { getActiveTheme } from "@/lib/theme/active";
 
-/** "Shop by relationship": five warm portraits, each leading to the gifts for that person. Falls back to a tinted tile until a portrait exists. */
+/**
+ * "Shop by relationship": five warm portraits, each leading to the gifts for that person.
+ *
+ * These are the site's FOURTH card idiom — an "alcove" (styles in `globals.css` under `.gp-alcove`): a dome-topped arched niche, gilded, holding the
+ * person in shadow until you arrive, when the niche lights from within. It is deliberately nothing like the other three: not a lit-glass object that
+ * leans toward you (`GlowCard`), not a window whose world moves (`WorldCard`), not a framed print that grows in its mount (`DiscoverCards`) — a place
+ * of honour, and the only card whose motion is TIME-driven rather than pointer-driven. Falls back to a votive tile until a portrait exists.
+ */
 export async function RelationshipCards() {
   const theme = await getActiveTheme();
   return (
-    <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+    <section className="gp-alcove-row mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <Reveal>
         <SectionHeading eyebrow="Made for someone" title="Shop by relationship" subtitle="Start with who it's for — we'll show you what they'd love." />
       </Reveal>
@@ -20,16 +27,26 @@ export async function RelationshipCards() {
           const img = siteImage(r.imageKey, theme.id);
           return (
             <li key={r.slug} className={i === RELATIONSHIPS.length - 1 ? "col-span-2 sm:col-span-1" : undefined}>
-              <Reveal delay={i * 80}>
-                <Link href={`/gifts-for/${r.slug}`} className="group relative block aspect-[4/5] overflow-hidden rounded-card bg-brand-accent shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift">
-                  {img ? (
-                    <Image src={img.src} alt="" fill sizes="(min-width: 1024px) 20vw, 50vw" className="object-cover transition-transform duration-700 ease-out group-hover:scale-105" />
-                  ) : (
-                    <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-brand-accent to-brand-surface text-brand-secondary"><Heart className="h-10 w-10" aria-hidden="true" /></span>
-                  )}
-                  <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-brand-primary-dark/90 via-brand-primary-dark/40 to-transparent px-4 pb-4 pt-16">
-                    <span className="block font-heading text-lg text-white">{r.title}</span> {/* theme-safe: text on a photo scrim, must stay light in every theme */}
-                    <span className="mt-0.5 block text-xs text-white/80">{r.line}</span> {/* theme-safe: text on a photo scrim */}
+              <Reveal className="h-full" delay={i * 80}>
+                <Link href={`/gifts-for/${r.slug}`} className="gp-alcove group flex h-full flex-col">
+                  <span className="gp-alcove-stage relative aspect-[4/5] w-full shrink-0">
+                    <span className="gp-alcove-halo" aria-hidden="true" />
+                    <span className="gp-alcove-arch">
+                      {img ? (
+                        <Image src={img.src} alt="" fill sizes="(min-width: 1024px) 20vw, 50vw" className="gp-alcove-portrait object-cover" />
+                      ) : (
+                        <span className="absolute inset-0 flex items-center justify-center bg-gradient-to-b from-brand-accent to-brand-primary-dark">
+                          <Heart className="gp-alcove-portrait h-9 w-9 text-brand-on-primary" aria-hidden="true" />
+                        </span>
+                      )}
+                      <span className="gp-alcove-veil" aria-hidden="true" />
+                      <span className="gp-alcove-light" aria-hidden="true" />
+                      <span className="gp-alcove-tracery" aria-hidden="true" />
+                    </span>
+                  </span>
+                  <span className="gp-alcove-plaque">
+                    <span className="gp-alcove-name">{r.title}</span>
+                    <span className="gp-alcove-line">{r.line}</span>
                   </span>
                 </Link>
               </Reveal>

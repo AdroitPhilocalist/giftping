@@ -331,6 +331,131 @@ h1, h2, h3, .font-heading {
   .gp-gallery:hover .gp-gallery-photo { transform: scale(1.16); }
 }
 
+/* "Alcove" cards (components/home/RelationshipCards.tsx) — the FOURTH card idiom, and the most ceremonial: each person is shown in a votive niche —
+   an arched alcove cut into the wall and lit from within. Deliberately unlike the other three: not an object that leans toward you (GlowCard), not a
+   window whose world moves (WorldCard), not a print that grows in its frame (DiscoverCards) — a place of honour. Three things are new here: the
+   SHAPE (a dome-topped arch, so a row of five reads as a colonnade), the ORNAMENT (a gilded double hairline drawn around the arch, with a keystone at
+   the crown), and the MOTION — which is TIME-driven, not pointer-driven: the shadow lying over the niche lifts, light wakes in the crown and sways,
+   and the glow that fills the niche blooms out past the arch onto the page like a lamp in a chapel. Pure CSS, nothing tracked, nothing to re-render;
+   under reduced motion the light still comes up, but nothing turns. */
+.gp-alcove { position: relative; }
+
+/* The halo below deliberately bleeds past the arch — which, unclipped, also widens the document (a phone showed a 14px horizontal scrollbar).
+   `overflow: clip` keeps that bleed inside the section (its own padding absorbs most of it, so nothing visible is lost) and, unlike `hidden`, never
+   turns the section into a scroll container. */
+.gp-alcove-row { overflow: clip; }
+
+/* The crown: the warm light of the niche escaping onto the page. Behind the arch, so only the spill past its edge is ever seen. */
+.gp-alcove-halo {
+  position: absolute; inset: -16% -8%; z-index: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(56% 44% at 50% 32%, color-mix(in srgb, var(--gp-card-edge-lit) 72%, transparent) 0%, color-mix(in srgb, var(--gp-copper) 32%, transparent) 44%, transparent 74%);
+  filter: blur(16px);
+  transition: opacity 0.9s var(--gp-ease);
+}
+
+/* The niche itself: a dome-topped arch cut out of the wall (the wall is the gilded 1px ring in its box-shadow). `isolation` keeps the light below blending with the photo, not the page. */
+.gp-alcove-arch {
+  position: absolute; inset: 0; z-index: 1; overflow: hidden; isolation: isolate;
+  border-radius: 50% 50% var(--gp-radius-card, 1.25rem) var(--gp-radius-card, 1.25rem) / 40% 40% var(--gp-radius-card, 1.25rem) var(--gp-radius-card, 1.25rem);
+  background: linear-gradient(165deg, var(--gp-peach), var(--gp-surface));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 48%, transparent), 0 16px 32px -22px color-mix(in srgb, var(--gp-primary) 70%, transparent);
+  transition: box-shadow 0.7s var(--gp-ease);
+}
+
+/* The portrait is held in shadow — a veil lies over it and it is a touch muted — until you arrive. */
+.gp-alcove-portrait { transition: transform 1.1s var(--gp-ease), filter 0.9s var(--gp-ease); filter: saturate(0.74) contrast(1.05) brightness(0.82); }
+.gp-alcove-veil {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gp-primary-dark) 78%, transparent) 0%, color-mix(in srgb, var(--gp-primary-dark) 30%, transparent) 48%, color-mix(in srgb, var(--gp-primary-dark) 66%, transparent) 100%);
+  transition: opacity 0.9s var(--gp-ease);
+}
+
+/* The light: a rose-window fanning down from the crown of the arch, fading as it reaches the floor. */
+.gp-alcove-light {
+  position: absolute; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen;
+  background: radial-gradient(132% 58% at 50% -8%, color-mix(in srgb, var(--gp-card-edge-lit) 90%, transparent) 0%, transparent 58%);
+  -webkit-mask-image: linear-gradient(180deg, black 0%, rgb(0 0 0 / 0.5) 44%, transparent 80%);
+  mask-image: linear-gradient(180deg, black 0%, rgb(0 0 0 / 0.5) 44%, transparent 80%);
+  transition: opacity 0.8s var(--gp-ease);
+}
+/* the spokes: a big disc centred on the crown, so rotating it (below) turns the fan about its own origin */
+.gp-alcove-light::before {
+  content: ""; position: absolute; left: 50%; top: 0; width: 190%; aspect-ratio: 1 / 1; transform: translate(-50%, -50%);
+  background: conic-gradient(from 108deg,
+    transparent 0deg 3deg, color-mix(in srgb, var(--gp-card-edge-lit) 62%, transparent) 3deg 10deg, transparent 10deg 27deg,
+    color-mix(in srgb, var(--gp-card-edge-lit) 62%, transparent) 27deg 34deg, transparent 34deg 51deg,
+    color-mix(in srgb, var(--gp-card-edge-lit) 62%, transparent) 51deg 58deg, transparent 58deg 75deg,
+    color-mix(in srgb, var(--gp-card-edge-lit) 62%, transparent) 75deg 82deg, transparent 82deg 99deg,
+    color-mix(in srgb, var(--gp-card-edge-lit) 62%, transparent) 99deg 106deg, transparent 106deg 123deg,
+    color-mix(in srgb, var(--gp-card-edge-lit) 62%, transparent) 123deg 130deg, transparent 130deg 148deg);
+}
+
+/* The ornament: a gilded hairline inside the arch, with a small keystone at the crown. */
+.gp-alcove-tracery {
+  position: absolute; inset: 0.4rem; pointer-events: none;
+  border-radius: 50% 50% var(--gp-radius-card, 1.25rem) var(--gp-radius-card, 1.25rem) / 40% 40% var(--gp-radius-card, 1.25rem) var(--gp-radius-card, 1.25rem);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gp-card-edge-lit) 74%, transparent);
+  transition: box-shadow 0.7s var(--gp-ease);
+}
+.gp-alcove-tracery::after {
+  content: ""; position: absolute; top: 0; left: 50%; width: 0.44rem; height: 0.44rem;
+  transform: translate(-50%, -50%) rotate(45deg);
+  background: var(--gp-gold-edge);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-primary-dark) 42%, transparent), 0 0 10px color-mix(in srgb, var(--gp-card-edge-lit) 72%, transparent);
+}
+
+/* The plaque beneath the niche: the name over an engraved rule that runs gold when the niche lights. It takes the leftover height, so every plaque in a row is one height. */
+.gp-alcove-plaque { position: relative; z-index: 2; flex: 1 1 auto; padding: 0.85rem 0.35rem 0.2rem; text-align: center; }
+.gp-alcove-plaque::before {
+  content: ""; display: block; width: 2rem; height: 1px; margin: 0 auto 0.5rem;
+  background: color-mix(in srgb, var(--gp-ink) 22%, transparent);
+  transition: width 0.6s var(--gp-ease), background 0.6s var(--gp-ease);
+}
+.gp-alcove-name { display: block; font-family: var(--gp-font-display); font-size: 1.02rem; line-height: 1.25; color: var(--gp-ink); }
+.gp-alcove-line { display: block; margin-top: 0.2rem; font-size: 0.72rem; line-height: 1.4; color: color-mix(in srgb, var(--gp-ink) 62%, transparent); }
+
+/* The light comes up. Keyboard focus first — any device, so it is never hover-exclusive — then the mouse. This is a light cue, not motion, so it stays under reduced motion. */
+.gp-alcove:focus-within .gp-alcove-veil { opacity: 0; }
+.gp-alcove:focus-within .gp-alcove-light { opacity: 0.95; }
+.gp-alcove:focus-within .gp-alcove-halo { opacity: 0.9; }
+.gp-alcove:focus-within .gp-alcove-portrait { filter: saturate(1.06) contrast(1.06) brightness(1.09); }
+.gp-alcove:focus-within .gp-alcove-arch { box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 78%, transparent), 0 26px 52px -26px color-mix(in srgb, var(--gp-copper) 78%, transparent); }
+.gp-alcove:focus-within .gp-alcove-tracery { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gp-card-edge-lit) 100%, transparent); }
+.gp-alcove:focus-within .gp-alcove-plaque::before { width: 3.4rem; background: var(--gp-copper); }
+.gp-alcove:focus-visible { outline: none; }
+.gp-alcove:focus-visible .gp-alcove-arch { box-shadow: 0 0 0 2px var(--gp-canvas), 0 0 0 4px color-mix(in srgb, var(--gp-copper) 72%, transparent), 0 26px 52px -26px color-mix(in srgb, var(--gp-copper) 78%, transparent); }
+@media (hover: hover) {
+  .gp-alcove:hover .gp-alcove-veil { opacity: 0; }
+  .gp-alcove:hover .gp-alcove-light { opacity: 0.95; }
+  .gp-alcove:hover .gp-alcove-halo { opacity: 0.9; }
+  .gp-alcove:hover .gp-alcove-portrait { filter: saturate(1.06) contrast(1.06) brightness(1.09); }
+  .gp-alcove:hover .gp-alcove-arch { box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 78%, transparent), 0 26px 52px -26px color-mix(in srgb, var(--gp-copper) 78%, transparent); }
+  .gp-alcove:hover .gp-alcove-tracery { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gp-card-edge-lit) 100%, transparent); }
+  .gp-alcove:hover .gp-alcove-plaque::before { width: 3.4rem; background: var(--gp-copper); }
+}
+/* where motion is welcome, the light also MOVES: the portrait settles forward, the fan sways, the halo breathes */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .gp-alcove:hover .gp-alcove-portrait,
+  .gp-alcove:focus-within .gp-alcove-portrait { transform: scale(1.05); }
+  .gp-alcove:hover .gp-alcove-light::before,
+  .gp-alcove:focus-within .gp-alcove-light::before { animation: gp-alcove-sway 9s var(--gp-ease) infinite alternate; }
+  .gp-alcove:hover .gp-alcove-halo,
+  .gp-alcove:focus-within .gp-alcove-halo { animation: gp-alcove-breathe 4.6s var(--gp-ease) infinite alternate; }
+}
+@keyframes gp-alcove-sway { from { transform: translate(-50%, -50%) rotate(-6deg); } to { transform: translate(-50%, -50%) rotate(6deg); } }
+@keyframes gp-alcove-breathe { from { opacity: 0.5; transform: scale(0.96); } to { opacity: 0.95; transform: scale(1.04); } }
+
+/* Where there is no hover at all — phones, tablets — the niche must not stay sealed in shadow: it opens by default (lighter veil, the light already
+   part-bloomed) and a press is the tell. Tapping also matches :focus-within, which lights it fully. */
+@media (hover: none) {
+  .gp-alcove-veil { opacity: 0.3; }
+  .gp-alcove-portrait { filter: saturate(0.95) contrast(1.03) brightness(0.98); }
+  .gp-alcove-light { opacity: 0.4; }
+  .gp-alcove-halo { opacity: 0.4; }
+  .gp-alcove-tracery { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gp-card-edge-lit) 90%, transparent); }
+  .gp-alcove:active .gp-alcove-arch { transform: scale(0.985); }
+}
+
 @keyframes gp-fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* A slow "breathing" float for hanging gifts, the robin, decorative elements */

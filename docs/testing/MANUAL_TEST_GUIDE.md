@@ -2748,7 +2748,7 @@ looks wrong for today's date.
 scheduling it for real via "Schedule a theme" (not just previewing) once the date and cutoff are confirmed
 with the client — see the questionnaire.
 
-### 13.5 — Card hover effects (lit glass vs. world windows)
+### 13.5 — Card idioms: lit glass, world windows, framed prints, alcoves
 
 **Steps:**
 1. On a desktop with a mouse, go to `/vendors` (boutiques) and then `/shop` (Shop by Type). Slowly move
@@ -2757,7 +2757,8 @@ with the client — see the questionnaire.
 3. Press and hold the mouse button on a card, then release.
 4. Go to `/categories` (the occasions) and hover a card there, moving the mouse slowly across the photo.
 5. Go to the homepage and hover a card in the "Discover Meaningful Gifting" row.
-6. Repeat step 1 on a phone.
+6. Still on the homepage, scroll to "Shop by relationship" and hover one of the five arched portraits.
+7. Repeat step 1 on a phone (and look at that "Shop by relationship" row on the phone too).
 
 **✅ Correct if:**
 - Step 1 ("lit glass" — boutiques & Shop by Type): the card **rises a few pixels and leans toward your
@@ -2776,16 +2777,24 @@ with the client — see the questionnaire.
 - Step 5 ("framed prints" — homepage Discover Cards): a third, quieter feel again — at rest the picture sits
   **inside a mounted frame** with a thin copper hairline; on hover it **grows out to fill its frame** (the
   mount disappears, the hairline sharpens) and the card lifts. It does not lean or glow.
-- Step 6: on a phone nothing leans or glows on hover (no mouse), but a card **presses in slightly** while
-  you touch it.
-- If your computer is set to "reduce motion", nothing leans, rises, drifts, sheens or grows — on the
+- Step 6 ("alcoves" — the "Shop by relationship" row): a fourth, most ceremonial feel. At rest each person sits
+  in an **arched niche** (a dome-topped arch, so the row reads as a colonnade) held in warm shadow, framed by a
+  **gilded double hairline** with a small gold **keystone** at the crown. On hover the **shadow lifts**, the
+  photo **warms and settles forward**, a **fan of light wakes in the crown** and slowly sways, and the niche's
+  **glow blooms out past the arch onto the page**; the engraved rule above the name widens and turns gold. It
+  does not lean, tilt or grow.
+- Step 7: on a phone nothing leans or glows on hover (no mouse), but a card **presses in slightly** while
+  you touch it — **except the alcoves, which have no hover to open them, so they show open by default** (the
+  portraits visible, the light already part-bloomed). The other card rows behave as before.
+- If your computer is set to "reduce motion", nothing leans, rises, drifts, sheens, grows or sways — on the
   lit-glass cards the gold edge and light still appear, on the occasion cards the frame still warms and
-  spills light, and on the homepage cards the hairline still sharpens.
+  spills light, on the homepage cards the hairline still sharpens, and on the alcoves the light still comes up
+  (only the sway/breathe is dropped).
 
 **❌ Something's wrong if:** Hovering does nothing on `/vendors`, `/shop`, `/categories` or the homepage, a
 card jitters or lags badly, two things move at once in a jarring way (a card jumping up twice), occasion
-cards lean/tilt like the boutique ones (they should hold still), or the gold edge / glow stays stuck on
-after the mouse leaves.
+cards lean/tilt like the boutique ones (they should hold still), the alcove arches stay sealed in shadow on a
+phone (they must show open), or the gold edge / glow stays stuck on after the mouse leaves.
 
 ---
 
