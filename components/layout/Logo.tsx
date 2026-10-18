@@ -30,8 +30,8 @@ export function Logo({ className, tone = "dark", priority = false }: { className
         </span>
       )}
       <span className="hidden flex-col whitespace-nowrap leading-none sm:flex">
-        <span className={cn("font-heading text-[1.2rem] uppercase tracking-[0.42em]", ink)}>Giftping</span>
-        <span className={cn("mt-1.5 hidden text-[8.5px] xl:block font-medium uppercase tracking-[0.26em]", tone === "light" ? "text-brand-on-primary/60" : "text-brand-dark/55")}>Your companion for every occasion</span>
+        <span className={cn("gp-logo-word font-heading text-[1.2rem] uppercase tracking-[0.42em]", ink)}>Giftping</span>
+        <span className={cn("gp-logo-tagline mt-1.5 hidden text-[8.5px] xl:block font-medium uppercase tracking-[0.26em]", tone === "light" ? "text-brand-on-primary/80" : "text-brand-dark/55")}>Your companion for every occasion</span>
       </span>
     </Link>
   );

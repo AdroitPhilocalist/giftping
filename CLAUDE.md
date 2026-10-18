@@ -184,7 +184,8 @@ The look is defined by CSS variables `--gp-*` in `app/globals.css` (default them
   nothing reports from local dev. `next.config.ts` wraps the config with `withSentryConfig` from
   `@sentry/nextjs/config` (not the deprecated `@sentry/nextjs` root export); source-map upload to Sentry
   is skipped until a `SENTRY_AUTH_TOKEN` is set at go-live — error capture works fine without it.
-- **Mall experience**: illustrated + Framer Motion (`motion` package, not yet installed) animated pages
+- **Motion**: the `motion` package IS installed (16 Oct), but only its **springs** (`useSpring`) are used, in `components/motion/GlowCard.tsx` — not its components or gesture/animation feature bundle (`LazyMotion`/`domAnimation`/`m.*`), which cost ~30 KB for things a few pointer events do. `m` without features renders but does NOT paint motion values onto `style` (cards stayed flat until the springs were written to `element.style.transform` by hand, once per frame). **`GlowCard`** is the shared "lit glass" card shell (spring lean + rise, a gold edge and soft light that follow the pointer, `.gp-glow-parallax`/`.gp-glow-float` children drifting against/with it, press-in on touch; styles in `globals.css` `.gp-glow`, colours from `--gp-card-edge-lit`). Wrap a card in it and REMOVE the card's own hover-lift (two transforms stack). Used by `VendorCard` and `ProductTypeCard`; `CategoryCard` still uses the older CSS `TiltCard` — migrate it the same way when wanted.
+- **Mall experience**: illustrated + Framer Motion animated pages
   using AI-generated imagery from `ui-references/` and future client-supplied images — not a real 3D/WebGL
   scene.
 - **Security response headers**: `next.config.ts`'s `headers()` sets `X-Frame-Options: DENY`,

@@ -171,8 +171,12 @@ export async function requestPasswordResetAction(
   const supabase = await createClient();
   const appUrl = await getAppUrl();
 
+  // The link goes through /auth/callback (a Route Handler) rather than straight to /update-password:
+  // the PKCE code exchange has to set the session cookies, and only a Route Handler or Server Action
+  // can do that. `next` carries the recovery destination so the callback knows where to send the
+  // freshly-exchanged (now signed-in) user. See app/auth/callback/route.ts.
   await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${appUrl}/update-password`,
+    redirectTo: `${appUrl}/auth/callback?next=/update-password`,
   });
 
   // Always the same response whether or not the email exists — avoids leaking which

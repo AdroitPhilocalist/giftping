@@ -44,6 +44,9 @@
   --gp-hero-gold-light: #ffe9b0;
   --gp-hero-gold: #f6cb72;
   --gp-hero-gold-deep: #eab955;
+  /* the light that catches a card's gold edge and warms its surface under the cursor (components/motion/GlowCard.tsx) — a brightened copper, so a theme that
+     recolours --gp-copper recolours the glow too */
+  --gp-card-edge-lit: color-mix(in srgb, var(--gp-copper) 38%, #ffe2a8);
   /* a warm brushed-gold shimmer (light gold → copper → a brighter gold highlight → copper → light gold), used only as a thin gilded edge around the
      header pill (see .gp-header-inner::before below) — a "premium" touch the client asked for directly, kept to a single hairline rather than a flat
      gold fill so it reads as a deliberate metallic accent, not a colour change to the whole bar. */
@@ -223,6 +226,38 @@ h1, h2, h3, .font-heading {
 .gp-hero-lede {
   color: color-mix(in srgb, var(--gp-on-primary) 90%, transparent);
   text-shadow: 0 0 2px rgb(0 0 0 / 0.55), 0 1px 5px rgb(0 0 0 / 0.55), 0 1px 16px rgb(0 0 0 / 0.5);
+}
+
+/* "Lit glass" cards (components/motion/GlowCard.tsx). The wrapper owns only the light: a soft warm patch on the surface and a thin gold edge that is brightest
+   where the cursor is, both following --gx/--gy (pixels from the card's top-left). The card inside keeps its own surface, radius and shadow. Hover-only: on
+   touch nothing is lit (the card just presses in), and keyboard focus lights the edge so it is never hover-exclusive. */
+.gp-glow { position: relative; border-radius: var(--gp-radius-card, 1.25rem); --gx: 50%; --gy: 35%; --gpx: 0; --gpy: 0; }
+.gp-glow::before,
+.gp-glow::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
+.gp-glow::before {
+  z-index: 3;
+  background: radial-gradient(18rem circle at var(--gx) var(--gy), color-mix(in srgb, var(--gp-card-edge-lit) 75%, white) 0%, transparent 62%);
+  mix-blend-mode: soft-light;
+}
+.gp-glow::after {
+  z-index: 4;
+  padding: 1.5px;
+  background: radial-gradient(13rem circle at var(--gx) var(--gy), var(--gp-card-edge-lit) 0%, transparent 72%), color-mix(in srgb, var(--gp-copper) 24%, transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.gp-glow:focus-within::after { opacity: 1; }
+@media (hover: hover) {
+  .gp-glow:hover::before { opacity: 0.9; }
+  .gp-glow:hover::after { opacity: 1; }
+}
+/* anything marked .gp-glow-parallax drifts a few pixels AGAINST the pointer (set --par to change how far); slightly enlarged so its edges never show */
+.gp-glow-parallax, .gp-glow-float { --par: 7px; transition: transform 0.55s var(--gp-ease); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .gp-glow:hover .gp-glow-parallax { transform: translate3d(calc(var(--gpx) * var(--par) * -1), calc(var(--gpy) * var(--par) * -0.7), 0) scale(1.07); }
+  /* the same drift, with the pointer rather than against it and no enlarging — for a small floating object (an icon medallion) instead of a photo */
+  .gp-glow:hover .gp-glow-float { transform: translate3d(calc(var(--gpx) * var(--par)), calc(var(--gpy) * var(--par) * 0.7), 0); }
 }
 
 @keyframes gp-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -485,14 +520,25 @@ html:not(.gp-robin-cursor) .gp-robin-cursor-mark { display: none; }
   background: var(--gp-opaque-bar);
 }
 html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) .gp-header-glass {
+  /* The left end is deliberately the darkest part: it carries the logo, whose cream/copper/olive colours are mid-tones that melt into a warm photo behind
+     a thin tint (the "logo is camouflaged" complaint). It fades back to the light, see-through tint across the middle so the photo still shows. */
   background: linear-gradient(
     100deg,
-    rgb(6 26 17 / 0.4) 0%,
-    rgb(6 26 17 / 0.22) 30%,
+    rgb(6 26 17 / 0.66) 0%,
+    rgb(6 26 17 / 0.54) 13%,
+    rgb(6 26 17 / 0.26) 30%,
     rgb(6 26 17 / 0.14) 55%,
     rgb(6 26 17 / 0.2) 78%,
     rgb(6 26 17 / 0.38) 100%
   );
+}
+/* A soft dark halo around the monogram and the wordmark lifts them off the photo without a visible box. Scoped to the see-through state only — the opaque
+   header on every other page already has a solid dark-green plate behind the logo. */
+html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) .gp-logo-mark {
+  filter: drop-shadow(0 1px 1px rgb(6 26 17 / 0.55)) drop-shadow(0 0 9px rgb(6 26 17 / 0.5));
+}
+html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) :is(.gp-logo-word, .gp-logo-tagline) {
+  text-shadow: 0 1px 2px rgb(6 26 17 / 0.7), 0 0 10px rgb(6 26 17 / 0.55);
 }
 
 /* The header (components/layout/HeaderShell.tsx). On phones/tablets it's still the flush, full-width bar sitting directly on the hero, matching the

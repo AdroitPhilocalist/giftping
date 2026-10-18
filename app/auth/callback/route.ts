@@ -7,19 +7,30 @@ import { safeRedirectPath } from "@/lib/auth/redirect";
 import { notifyUser } from "@/lib/notifications/notify";
 import { buildWelcomeEmail } from "@/lib/notifications/templates";
 
-// Landing point for both Google OAuth and email-confirmation links (both use Supabase's
-// PKCE `code` exchange flow). Password reset does NOT come through here — see
-// app/(auth)/update-password/page.tsx, which exchanges its own code directly since Supabase
-// appends it straight to the resetPasswordForEmail redirectTo URL.
+// Landing point for every Supabase email link and Google OAuth (they all use Supabase's PKCE
+// `code` exchange flow). The exchange MUST happen in a route handler like this one, never in a
+// Server Component render: only route handlers and Server Actions can write cookies, and the
+// session the exchange produces lives in those cookies. Password recovery links arrive here too
+// (`next=/update-password`) — a Server Component page used to do its own exchange, which silently
+// dropped the session cookies, so the follow-up "Update password" action had no session to
+// authenticate with and always reported the link as expired.
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const next = searchParams.get("next") ?? "/";
+  const destination = safeRedirectPath(next);
+  const isRecovery = destination === "/update-password";
 
   if (code) {
     const supabase = await createClient();
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // A password-recovery link ends at the "choose a new password" form, where the session just
+      // written to the cookies above is now readable. Skip the sign-up side effects below — they
+      // only apply to a freshly created account, not someone resetting a forgotten password.
+      if (isRecovery) {
+        return NextResponse.redirect(`${origin}/update-password`);
+      }
       if (data.user) {
         await mergeGuestCartIntoUser(data.user.id);
         // A box ticked at sign-up is only a PENDING choice until the email address is proven to be theirs — this confirmation click is
@@ -49,8 +60,14 @@ export async function GET(request: Request) {
           });
         }
       }
-      return NextResponse.redirect(`${origin}${safeRedirectPath(next)}`);
+      return NextResponse.redirect(`${origin}${destination}`);
     }
+  }
+
+  // An expired or invalid link arrives with `error`/`error_code` params instead of a code. A failed
+  // password reset belongs back on its own page (which offers a fresh link), not on sign-in.
+  if (isRecovery) {
+    return NextResponse.redirect(`${origin}/update-password?error=expired`);
   }
 
   return NextResponse.redirect(`${origin}/sign-in?error=auth_callback_failed`);

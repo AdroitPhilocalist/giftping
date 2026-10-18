@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ViewTransition } from "react";
 import { ArrowRight } from "lucide-react";
-import { TiltCard } from "@/components/motion/TiltCard";
+import { GlowCard } from "@/components/motion/GlowCard";
 import { ShopfrontArt } from "@/components/art/ShopfrontArt";
 import { VendorLogo } from "@/components/shop/VendorLogo";
 import { defaultShopfrontImage } from "@/lib/content/imagery";
@@ -29,10 +29,10 @@ export async function VendorCard({
   const look = streetLook(vendor.slug);
   const front = vendor.banner_url ? null : defaultShopfrontImage(vendor.slug, (await getActiveTheme()).id);
   return (
-    <TiltCard className="h-full">
+    <GlowCard className="h-full">
     <Link
       href={`/vendors/${vendor.slug}`}
-      className="shopfront group block overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift"
+      className="shopfront group block overflow-hidden rounded-card border border-brand-dark/[0.06] bg-brand-surface shadow-card transition-shadow duration-500 hover:shadow-lift"
     >
       {/* the shopfront is the "door": on the way in, this exact picture grows into the boutique page's banner (components/shop/VendorHero.tsx) */}
       <ViewTransition name={`shop-${vendor.slug}`} share="gp-door" default="none">
@@ -41,9 +41,9 @@ export async function VendorCard({
         <span className="open-sign" aria-hidden="true">Open</span>
         <div className="shopfront-photo relative h-full w-full" style={{ ["--hue" as string]: vendor.banner_url ? "0deg" : `${look.hue}deg` }}>
           {vendor.banner_url ? (
-            <Image src={vendor.banner_url} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
+            <Image src={vendor.banner_url} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="gp-glow-parallax object-cover" />
           ) : front ? (
-            <Image src={front.src} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
+            <Image src={front.src} alt="" fill sizes="(min-width: 1024px) 33vw, 100vw" className="gp-glow-parallax object-cover" />
           ) : (
             <ShopfrontArt name={vendor.business_name} />
           )}
@@ -65,6 +65,6 @@ export async function VendorCard({
         </p>
       </div>
     </Link>
-    </TiltCard>
+    </GlowCard>
   );
 }

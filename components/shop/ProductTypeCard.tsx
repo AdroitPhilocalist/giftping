@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Gift } from "lucide-react";
-import { TiltCard } from "@/components/motion/TiltCard";
+import { GlowCard } from "@/components/motion/GlowCard";
 
 /**
  * A top-level product type (Jewellery, Candles...) on /shop — the plain icon-medallion card style, since
@@ -8,12 +8,12 @@ import { TiltCard } from "@/components/motion/TiltCard";
  */
 export function ProductTypeCard({ productType, subcategories }: { productType: { slug: string; name: string; description?: string | null }; subcategories: string[] }) {
   return (
-    <TiltCard className="h-full">
+    <GlowCard className="h-full">
       <Link
         href={`/shop/${productType.slug}`}
-        className="group flex h-full flex-col rounded-card border border-brand-dark/[0.06] bg-brand-surface p-3.5 shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-lift sm:p-5"
+        className="group flex h-full flex-col rounded-card border border-brand-dark/[0.06] bg-brand-surface p-3.5 shadow-card transition-shadow duration-500 hover:shadow-lift sm:p-5"
       >
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary text-brand-on-primary shadow-card transition-transform duration-500 group-hover:scale-105 group-hover:bg-brand-secondary group-hover:text-brand-on-secondary sm:h-14 sm:w-14">
+        <span className="gp-glow-float flex h-10 w-10 items-center justify-center rounded-full bg-brand-primary text-brand-on-primary shadow-card transition-transform duration-500 group-hover:scale-105 group-hover:bg-brand-secondary group-hover:text-brand-on-secondary sm:h-14 sm:w-14">
           <Gift className="h-5 w-5 sm:h-6 sm:w-6" strokeWidth={1.5} aria-hidden="true" />
         </span>
         <h2 className="mt-3 font-heading text-lg leading-snug text-brand-dark sm:mt-5 sm:text-2xl">{productType.name}</h2>
@@ -28,6 +28,6 @@ export function ProductTypeCard({ productType, subcategories }: { productType: {
           Explore <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
         </p>
       </Link>
-    </TiltCard>
+    </GlowCard>
   );
 }

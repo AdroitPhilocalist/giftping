@@ -75,6 +75,8 @@ You don't need to create these — they already exist, ready to use:
 | Coupon that should fail | `NEWYEAR20` | Not started yet — testing that it's correctly rejected |
 | Vendor with a product-level Standard/Express delivery split | Lumière Keepsakes (Jaipur) | See test 16 |
 | Approved returns with no pickup booked yet | Orders `GP-100145`, `GP-100142` | See test 17 |
+| Products filed under a product type, with category-specific features | **Kundan Bridal Necklace Set** (Jewellery → Necklaces, Metal: Kundan) · **Custom Name Necklace** (Necklaces, Gold-plated) · **Gold-plated Jhumka Earrings** (Earrings) · **Velvet Jewellery Box with Pendant Set** (Pendants) · **Dark Chocolate & Almond Hamper** (Flavor: Dark Chocolate) · **Festive Mithai & Dry Fruits Box** (Mithai) · **Belgian Truffle Gift Box (24 pcs)** and **Artisan Macaron Box (12)** (Assorted) · **Olive Tree Planter** (Plants, Placement: Indoor) · **Amber Glow Candle & Diffuser Set** (Scent: Amber & Cedar) | See test 10e |
+| A hidden vendor product that is safe to experiment on | **Overnight QA Test Candle Set** (Lumière Keepsakes, status Hidden) | See the vendor tests in 10e |
 
 ℹ️ **Payments are in test mode** — nothing real is ever charged. When Razorpay's payment screen opens during
 checkout, use the UPI ID `success@razorpay` to simulate a successful payment, or `failure@razorpay` to
@@ -1058,10 +1060,13 @@ Sign in as `test-vendor@giftping.test` (owns Lumière Keepsakes) for this whole 
 3. Fill in name, description, price, category.
 4. Upload at least one image.
 5. If relevant, add a variant group (size/color options).
-6. Save.
+6. Choose a **Product type** (and a subcategory, if one appears) and answer any **Type-specific details** that
+   show up — see test 10e.17 for exactly what to expect.
+7. Save.
 
 **✅ Correct if:** The product is created and shows a **"pending"** status — it should NOT be immediately
-live on the public site.
+live on the public site. The occasion **Category** drop-down is still there and still required, in addition to
+the new Product type.
 
 **❌ Something's wrong if:** The product goes live immediately without admin approval, or saving fails.
 
@@ -1620,8 +1625,9 @@ showing something useful.
 **Steps:**
 1. Sign in as admin, go to `/admin/seo`.
 
-**✅ Correct if:** You see six "Main pages" editors (Homepage, Mall, Occasions, Boutiques, About, Contact), a
-"Where text is missing" panel, and a "Handled automatically" list.
+**✅ Correct if:** You see eight "Main pages" editors (Homepage, The Mall directory, Occasions page, Boutiques page,
+**Shop by type page**, Gift finder, About us, Contact), a "Where text is missing" panel, and a "Handled
+automatically" list.
 
 **❌ Something's wrong if:** Any of these sections is missing or broken.
 
@@ -1694,9 +1700,10 @@ like "Birthday — GiftPing".
 **Steps:**
 1. Visit `/categories/birthday?sort=price_asc` (any filter/sort combination).
 2. View page source, look for the robots meta tag and the canonical link.
+3. Repeat for a Shop by Type page: `/shop/jewellery?occasion=wedding` (see also test 10e.14).
 
 **✅ Correct if:** This filtered URL has `noindex` and its canonical link points to the plain, unfiltered
-`/categories/birthday` URL.
+`/categories/birthday` URL. The filtered Shop by Type page behaves the same way (canonical `/shop/jewellery`).
 
 **❌ Something's wrong if:** The filtered URL is indexable, or has no canonical tag.
 
@@ -1709,8 +1716,8 @@ like "Birthday — GiftPing".
 
 **✅ Correct if:** `robots.txt` disallows admin, vendor portal (`/vendor/`), cart, checkout, accounts, and
 diary — but does **NOT** disallow `/vendors/…` (plural, the public boutique pages) or `/products/…`.
-`sitemap.xml` lists products, boutiques, occasions, and main pages, and a suspended vendor's page drops out of
-it.
+`sitemap.xml` lists products, boutiques, occasions, and main pages — including `/shop` and the Shop by Type pages
+that currently hold a live product (see test 10e.15) — and a suspended vendor's page drops out of it.
 
 **❌ Something's wrong if:** `robots.txt` accidentally blocks the public `/vendors/` pages (a classic
 prefix-matching mistake), or a suspended vendor's page remains in the sitemap.
@@ -1905,6 +1912,619 @@ works, and the "room left" figure is accurate after a reload.
 
 ---
 
+## 10e. Product types ("Shop by Type"), subcategories, and category-specific features
+
+**What this section is about (read this first).** Every product now has **two separate labels**:
+
+- **The occasion/audience** — Birthday, Anniversary, For Her, Corporate Gifting… This is the "Category" you already
+  know, and it has **not changed**.
+- **The product type** — *what the thing actually is*: Jewellery → Necklaces, Cakes & Bakery → Cakes → Photo Cakes.
+  This is new. Each type can also carry its own **features** (called "type-specific details" for vendors and
+  "filters" for shoppers) — Metal for jewellery, Flavor for chocolates, Placement for plants. A feature only
+  appears where it makes sense, and a subcategory automatically inherits its parent's features.
+
+A wedding necklace is *both* "Wedding" (occasion) *and* "Jewellery → Necklaces" (type).
+
+**What the starter set contains** (so you know what you should be seeing — 273 types in all, 149 features):
+
+| # | Broad type | Subcategories (direct) | All below it | Features set on the broad type itself |
+|---|---|---|---|---|
+| 1 | Cakes & Bakery | 5 | 11 | Flavor, Eggless or With Egg, Dietary |
+| 2 | Flowers & Plants | 7 | 12 | — (its subcategories have their own) |
+| 3 | Gift Hampers & Boxes | 8 | 8 | Contains, Packaging |
+| 4 | Chocolates & Sweets | 7 | 7 | Flavor, Dietary, Net Weight |
+| 5 | Personalized Gifts | 13 | 13 | Personalisation Type, Dispatch Time |
+| 6 | Jewellery | 9 | 9 | Metal, Stone / Gemstone, Style, Suitable For |
+| 7 | Home & Living | 5 | 29 | Material, Colour, Style, Best For Room |
+| 8 | Candles & Home Fragrance | 10 | 10 | Scent |
+| 9 | Beauty & Wellness | 7 | 20 | Suitable For, Claims |
+| 10 | Fashion & Apparel | 6 | 12 | Colour, Fabric |
+| 11 | Gourmet & Dry Fruits | 7 | 9 | Dietary, Net Weight |
+| 12 | Toys & Games | 10 | 10 | Age Group |
+| 13 | Electronics & Gadgets | 9 | 11 | Colour, Warranty |
+| 14 | Watches & Accessories | 6 | 6 | Suitable For, Colour, Material |
+| 15 | Bags & Wallets | 7 | 7 | Material, Colour, Suitable For |
+| 16 | Leather & Stationery | 7 | 7 | Material, Colour |
+| 17 | Wedding & Festive | 9 | 9 | Festival, Colour |
+| 18 | Pooja & Spiritual | 8 | 8 | Material |
+| 19 | Kids & Baby | 9 | 9 | Age Group, For |
+| 20 | Party & Celebration | 8 | 8 | Theme, Colour |
+| 21 | Corporate & Branded Gifts | 9 | 9 | Minimum Order, Branding Options |
+| 22 | Handicrafts & Artisanal | 7 | 7 | Craft Origin, Material |
+| 23 | Books, Art & Hobbies | 4 | 4 | — |
+| 24 | Fitness & Travel | 6 | 6 | Colour, Suitable For |
+| 25 | Pet Gifts | 7 | 7 | Pet |
+
+ℹ️ **Most of these types have no products yet** — only the demo products listed in section 0.3 are filed under a
+type. That is expected; an empty type shows a friendly message (test 10e.12), not an error.
+
+⚠️ **Two warnings before you edit anything in this section:**
+1. **Saving a product that is Live sends it back to admin review, which hides it from the shop until an admin
+   approves it again** (that's the normal rule for any edit to a live product). To experiment safely, use the
+   vendor's **hidden** product **"Overnight QA Test Candle Set"** (Lumière Keepsakes) or add a brand-new product —
+   don't save-edit a Live demo product unless you're ready to re-approve it as admin (test 10.7).
+2. The admin tests create a **"Test Type"** on the real site. It is visible to real visitors until you delete it,
+   so do those tests in one go and finish with the **cleanup test (10e.35)**.
+
+**Short on time?** The 15-minute version: **10e.3, 10e.4, 10e.9, 10e.12, 10e.18, 10e.19, 10e.24.**
+
+### Part A — Browsing as a guest (sign out first)
+
+### 10e.1 — "Shop by Type" in the header (desktop)
+
+**Steps:**
+1. Signed out, on a desktop-width window (about 1280 pixels wide or more), go to `https://www.giftping.in`.
+2. Look at the main links in the dark header bar.
+3. Hover your mouse over **Shop by Type**.
+4. Click **See every type →** at the bottom of the panel that opens.
+
+**✅ Correct if:**
+- Step 2: the links read Explore Mall | Occasions | **Shop by Type** | Boutiques | Corporate Gifting | About Us.
+- Step 3: a panel opens with **12 types in a grid** (starting Cakes & Bakery, Flowers & Plants, Gift Hampers &
+  Boxes, Chocolates & Sweets, Personalized Gifts, Jewellery, Home & Living, Candles & Home Fragrance, Beauty &
+  Wellness, Fashion & Apparel, Gourmet & Dry Fruits, Toys & Games).
+- Step 4: you land on the Shop by Type page (`/shop`).
+
+**❌ Something's wrong if:** "Shop by Type" is missing, its panel is empty, or the "Occasions" panel next to it
+stopped working (hover it too — it should still show occasions).
+
+ℹ️ **Note:** The header links only appear on wide windows. On a narrower window use the phone menu (next test).
+
+### 10e.2 — "Shop by Type" on a phone
+
+**Steps:**
+1. Make your browser window narrow (or use your phone) and go to `https://www.giftping.in`.
+2. Open the menu (three-line icon, top right).
+3. Tap **Shop by Type**.
+
+**✅ Correct if:** The menu contains a **Shop by Type** link and it takes you to `/shop`.
+
+**❌ Something's wrong if:** The link is missing or leads to a "page not found".
+
+### 10e.3 — The Shop by Type page lists every broad type
+
+**Steps:**
+1. Go to `/shop`.
+2. Read the page heading and scroll through every card.
+3. Look closely at the **Jewellery** card and the **Home & Living** card.
+
+**✅ Correct if:**
+- The heading reads **"Shop by type."** under a small label "WHAT KIND OF GIFT?".
+- There are **25 cards**, in the order of the table at the top of this section (Cakes & Bakery first, Pet Gifts
+  last). Each shows a short description.
+- Jewellery's card shows its subcategories as a line of names: *Necklaces · Earrings · Bangles & Bracelets ·
+  Pendants · +5 more*. Home & Living's shows *Home Decor · Kitchen & Dining · Furnishing & Textiles · Lighting ·
+  +1 more*.
+- Clicking a card opens that type's own page.
+
+**❌ Something's wrong if:** Fewer than 25 cards, cards without descriptions, or a card that leads to a
+"page not found".
+
+### 10e.4 — A type page: subcategory buttons and its features (Jewellery)
+
+**Steps:**
+1. Go to `/shop/jewellery`.
+2. Read the top of the page (the trail of links, the heading, the buttons under it).
+3. Look at the **Filters** panel on the left (on a phone: tap the **Filters** button).
+4. Look at the products.
+
+**✅ Correct if:**
+- A small trail reads **Home › Shop by Type › Jewellery**, then the heading **Jewellery** and a one-line
+  description.
+- Under a label **"IN JEWELLERY"** there is a row of 9 buttons: Necklaces, Earrings, Bangles & Bracelets, Pendants,
+  Rings, Jewellery Sets, Mangalsutra & Bridal Jewellery, Anklets & Toe Rings, Maang Tikka & Hair Jewellery.
+- The filters include the usual **Who is it for?**, **Occasion**, **Boutique** and **Price**, plus the jewellery
+  features: **Metal**, **Stone / Gemstone**, **Style** and **Suitable For** (the first three open, "Suitable
+  For" folded shut — tap it to open).
+- The products listed include **Velvet Jewellery Box with Pendant Set**, **Kundan Bridal Necklace Set**,
+  **Gold-plated Jhumka Earrings** and **Custom Name Necklace** — products from the subcategories show up on
+  the parent page too.
+
+**❌ Something's wrong if:** There are no subcategory buttons, the Metal/Stone/Style filters are missing, or the
+page lists none of those products.
+
+### 10e.5 — Going into a subcategory, and hopping sideways
+
+**Steps:**
+1. On `/shop/jewellery`, click the **Necklaces** button.
+2. Look at the address bar, the trail, and the row of buttons.
+3. Click **Earrings** in that row.
+
+**✅ Correct if:**
+- Step 1: the address becomes **`/shop/jewellery/necklaces`**, the trail reads Home › Shop by Type › Jewellery ›
+  Necklaces, and only necklace products are listed (Kundan Bridal Necklace Set, Custom Name Necklace).
+- Step 2: the row of buttons is now labelled **"MORE IN JEWELLERY"**, shows all the jewellery subcategories, and
+  **Necklaces is shown highlighted** as the current one. The filters include **Necklace Type** as well as
+  Metal, Stone, Style and Suitable For.
+- Step 3: you move straight to `/shop/jewellery/earrings` without going back up.
+
+**❌ Something's wrong if:** The address shows only `/shop/necklaces`, no button is highlighted, or Necklace Type
+is missing from the filters.
+
+### 10e.6 — Three levels deep: the full trail
+
+**Steps:**
+1. Go to `/shop/home-living`. Click **Home Decor**, then click **Wall Art & Frames**.
+2. Read the trail and the address bar.
+3. Look at the row of buttons.
+
+**✅ Correct if:**
+- The address is `/shop/home-living/home-decor/wall-art-frames`.
+- The trail reads **Home › Shop by Type › Home & Living › Home Decor › Wall Art & Frames**, and every part of it
+  except the last is a working link.
+- The buttons are labelled "MORE IN HOME DECOR" and list Wall Art & Frames (highlighted), Showpieces &
+  Figurines, Vases & Table Decor, Wall & Table Clocks, Mirrors, Trays & Decorative Platters.
+
+**❌ Something's wrong if:** The trail skips a level, or a link in it leads to "page not found".
+
+### 10e.7 — A shortcut or wrong address is corrected
+
+**Steps:**
+1. Type `https://www.giftping.in/shop/necklaces` into the address bar and press Enter.
+2. Type `https://www.giftping.in/shop/wall-art-frames?occasion=wedding` and press Enter.
+3. Type `https://www.giftping.in/shop/not-a-real-type` and press Enter.
+
+**✅ Correct if:**
+- Step 1: the address automatically changes to `/shop/jewellery/necklaces` and the page shows necklaces.
+- Step 2: it changes to `/shop/home-living/home-decor/wall-art-frames?occasion=wedding` — **your Wedding filter
+  is kept**.
+- Step 3: the normal "page not found" page.
+
+**❌ Something's wrong if:** Step 1 or 2 shows a "not found" error, or the filter in step 2 is lost.
+
+ℹ️ **Why this exists:** each type has exactly one proper address, so search engines don't see duplicates.
+
+### 10e.8 — Features are inherited from the parent
+
+**Steps:**
+1. Go to `/shop/cakes-bakery` and read the filter section titles.
+2. Go to `/shop/cakes-bakery/cakes/photo-cakes` and read the filter section titles again.
+
+**✅ Correct if:**
+- Step 1 shows the features set on Cakes & Bakery: **Flavor**, **Eggless or With Egg**, **Dietary**.
+- Step 2 shows **all of those plus Weight and Shape** (Weight and Shape are set on "Cakes", the level in the
+  middle) — five feature filters, even though Photo Cakes itself defines none. Who-is-it-for, Occasion and Price
+  are there as usual.
+
+**❌ Something's wrong if:** Photo Cakes is missing Flavor, Eggless or Dietary (inheritance isn't working), or
+shows a feature that belongs to a different type (for example **Metal** on a cake page).
+
+### 10e.9 — Filtering by a feature (pick-one)
+
+**Steps:**
+1. Go to `/shop/chocolates-sweets` and note how many gifts are found.
+2. Under **Flavor**, click **Dark Chocolate**.
+3. Click **Mithai**.
+4. Click **Assorted**.
+5. Click **Assorted** again.
+
+**✅ Correct if:**
+- Step 2: only **Dark Chocolate & Almond Hamper** is shown; the chip is highlighted and a small removable tag
+  "Dark Chocolate" appears above the products with a **Clear all** link.
+- Step 3: the choice is **replaced** (Flavor is "pick one"): only **Festive Mithai & Dry Fruits Box**.
+- Step 4: **Belgian Truffle Gift Box (24 pcs)** and **Artisan Macaron Box (12)**.
+- Step 5: the highlight goes off and the full list returns.
+
+**❌ Something's wrong if:** Results don't change, clicking a second flavour adds to the first instead of
+replacing it, or products with a different flavour stay in the list.
+
+### 10e.10 — Combining filters, removing one, and "Clear all"
+
+**Steps:**
+1. Go to `/shop/jewellery`. Under **Metal**, click **Kundan**.
+2. Under **Occasion**, click **Wedding**.
+3. Look at the "Filters" heading and the tags above the products.
+4. Click the **Kundan** tag above the products (the one with an ✕).
+5. Click **Clear all**.
+
+**✅ Correct if:**
+- Step 1: only **Kundan Bridal Necklace Set** remains ("1 gift found").
+- Step 2: still that one product; the Filters heading shows a **"2"** badge and two tags appear (Wedding, Kundan).
+  (Filters **combine** — a product must match *both*.)
+- Step 4: the Kundan tag disappears but Wedding stays.
+- Step 5: both go and the full jewellery list returns; the address has no leftover `?…` filters.
+
+**❌ Something's wrong if:** The filters behave like "either/or" (more products appear after adding a second
+filter), a tag won't go away, or **Clear all** leaves part of the address behind.
+
+### 10e.11 — Filtering by a feature (tick-several)
+
+**Steps:**
+1. Go to `/shop/flowers-plants/plants`. Under **Placement**, click **Indoor**.
+2. Also click **Outdoor** (do not un-click Indoor).
+3. Click **Indoor** again to un-select it.
+
+**✅ Correct if:**
+- Step 1: **Olive Tree Planter** is listed.
+- Step 2: **both** chips are highlighted (Placement lets you pick several) and Olive Tree Planter is still
+  listed — within one feature, several choices mean "either".
+- Step 3: only Outdoor is highlighted and you get the friendly message **"No gifts match these filters yet."**
+  with a **Clear all filters** link (the olive tree is marked Indoor only).
+
+**❌ Something's wrong if:** Clicking Outdoor un-selects Indoor (it should add), or the message in step 3
+says "Our boutiques are still adding gifts" (that's a different message — see next test).
+
+### 10e.12 — A type with no products yet
+
+**Steps:**
+1. Go to `/shop/cakes-bakery/cakes/photo-cakes`.
+2. Click **Browse other types**.
+
+**✅ Correct if:** There is no error. You see the normal page (trail, heading, filters) and, where products
+would be, the message **"Our boutiques are still adding gifts to Photo Cakes."** with a **Browse other types**
+link that takes you to `/shop`. The "No gifts match these filters" wording does **not** appear here, because no
+filter is applied.
+
+**❌ Something's wrong if:** A crash/error page, a blank area with no message, or the wrong wording.
+
+### 10e.13 — Filters on a phone
+
+**Steps:**
+1. Make the window narrow (or use your phone) and go to `/shop/jewellery`.
+2. Tap **Filters**.
+3. Scroll the panel that slides up and tap **Kundan** under Metal. (If the sheet doesn't close by itself, tap the **Show … gifts** button at the bottom.)
+
+**✅ Correct if:** The sheet lists the same sections as the desktop panel **including Metal, Stone / Gemstone and
+Style**; after step 3 you're back on the page showing just the Kundan product, and the trail/buttons wrap
+neatly without sideways scrolling.
+
+**❌ Something's wrong if:** Metal/Stone/Style are missing on the phone, or the page scrolls sideways.
+
+### 10e.14 — Search-engine tags on type pages
+
+**Steps:**
+1. Go to `/shop/jewellery/necklaces`. Right-click → **View page source**. Use Find (Ctrl/Cmd+F) for `canonical` and
+   for `robots`.
+2. Go to `/shop/jewellery?occasion=wedding` and view the source the same way.
+3. Look at the browser tab title on `/shop`, `/shop/jewellery` and `/shop/jewellery/necklaces`.
+
+**✅ Correct if:**
+- Step 1: the page has a canonical link ending `/shop/jewellery/necklaces` and **no** `noindex`.
+- Step 2: this filtered address has `noindex` and its canonical link is the plain `/shop/jewellery`.
+- Step 3: tab titles read "Shop by Type — GiftPing", "Jewellery — GiftPing", "Necklaces — GiftPing".
+
+**❌ Something's wrong if:** The unfiltered necklaces page is `noindex`, or the filtered one is indexable.
+
+### 10e.15 — Sitemap and robots
+
+**Steps:**
+1. Visit `/sitemap.xml` and search the page for `/shop`.
+2. Visit `/robots.txt`.
+
+**✅ Correct if:**
+- The sitemap lists `/shop` and type pages **that hold at least one live product** — for example
+  `/shop/jewellery`, `/shop/jewellery/necklaces`, `/shop/chocolates-sweets`, `/shop/flowers-plants/plants` — each
+  with its full path. It does **not** list empty ones such as `/shop/cakes-bakery`.
+- `robots.txt` does not block `/shop`.
+
+**❌ Something's wrong if:** Empty types are in the sitemap, `/shop` is blocked, or a short address such as
+`/shop/necklaces` is listed instead of the full path.
+
+### 10e.16 — The occasion side is unchanged (regression check)
+
+**Steps:**
+1. Hover **Occasions** in the header, then click through to `/categories`. Open **Birthday**.
+2. On the Birthday page use the filters: pick a Boutique, then clear it.
+3. Open any product page.
+
+**✅ Correct if:** Occasions work exactly as before (same menu, same filters, no "Metal"/"Flavor"-type features on
+an occasion page, products open normally).
+
+**❌ Something's wrong if:** Anything about the occasion pages looks changed or broken since the last time you
+tested section 1.
+
+### Part B — As the vendor
+
+Sign in as `test-vendor@giftping.test` for this part. Use the hidden product **"Overnight QA Test Candle Set"**
+(find it in `/vendor/products`, status *Hidden*) for the experiments — see the warning at the top of this section.
+
+### 10e.17 — The product-type picker (two levels)
+
+**Steps:**
+1. Open the QA test product (or click to add a new product) so the form shows.
+2. Find the **Category** drop-down, and directly under it the **Product type** drop-down.
+3. In **Product type**, choose **Jewellery**.
+4. Look at what appears.
+5. In the new **Subcategory** drop-down, choose **Necklaces**.
+
+**✅ Correct if:**
+- Step 2: Product type says "What kind of thing is this?" with a hint "Separate from the category above". The
+  occasion **Category** drop-down is still there.
+- Step 4: a **Subcategory** drop-down appears (first option "General Jewellery"), and a new box titled
+  **"Type-specific details"** appears with the questions **Metal** (drop-down), **Stone / Gemstone** (tick
+  boxes), **Style** (tick boxes) and **Suitable For** (drop-down).
+- Step 5: a **Necklace Type** question is added to those details; the earlier four stay.
+
+**❌ Something's wrong if:** No Subcategory drop-down, no "Type-specific details" box, or a question that doesn't
+belong (for example Flavor).
+
+### 10e.18 — Three levels
+
+**Steps:**
+1. On the same form choose **Product type: Beauty & Wellness**.
+2. In **Subcategory** choose **Fragrances**.
+3. A third drop-down appears — choose **Perfumes & Eau de Parfum**.
+
+**✅ Correct if:**
+- A third drop-down labelled **Sub-subcategory** appears after step 2 (first option "General Fragrances").
+- The "Type-specific details" box now asks **Suitable For**, **Claims** (tick boxes: Vegan, Cruelty-free,
+  Organic, Ayurvedic, Paraben-free, Sulphate-free, Dermatologist Tested), **Fragrance Family** (tick boxes: Floral,
+  Woody, Citrus…) and **Volume** (drop-down: 10 ml … 200 ml) — features from *two different levels*
+  (Beauty & Wellness and Fragrances) together.
+
+**❌ Something's wrong if:** The third level never appears, or only one level's questions show.
+
+### 10e.19 — Saving, including questions you leave alone
+
+This catches a bug that was fixed during testing: a tick-box group nobody touched used to silently stop the form
+from saving.
+
+**Steps:**
+1. With Beauty & Wellness → Fragrances → Perfumes & Eau de Parfum still chosen (test 10e.18), tick **Floral**,
+   **Woody** and **Vegan**. **Leave everything else alone** — don't touch Cruelty-free, Volume, Suitable For, etc.
+2. Scroll to the bottom and click **Save changes**.
+3. Reload the page (browser refresh) and look at the same form again.
+
+**✅ Correct if:**
+- Step 2: no red error message appears, and the page confirms the save (a brief "Saved" notice).
+- Step 3: the three type drop-downs still show Beauty & Wellness → Fragrances → Perfumes & Eau de Parfum, and
+  **Floral, Woody and Vegan are still ticked** (and only those).
+
+**❌ Something's wrong if:** Nothing happens when you click Save, a red message appears, or the type/ticks are
+gone after reloading.
+
+### 10e.20 — Changing the type keeps what still applies
+
+**Steps:**
+1. Continuing from 10e.19, change the third drop-down from *Perfumes & Eau de Parfum* to **Attars & Itar**.
+2. Look at the ticked boxes.
+3. Now change the **Product type** (first drop-down) to **Jewellery**.
+4. Look at the "Type-specific details" box.
+
+**✅ Correct if:**
+- Step 2: **Floral, Woody and Vegan stay ticked** — they are questions of the shared parent, so they still apply.
+- Step 4: the box now asks the jewellery questions (Metal, Stone, Style, Suitable For) and **none of the
+  fragrance ticks are carried over** (Floral/Woody/Vegan are gone).
+
+**❌ Something's wrong if:** Moving between sibling types wipes your ticks, or answers from the old type
+follow you into an unrelated one.
+
+### 10e.21 — Taking the type off again (and tidying up)
+
+**Steps:**
+1. In **Product type** choose the first option, **"What kind of thing is this?"**.
+2. Look at the form, then click **Save changes**, then reload.
+
+**✅ Correct if:** The Subcategory drop-downs and the "Type-specific details" box disappear; after saving and
+reloading the product has no type. **This also restores the QA product to how you found it.**
+
+**❌ Something's wrong if:** The details box stays on screen, or an old type comes back after saving.
+
+### 10e.22 — The form tells you what's wrong
+
+**Steps:**
+1. On the QA test product's form, clear the **Product name** box completely.
+2. Click **Save changes**.
+3. Put the name back (for example "Overnight QA Test Candle Set") and save again.
+
+**✅ Correct if:** After step 2 a red message appears under the name box **and** a red box above the Save
+button saying **"Please check the form — name: …"**. After step 3 the save works.
+
+**❌ Something's wrong if:** Clicking Save does absolutely nothing and shows no message at all.
+
+### 10e.23 — A typed product appears in the shop once approved (needs two roles)
+
+**Steps:**
+1. As the vendor, add a **new** product (name it e.g. "ZZ Test Necklace"), choose **Jewellery → Necklaces**,
+   set **Metal: Silver**, save, then add a photo. If the product list offers **Resubmit**, click it so the product goes to review.
+2. Signed out, open `/shop/jewellery/necklaces`.
+3. Sign in as admin, approve the product (test 10.7), then check `/shop/jewellery/necklaces` again and filter
+   **Metal → Silver**.
+4. Afterwards, hide or delete the test product (test 9.3).
+
+**✅ Correct if:** After step 1 the product shows as pending/in review and is **not** on the shop page (step 2).
+After approval (step 3) it appears under Necklaces **and** Jewellery, and the Metal → **Silver** filter shows
+it (and only it).
+
+**❌ Something's wrong if:** The product is public before approval, or after approval it's missing from its type
+page or from the Silver filter.
+
+### Part C — As the admin
+
+Sign in as `test-admin@giftping.test` for this part.
+
+### 10e.24 — The Product Types admin page
+
+**Steps:**
+1. Look at the left-hand admin menu.
+2. Click **Product Types**.
+3. Scroll through the list.
+
+**✅ Correct if:**
+- The menu has **Product Types**, right after **Categories**.
+- The page (`/admin/product-types`) is headed "Product types" and lists **all 273 types** as an indented list:
+  25 broad ones at the left edge, subcategories indented under them (with a "—"), the 58 third-level ones indented
+  again. Each row shows its name, a green **visible** tag, a gold **"N attributes"** tag where it has features, its
+  address (e.g. `/shop/jewellery/necklaces`, the **full** path), and buttons **Edit, ↑, ↓, Hide, Delete**.
+- The page loads in a few seconds, not a minute.
+
+**❌ Something's wrong if:** The menu item is missing, rows are not indented, or the list is far shorter than 273.
+
+### 10e.25 — Create a type with features
+
+**Steps:**
+1. Click **New product type**.
+2. Fill in: Name **Test Type**; leave Parent as **"None — a top-level category"**; Description "Temporary test".
+3. Under **Attributes** click **Add attribute** and fill: label **Test Colour**, type **Pick one**, options
+   `Red, Blue, Green`. Note the small "Key: test_colour" appearing beneath.
+4. Click **Add attribute** again: label **Test Extras**, type **Pick several**, options `Gift wrap, Card, Ribbon`.
+5. Click **Create product type**.
+
+**✅ Correct if:** The slug fills itself in as `test-type` as you type the name. After saving, a success notice
+appears and **Test Type** shows in the list (at the very end of the top level) with a "2 attributes" tag and the
+address `/shop/test-type`.
+
+**❌ Something's wrong if:** The dialog won't save, the key doesn't appear, or the new type is missing from the list.
+
+### 10e.26 — The new type reaches the shop and the vendor form
+
+**Steps:**
+1. Signed out (or in a private window), open `/shop`, scroll to the end; also open `/shop/test-type`.
+2. As the vendor, open the product form and look at the **Product type** drop-down.
+3. Choose **Test Type**.
+
+**✅ Correct if:** Test Type appears at the end of `/shop`, its page opens (empty-state message, and **Test Colour**
+and **Test Extras** in the filters). In the vendor form it is in the drop-down, and choosing it shows Test Colour
+(drop-down: Red, Blue, Green) and Test Extras (tick boxes: Gift wrap, Card, Ribbon) — **no code or restart was
+needed**.
+
+**❌ Something's wrong if:** Anything you created doesn't show up in the shop or vendor form.
+
+### 10e.27 — Subcategories and the "can't be its own parent" guard
+
+**Steps:**
+1. As admin, click **New product type**. Name **Test Sub**, set **Parent category** to **Test Type**, save.
+2. Click **Edit** on **Test Type**. Open the **Parent category** drop-down.
+3. Cancel. Click **Edit** on **Test Sub**; look at the Attributes section.
+
+**✅ Correct if:**
+- Step 1: Test Sub appears indented under Test Type.
+- Step 2: in the drop-down, **Test Type itself and Test Sub are greyed out** with the words *"(can't nest under
+  itself)"* — you can't make a type a child of itself or of its own child.
+- Step 3: the dialog shows only Test Sub's **own** features (none) — the parent's two features are not copied, but
+  vendors will still be asked them (inheritance; check in the vendor form: choose Test Type → Test Sub and both
+  questions are there).
+
+**❌ Something's wrong if:** You can pick a type as its own parent (this would break the menu), or Test Sub is
+missing under its parent.
+
+### 10e.28 — Mistakes are caught
+
+**Steps:**
+1. Click **New product type**, Name **Another Test**, change the slug to `test-type`, click **Create product type**.
+2. Click **Edit** on **Test Type**. **Add attribute** twice with the **same** label (e.g. "Dup") and options
+   `One, Two`, then **Save**.
+3. Close that dialog with **Cancel**. Click **Edit** on **Test Type** again, add an attribute with a label but an
+   empty options box, and try to save. Close the dialog with **Cancel** afterwards.
+
+**✅ Correct if:**
+- Step 1: a red message: *The slug "test-type" is already used by another product type.*
+- Step 2: a red message: *Two attributes have the same key — give each one a different label.*
+- Step 3: a message **"Add at least one option"**.
+Nothing is saved in any of these cases.
+
+**❌ Something's wrong if:** Any of these saves silently, or the error text is missing.
+
+### 10e.29 — Hide and show a type
+
+**Steps:**
+1. In the list click **Hide** on **Test Type**.
+2. Signed out, open `/shop/test-type` and look at `/shop`.
+3. In the vendor form look at the Product type drop-down.
+4. As admin click **Show** on Test Type.
+
+**✅ Correct if:** After clicking Hide a green notice says **"Hidden from the storefront."**, the row's tag turns grey
+**hidden** and the button now reads **Show**; `/shop/test-type` shows "page not found"; the type is gone from `/shop`
+and the vendor drop-down. After **Show** (notice: "Shown on the storefront.") everything returns.
+
+ℹ️ **Note:** Hiding a type hides **that type only** — hide its subcategories separately if you want them gone too.
+
+**❌ Something's wrong if:** A hidden type is still visible to shoppers or vendors.
+
+### 10e.30 — Re-ordering
+
+**Steps:**
+1. Click **↑** (move earlier) on **Test Type** once.
+2. Click **↓** (move later) twice. Reload the page.
+
+**✅ Correct if:** It moves up one place among the **top-level** types (it can't jump into another type's
+subcategories), then back down; the order is still the same after reloading. Its subcategory Test Sub moves along
+with it.
+
+**❌ Something's wrong if:** It moves into the wrong level, or the order resets when you reload.
+
+### 10e.31 — Deleting
+
+**Steps:**
+1. Click **Delete** on **Test Type** (which still has Test Sub under it). Your browser asks
+   *Delete "Test Type"? This can't be undone.* — click **OK**.
+2. Click **Delete** on **Test Sub**, then **OK** again.
+
+**✅ Correct if:** Step 1 is **refused** with a red notice: *"This category has subcategories — delete or move those
+first."* and Test Type stays in the list. Step 2 shows **"Product type deleted."** and Test Sub disappears.
+
+**❌ Something's wrong if:** A type with subcategories is deleted (orphaning its children).
+
+### 10e.32 — Editing a feature's choices
+
+**Steps:**
+1. Click **Edit** on **Test Type**. Change the Test Colour options to `Red, Blue, Green, Purple`. Save.
+2. In the vendor form choose **Test Type** and look at Test Colour.
+3. Back in the admin Edit dialog, click **Remove** on **Test Extras** and save. Check the vendor form again.
+
+**✅ Correct if:** The vendor sees **Purple** as a fourth colour after step 1; after step 3 the Test Extras
+question is gone from the vendor form (the feature is switched off, not erased).
+
+**❌ Something's wrong if:** Changes don't reach the vendor form.
+
+### 10e.33 — Only admins can open it
+
+**Steps:**
+1. Sign out. Type `/admin/product-types` in the address bar.
+2. Sign in as `test-customer@giftping.test` and try the same address again.
+3. Sign in as the vendor and try again.
+
+**✅ Correct if:** In every case you're bounced away (to sign-in or the homepage) and never see the page.
+
+**❌ Something's wrong if:** Anyone but an admin sees it — a real security problem; flag immediately.
+
+### 10e.34 — The SEO editor knows about the new page
+
+**Steps:**
+1. As admin go to `/admin/seo` (see also the updated test 10c.1).
+2. Find **Shop by type page**; set a custom title, save, then visit `/shop` and look at the tab title.
+3. Use **Reset to default** on it.
+
+**✅ Correct if:** The row exists; your title shows on `/shop` after saving; resetting brings back "Shop by Type —
+GiftPing".
+
+**❌ Something's wrong if:** The row is missing or the title doesn't change.
+
+### 10e.35 — Cleanup (do this last)
+
+**Steps:**
+1. As admin delete **Test Type** (and **Test Sub** first if it still exists), and **Another Test** if it was
+   created.
+2. Delete or hide the "ZZ Test Necklace" product (test 9.3) if you made it.
+3. Check `/shop` and the Product Types list.
+
+**✅ Correct if:** No "Test" types remain, `/shop` shows exactly the 25 real ones again, and the QA candle product
+is back to having no type.
+
+**❌ Something's wrong if:** Anything with "Test" in its name is still visible to the public.
+
+---
+
 ## 11. Notifications
 
 ### 11.1 — In-app notification bell
@@ -1980,11 +2600,16 @@ barely-visible strip blending into the background.
 2. Look at the header at the very top of the page.
 3. Scroll down slightly.
 
-**✅ Correct if:** At the top, the header shows a subtle tint with the photo behind it still visible through
-it. After scrolling, it switches to the solid pill.
+4. Look closely at the **GiftPing logo** at the far left of the header (the "Gp" monogram with the robin, the
+   word GIFTPING and the small line under it) while you are still at the very top.
 
-**❌ Something's wrong if:** The glass effect never appears, or the photo is completely obscured instead of
-tinted.
+**✅ Correct if:** At the top, the header shows a subtle tint with the photo behind it still visible through
+it. The **left end of the bar is a little darker** than the rest, and the monogram, the word GIFTPING and the
+small tagline all stand out clearly from the photo — you don't have to squint to find them. After scrolling, it
+switches to the solid pill.
+
+**❌ Something's wrong if:** The glass effect never appears, the photo is completely obscured instead of
+tinted, or the logo/wordmark still melts into the photo behind it.
 
 ### 12.3 — Gold edge detail
 
@@ -2098,17 +2723,32 @@ looks wrong for today's date.
 scheduling it for real via "Schedule a theme" (not just previewing) once the date and cutoff are confirmed
 with the client — see the questionnaire.
 
-### 13.5 — Shop-window card tilt
+### 13.5 — Card hover effects ("lit glass")
 
 **Steps:**
-1. On a desktop with a mouse, go to `/vendors` or `/categories`, move your mouse over a card without
-   clicking.
-2. Repeat on a phone.
+1. On a desktop with a mouse, go to `/vendors` (boutiques) and then `/shop` (Shop by Type). Slowly move
+   your mouse across a card without clicking, from one corner to the opposite one.
+2. Move the mouse off the card.
+3. Press and hold the mouse button on a card, then release.
+4. Go to `/categories` (the occasions) and hover a card there.
+5. Repeat step 1 on a phone.
 
-**✅ Correct if:** On desktop, cards lean slightly toward the cursor with a warm light following it. On a
-phone, nothing tilts (no mouse to follow).
+**✅ Correct if:**
+- Step 1: the card **rises a few pixels and leans toward your cursor** with a soft, springy feel (it
+  settles smoothly rather than snapping); a **thin gold edge glows brightest right where the cursor is**,
+  and a faint warm light follows the pointer across the card's surface. On a boutique card the **shopfront
+  photo drifts a few pixels the opposite way** to the cursor; on a Shop by Type card the **round icon
+  floats slightly toward it**.
+- Step 2: it settles back flat, and the edge and light fade away.
+- Step 3: the card dips in slightly while held.
+- Step 4: occasion cards still lean and glow the older, simpler way (no gold edge) — that's expected for now.
+- Step 5: on a phone nothing leans or glows (no mouse), but a card **presses in slightly** while you touch it.
+- If your computer is set to "reduce motion", the card does **not** lean, rise, press or drift — the gold
+  edge and light still appear.
 
-**❌ Something's wrong if:** The tilt effect is missing on desktop.
+**❌ Something's wrong if:** Hovering does nothing on `/vendors` or `/shop`, the card jitters or lags
+badly, two things move at once in a jarring way (the card jumping up twice), or the gold edge stays stuck
+on after the mouse leaves.
 
 ---
 

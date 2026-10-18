@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { pageMetadata } from "@/lib/seo/site-seo";
+import { Reveal } from "@/components/motion/Reveal";
 import { ProductTypeCard } from "@/components/shop/ProductTypeCard";
 import { getActiveProductTypes } from "@/lib/db/product-types";
 
@@ -15,8 +16,10 @@ export default async function ShopByTypePage() {
       <h1 className="mt-2 font-heading text-4xl text-brand-dark sm:text-5xl">Shop by <span className="accent-word">type</span>.</h1>
       <p className="mt-3 max-w-xl text-brand-dark/65">Jewellery, candles, chocolates, flowers and more — browse by what a gift actually is, separate from the occasion it&apos;s for.</p>
       <div className="mt-10 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
-        {topLevel.map((t) => (
-          <ProductTypeCard key={t.id} productType={t} subcategories={types.filter((c) => c.parent_id === t.id).map((c) => c.name)} />
+        {topLevel.map((t, i) => (
+          <Reveal key={t.id} delay={(i % 3) * 70} className="h-full">
+            <ProductTypeCard productType={t} subcategories={types.filter((c) => c.parent_id === t.id).map((c) => c.name)} />
+          </Reveal>
         ))}
       </div>
     </div>
