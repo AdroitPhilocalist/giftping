@@ -260,6 +260,61 @@ h1, h2, h3, .font-heading {
   .gp-glow:hover .gp-glow-float { transform: translate3d(calc(var(--gpx) * var(--par)), calc(var(--gpy) * var(--par) * 0.7), 0); }
 }
 
+/* "World windows" (components/motion/WorldCard.tsx) — the occasion cards' counterpart to the lit-glass cards above, and deliberately a DIFFERENT experience.
+   A boutique card is an object that leans toward you; an occasion card is a WINDOW into a place. So the frame never moves: the world inside drifts toward where
+   you look (a slow, deep zoom following --wpx/--wpy), light spills OUT of the frame onto the page, the occasion's own little things (components/shop/Ambience.tsx
+   — confetti, petals, hearts, sparks) drift down inside the glass, and a sheen crosses the pane. Everything is driven by a couple of CSS variables the wrapper
+   writes, plus :hover/:focus-within, so nothing re-renders. Under reduced motion the world holds still and only the frame warms (a static cue); on touch there
+   is no hover, just a press. */
+.gp-world { position: relative; border-radius: var(--gp-radius-card, 1.25rem); --wpx: 0; --wpy: 0; }
+.gp-world-frame { transition: border-color 0.5s var(--gp-ease), box-shadow 0.6s var(--gp-ease), transform 0.25s var(--gp-ease); }
+.gp-world-photo { transition: transform 0.9s var(--gp-ease); }
+
+/* the world's own ambience, alive only while you are at the window. Its drift is re-tuned here to travel the FULL height of a small pane (the shared shop-drift
+   is paced for a tall hero), and it is paused while hidden, so a wall of idle cards costs nothing. */
+.gp-world .ambient { opacity: 0; transition: opacity 0.5s var(--gp-ease); }
+.gp-world .ambient > i { animation-name: gp-world-drift; animation-play-state: paused; }
+@keyframes gp-world-drift {
+  0% { top: -14%; transform: translate3d(0, 0, 0) rotate(0deg); opacity: 0; }
+  14% { opacity: var(--o, 0.6); }
+  86% { opacity: var(--o, 0.6); }
+  100% { top: 110%; transform: translate3d(var(--sway, 2rem), 0, 0) rotate(var(--rot, 260deg)); opacity: 0; }
+}
+
+/* a slow highlight crossing the glass — the pane catching the light */
+.gp-world-sheen { position: absolute; inset: 0; pointer-events: none; opacity: 0; transform: translateX(-60%);
+  background: linear-gradient(112deg, transparent 40%, color-mix(in srgb, var(--gp-canvas) 62%, transparent) 50%, transparent 60%);
+  transition: opacity 0.45s var(--gp-ease); }
+/* the same idea where there is no photo — a warm glow rising from the sill instead of light on glass */
+.gp-world-haze { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 0.5s var(--gp-ease);
+  background: radial-gradient(120% 95% at 50% 118%, color-mix(in srgb, var(--gp-peach) 85%, transparent) 0%, transparent 60%); }
+
+/* the frame warms and its light spills onto the page — keyboard focus first (any device, so it is never hover-exclusive), then the mouse */
+.gp-world:focus-within .gp-world-frame {
+  border-color: color-mix(in srgb, var(--gp-copper) 45%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 26%, transparent), 0 26px 48px -22px color-mix(in srgb, var(--gp-copper) 55%, transparent), 0 12px 30px -18px color-mix(in srgb, var(--gp-primary) 45%, transparent);
+}
+@media (hover: hover) {
+  .gp-world:hover .gp-world-frame {
+    border-color: color-mix(in srgb, var(--gp-copper) 45%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 26%, transparent), 0 26px 48px -22px color-mix(in srgb, var(--gp-copper) 55%, transparent), 0 12px 30px -18px color-mix(in srgb, var(--gp-primary) 45%, transparent);
+  }
+}
+/* the frame's light is a hover/focus cue, not motion, so it stays under reduced motion — but the world only moves when motion is welcome */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .gp-world:hover .gp-world-photo { transform: translate3d(calc(var(--wpx) * 8px), calc(var(--wpy) * 8px), 0) scale(1.13); }
+  .gp-world:hover .ambient { opacity: 1; }
+  .gp-world:hover .ambient > i { animation-play-state: running; }
+  .gp-world:hover .gp-world-sheen { opacity: 0.55; animation: gp-world-sheen 1.6s var(--gp-ease); }
+  .gp-world:hover .gp-world-haze { opacity: 0.9; }
+}
+@keyframes gp-world-sheen { from { transform: translateX(-60%); } to { transform: translateX(62%); } }
+
+/* where there is no hover to lean into, a gentle press is the tell */
+@media (hover: none) {
+  .gp-world:active .gp-world-frame { transform: scale(0.985); }
+}
+
 @keyframes gp-fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* A slow "breathing" float for hanging gifts, the robin, decorative elements */

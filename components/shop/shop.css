@@ -201,19 +201,9 @@
 @keyframes gp-quiz-bubble { from { opacity: 0; transform: translateY(6px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 .gp-quiz-bubble { animation: gp-quiz-bubble 0.35s var(--gp-ease) 0.1s both; }
 
-/* "Shop-window" cards (components/motion/TiltCard.tsx): lean toward the mouse + a warm light that follows it. The glow is an overlay above the card's content
-   but below nothing clickable — pointer-events none. Radius is inherited from the card itself via the wrapper's own `rounded-card` where needed. */
-.gp-tilt { position: relative; perspective: 900px; border-radius: var(--gp-radius-card, 1.25rem); }
-.gp-tilt > * { transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform 0.35s var(--gp-ease), box-shadow 0.5s; will-change: transform; }
-.gp-tilt::after {
-  content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; pointer-events: none;
-  background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), color-mix(in srgb, var(--gp-peach) 70%, white) 0%, transparent 58%);
-  mix-blend-mode: soft-light; opacity: calc(var(--glow, 0) * 0.85); transition: opacity 0.4s;
-}
-
-/* "Boutique spotlight" (components/motion/SpotlightSection.tsx): the room-scale version of the same idea — a warm light that drifts across a whole grid
-   of cards as the cursor moves over it, like walking under track lighting, rather than one card lighting up on its own. Same pointer-events:none / soft-light
-   overlay technique as .gp-tilt above, just scoped to a much bigger, softer radius and living on the section instead of each card. */
+/* "Boutique spotlight" (components/motion/SpotlightSection.tsx): a warm light that drifts across a whole grid of cards as the cursor moves over it, like
+   walking under track lighting, rather than one card lighting up on its own. A pointer-events:none / soft-light overlay, scoped to a big, soft radius and
+   living on the section instead of each card (the per-card light is GlowCard's `.gp-glow` in globals.css). */
 .gp-spotlight { position: relative; }
 .gp-spotlight::before {
   content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;

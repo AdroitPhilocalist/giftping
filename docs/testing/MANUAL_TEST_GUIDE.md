@@ -2723,32 +2723,40 @@ looks wrong for today's date.
 scheduling it for real via "Schedule a theme" (not just previewing) once the date and cutoff are confirmed
 with the client — see the questionnaire.
 
-### 13.5 — Card hover effects ("lit glass")
+### 13.5 — Card hover effects (lit glass vs. world windows)
 
 **Steps:**
 1. On a desktop with a mouse, go to `/vendors` (boutiques) and then `/shop` (Shop by Type). Slowly move
    your mouse across a card without clicking, from one corner to the opposite one.
 2. Move the mouse off the card.
 3. Press and hold the mouse button on a card, then release.
-4. Go to `/categories` (the occasions) and hover a card there.
+4. Go to `/categories` (the occasions) and hover a card there, moving the mouse slowly across the photo.
 5. Repeat step 1 on a phone.
 
 **✅ Correct if:**
-- Step 1: the card **rises a few pixels and leans toward your cursor** with a soft, springy feel (it
-  settles smoothly rather than snapping); a **thin gold edge glows brightest right where the cursor is**,
-  and a faint warm light follows the pointer across the card's surface. On a boutique card the **shopfront
-  photo drifts a few pixels the opposite way** to the cursor; on a Shop by Type card the **round icon
-  floats slightly toward it**.
+- Step 1 ("lit glass" — boutiques & Shop by Type): the card **rises a few pixels and leans toward your
+  cursor** with a soft, springy feel (it settles smoothly rather than snapping); a **thin gold edge glows
+  brightest right where the cursor is**, and a faint warm light follows the pointer across the card's
+  surface. On a boutique card the **shopfront photo drifts a few pixels the opposite way** to the cursor;
+  on a Shop by Type card the **round icon floats slightly toward it**.
 - Step 2: it settles back flat, and the edge and light fade away.
 - Step 3: the card dips in slightly while held.
-- Step 4: occasion cards still lean and glow the older, simpler way (no gold edge) — that's expected for now.
-- Step 5: on a phone nothing leans or glows (no mouse), but a card **presses in slightly** while you touch it.
-- If your computer is set to "reduce motion", the card does **not** lean, rise, press or drift — the gold
-  edge and light still appear.
+- Step 4 ("world windows" — occasions): a clearly **DIFFERENT** feel — the card does **not** lean or rise.
+  The frame holds perfectly still and instead **warms to copper and softly spills light onto the page
+  around it**, while the **photo slides and zooms in toward your cursor**, the occasion's own little things
+  (**confetti, petals, hearts or sparks**) drift down inside the card, and a **light sheen crosses the
+  glass**. A card without delivered artwork (a plain icon card) glows warm from the bottom and lifts its
+  icon instead.
+- Step 5: on a phone nothing leans or glows on hover (no mouse), but a card **presses in slightly** while
+  you touch it.
+- If your computer is set to "reduce motion", nothing leans, rises, drifts or sheens — on the lit-glass
+  cards the gold edge and light still appear, and on the occasion cards the frame still warms and spills
+  light.
 
-**❌ Something's wrong if:** Hovering does nothing on `/vendors` or `/shop`, the card jitters or lags
-badly, two things move at once in a jarring way (the card jumping up twice), or the gold edge stays stuck
-on after the mouse leaves.
+**❌ Something's wrong if:** Hovering does nothing on `/vendors`, `/shop` or `/categories`, a card jitters
+or lags badly, two things move at once in a jarring way (a card jumping up twice), occasion cards
+lean/tilt like the boutique ones (they should hold still), or the gold edge / glow stays stuck on after the
+mouse leaves.
 
 ---
 
