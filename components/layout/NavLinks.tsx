@@ -51,14 +51,14 @@ export function NavLinks({ categories, vendors, productTypes }: { categories: Me
         const current = isCurrent(pathname, item.href);
         const mega: "occasions" | "boutiques" | "types" | null =
           item.label === "Occasions" ? "occasions" : item.label === "Boutiques" ? "boutiques" : item.label === "Shop by Type" ? "types" : null;
-        const divider = index < NAV_ITEMS.length - 1 ? <span aria-hidden="true" className="mx-0.5 text-brand-on-primary/25 2xl:mx-1">|</span> : null;
+        const divider = index < NAV_ITEMS.length - 1 ? <span aria-hidden="true" className="mx-0.5 text-brand-on-primary/25">|</span> : null;
         const linkEl = (
           <Link
             href={item.href}
             aria-current={current ? "page" : undefined}
             aria-expanded={mega ? openMenu === mega : undefined}
             className={cn(
-              "gp-nav-link relative whitespace-nowrap rounded-full px-2.5 py-2 text-[0.88rem] font-medium tracking-[0.01em] transition-colors duration-300 2xl:px-3",
+              "gp-nav-link relative whitespace-nowrap rounded-full px-2.5 py-2 text-[0.88rem] font-medium tracking-[0.01em] transition-colors duration-300",
               current ? "gp-nav-link--current text-brand-secondary bg-brand-on-primary/10" : "text-brand-on-primary/85 hover:bg-brand-on-primary/10 hover:text-brand-on-primary",
             )}
           >

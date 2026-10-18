@@ -2622,19 +2622,22 @@ gold line along the header's bottom edge.
 
 **❌ Something's wrong if:** Neither detail is visible (a plain flat border instead).
 
-### 12.4 — Diary button in the header
+### 12.4 — Diary button & nav fit in the header
 
 **Steps:**
-1. On a wide browser window (1440px or wider), look at the right side of the header.
-2. Narrow the window, or scroll down.
+1. On a wide browser window, look at the right side of the header, at rest (top of the page).
+2. Scroll down a little (the header condenses), then narrow the window through about 1280px, 1440px and 1536px.
+3. Hover a nav link (Explore Mall, Occasions, …).
 
 **✅ Correct if:** A drawn leather diary icon on a cream, gold-ringed pill sits at the right of the header on
-every page. At rest on a wide window, it shows a caption like "My Diary". Scrolling or narrowing the window
-leaves just the book icon chip, with no caption. It never visually overflows past the header's rounded edge.
-"Diaries" should NOT appear as a separate plain text link in the navigation anymore.
+every page, and the basket and every nav link stay **inside** the pill's rounded edge at every width — at rest and
+while condensed. The "My Diary" caption and the "GIFTPING" wordmark appear only when there is room (wide windows,
+and never while condensed); scroll a little and both fold away to the book chip and the monogram. Hovering a nav
+link grows a short copper underline under it (the page you're on keeps a full copper one). "Diaries" should NOT
+appear as a separate plain text link.
 
-**❌ Something's wrong if:** The button overflows the header's edge, or a redundant "Diaries" text link still
-exists in the nav.
+**❌ Something's wrong if:** The basket or Diary button pokes past the header's rounded edge at any width (this
+was the bug after "Shop by Type" was added to the nav), or a redundant "Diaries" text link still exists in the nav.
 
 ### 12.5 — Responsive layout at phone width
 
@@ -2731,7 +2734,8 @@ with the client — see the questionnaire.
 2. Move the mouse off the card.
 3. Press and hold the mouse button on a card, then release.
 4. Go to `/categories` (the occasions) and hover a card there, moving the mouse slowly across the photo.
-5. Repeat step 1 on a phone.
+5. Go to the homepage and hover a card in the "Discover Meaningful Gifting" row.
+6. Repeat step 1 on a phone.
 
 **✅ Correct if:**
 - Step 1 ("lit glass" — boutiques & Shop by Type): the card **rises a few pixels and leans toward your
@@ -2747,16 +2751,19 @@ with the client — see the questionnaire.
   (**confetti, petals, hearts or sparks**) drift down inside the card, and a **light sheen crosses the
   glass**. A card without delivered artwork (a plain icon card) glows warm from the bottom and lifts its
   icon instead.
-- Step 5: on a phone nothing leans or glows on hover (no mouse), but a card **presses in slightly** while
+- Step 5 ("framed prints" — homepage Discover Cards): a third, quieter feel again — at rest the picture sits
+  **inside a mounted frame** with a thin copper hairline; on hover it **grows out to fill its frame** (the
+  mount disappears, the hairline sharpens) and the card lifts. It does not lean or glow.
+- Step 6: on a phone nothing leans or glows on hover (no mouse), but a card **presses in slightly** while
   you touch it.
-- If your computer is set to "reduce motion", nothing leans, rises, drifts or sheens — on the lit-glass
-  cards the gold edge and light still appear, and on the occasion cards the frame still warms and spills
-  light.
+- If your computer is set to "reduce motion", nothing leans, rises, drifts, sheens or grows — on the
+  lit-glass cards the gold edge and light still appear, on the occasion cards the frame still warms and
+  spills light, and on the homepage cards the hairline still sharpens.
 
-**❌ Something's wrong if:** Hovering does nothing on `/vendors`, `/shop` or `/categories`, a card jitters
-or lags badly, two things move at once in a jarring way (a card jumping up twice), occasion cards
-lean/tilt like the boutique ones (they should hold still), or the gold edge / glow stays stuck on after the
-mouse leaves.
+**❌ Something's wrong if:** Hovering does nothing on `/vendors`, `/shop`, `/categories` or the homepage, a
+card jitters or lags badly, two things move at once in a jarring way (a card jumping up twice), occasion
+cards lean/tilt like the boutique ones (they should hold still), or the gold edge / glow stays stuck on
+after the mouse leaves.
 
 ---
 

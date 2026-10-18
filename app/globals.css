@@ -315,6 +315,22 @@ h1, h2, h3, .font-heading {
   .gp-world:active .gp-world-frame { transform: scale(0.985); }
 }
 
+/* "Gallery" cards (components/home/DiscoverCards.tsx) — a third card idiom: a FRAMED PRINT, not a leaning object (GlowCard) nor a window (WorldCard). The
+   picture sits inside a tinted mount with a thin copper hairline, and on hover it grows OUT to fill its frame while the hairline sharpens — a museum-placard
+   feel. Pure CSS, no pointer tracking, so it costs nothing; under reduced motion the growth is switched off and only the hairline sharpens. */
+.gp-gallery-mat { padding: 0.35rem; }
+.gp-gallery-photo {
+  overflow: hidden;
+  border-radius: calc(var(--gp-radius-card, 1.25rem) - 0.5rem);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 26%, transparent), 0 10px 22px -16px color-mix(in srgb, var(--gp-primary) 45%, transparent);
+  transition: transform 0.6s var(--gp-ease), box-shadow 0.6s var(--gp-ease);
+}
+.gp-gallery:hover .gp-gallery-photo,
+.gp-gallery:focus-within .gp-gallery-photo { box-shadow: 0 0 0 1px color-mix(in srgb, var(--gp-copper) 58%, transparent), 0 14px 28px -16px color-mix(in srgb, var(--gp-primary) 50%, transparent); }
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .gp-gallery:hover .gp-gallery-photo { transform: scale(1.16); }
+}
+
 @keyframes gp-fade { from { opacity: 0; } to { opacity: 1; } }
 
 /* A slow "breathing" float for hanging gifts, the robin, decorative elements */
@@ -632,7 +648,7 @@ html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) :is(.gp-lo
   .gp-header { height: 6.5rem; }
   .gp-header-inner {
     height: auto;
-    width: min(90rem, calc(100% - 2.5rem));
+    width: min(92rem, calc(100% - 2.5rem));
     margin-top: 1rem;
     margin-inline: auto;
     border-radius: 999px;
@@ -669,6 +685,9 @@ html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) :is(.gp-lo
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 20px 44px -16px rgb(6 26 17 / 0.55), 0 4px 16px -4px rgb(6 26 17 / 0.38);
 }
 .gp-header[data-condensed="true"] .gp-logo-mark { width: 2.3rem; height: 2.3rem; }
+/* the condensed bar keeps the nav + the Diary/basket buttons inside the pill by dropping to the monogram alone — the wordmark needs ~240px that
+   the smaller floating pill simply does not have */
+.gp-header[data-condensed="true"] .gp-logo-text { display: none; }
 /* The Diary button (components/layout/DiaryButton.tsx) is always on the bar. Wide + at rest: the drawn book standing out of a copper pill with a caption.
    Condensed on scroll, or below xl: the caption folds away and only the book chip remains — so it can never push the row past the pill's rounded edge
    (the bug that made the old text pill hide itself) yet is never hidden either. */
@@ -702,7 +721,9 @@ html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) :is(.gp-lo
 .gp-diary-text { display: none; flex-direction: column; line-height: 1.05; padding-right: 0.7rem; text-align: left; }
 .gp-diary-kicker { font-size: 0.56rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gp-copper-dark); }
 .gp-diary-name { font-family: var(--gp-font-display); font-size: 1.02rem; font-weight: 600; }
-/* the caption needs ~190px: measured to fit from 1440px up (a 1280px laptop overflowed the pill by ~45px) — below that the book chip alone */
+/* the caption needs ~190px, so it only appears when the pill is wide enough to hold it (from 1440px up); below that the book chip alone. The logo's
+   tagline gives way below 2xl and the whole wordmark+tagline block drops in the condensed bar (see `.gp-logo-text`), so the pill always has room for the
+   nav and these buttons. */
 @media (min-width: 1440px) { .gp-diary-text { display: flex; } .gp-diary-btn { padding-left: 0.55rem; } }
 .gp-header[data-condensed="true"] .gp-diary-text { display: none; }
 .gp-header[data-condensed="true"] .gp-diary-btn { padding: 0 0.4rem; height: 2.3rem; }
@@ -712,7 +733,10 @@ html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) :is(.gp-lo
 
 /* The nav pill's own current/hover underline: a soft copper dash centred under the label, only for the item you're actually on — hover gets the cream wash
    from the link's own classes, this is reserved for "here". */
-.gp-nav-link--current::after { content: ""; position: absolute; left: 50%; bottom: 0.15rem; width: 1.1rem; height: 2px; border-radius: 999px; background: var(--gp-copper); transform: translateX(-50%); }
+/* The nav pill's underline: a soft copper dash centred under the label. It grows in on hover, and is always present (wider, full copper) on the page you're on. */
+.gp-nav-link::after { content: ""; position: absolute; left: 50%; bottom: 0.15rem; width: 0; height: 2px; border-radius: 999px; background: color-mix(in srgb, var(--gp-copper) 55%, transparent); transform: translateX(-50%); transition: width 0.3s var(--gp-ease), background 0.3s var(--gp-ease); }
+.gp-nav-link--current::after { width: 1.1rem; background: var(--gp-copper); }
+@media (hover: hover) { .gp-nav-link:hover::after { width: 0.9rem; } }
 
 /* The Occasions/Boutiques mega-menu (components/layout/NavLinks.tsx): a light card floating below the dark pill, closing by losing `open` rather than by
    unmounting eagerly, so a short close delay in the component (not here) is what actually forgives the gap while the mouse crosses it. */

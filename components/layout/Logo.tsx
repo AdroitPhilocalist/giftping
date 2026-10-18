@@ -29,9 +29,12 @@ export function Logo({ className, tone = "dark", priority = false }: { className
           </span>
         </span>
       )}
-      <span className="hidden flex-col whitespace-nowrap leading-none sm:flex">
+      {/* The tagline (below) is the widest part of the lockup, so it only appears from 2xl — the header pill cannot spare it below that. The whole
+          wordmark+tagline block is additionally dropped in the condensed header bar (`.gp-header[data-condensed] .gp-logo-text` in globals.css), so the
+          nav and the Diary/basket buttons always stay inside the pill. This component is shared by the footer and mobile menu, where room is never tight. */}
+      <span className="gp-logo-text hidden flex-col whitespace-nowrap leading-none sm:flex">
         <span className={cn("gp-logo-word font-heading text-[1.2rem] uppercase tracking-[0.42em]", ink)}>Giftping</span>
-        <span className={cn("gp-logo-tagline mt-1.5 hidden text-[8.5px] xl:block font-medium uppercase tracking-[0.26em]", tone === "light" ? "text-brand-on-primary/80" : "text-brand-dark/55")}>Your companion for every occasion</span>
+        <span className={cn("gp-logo-tagline mt-1.5 hidden text-[8.5px] 2xl:block font-medium uppercase tracking-[0.26em]", tone === "light" ? "text-brand-on-primary/80" : "text-brand-dark/55")}>Your companion for every occasion</span>
       </span>
     </Link>
   );
