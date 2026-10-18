@@ -21,9 +21,11 @@ authenticate with. Fixed by routing the recovery link through `/auth/callback` (
 cookie-safe landing point OAuth and e-mail confirmation already use, so it is already allow-listed), which
 exchanges the code, skips the sign-up-only side effects, and redirects to `/update-password`; the page now just
 reads the session and renders the form. Expired links now land back on `/update-password?error=expired` with a
-"Request a new link" link instead of dead-ending on sign-in. tsc/eslint/565 tests/build clean; redirect + page
-states verified live. Full reasoning: `docs/progress/2026-10-18-password-reset-fix.md`. **Not verified here:**
-the final email click-through in a real browser (needs a real inbox).
+"Request a new link" link instead of dead-ending on sign-in. As a follow-up, a successful reset now also revokes
+every **other** session for the account (`signOut({ scope: "others" })`, best-effort) — so a device that was
+already signed in (e.g. an attacker's) does not survive the password change. tsc/eslint/565 tests/build clean;
+redirect + page states verified live. Full reasoning: `docs/progress/2026-10-18-password-reset-fix.md`. **Not
+verified here:** the final email click-through in a real browser (needs a real inbox).
 
 ## Product types + category-specific attributes built (16 Oct)
 

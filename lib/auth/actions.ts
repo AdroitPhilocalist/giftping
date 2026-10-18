@@ -200,5 +200,10 @@ export async function updatePasswordAction(
     return { error: "Couldn't update your password. Your reset link may have expired." };
   }
 
+  // A reset is exactly the moment an attacker's still-live session must die, so revoke every OTHER
+  // session (scope "others" keeps this one — the person is mid-flow and lands signed in). Best-effort
+  // by design: the password is already changed, so a failed revoke must never read as a failed reset.
+  await supabase.auth.signOut({ scope: "others" }).catch(() => {});
+
   redirect("/");
 }

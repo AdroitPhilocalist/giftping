@@ -59,6 +59,13 @@ The final email click-through in a real browser (needs a real inbox and a live s
 receive the recovery e-mail). The mechanism is otherwise identical to the sign-up-confirmation and Google-OAuth
 paths, which already exchange their code through this same `/auth/callback` handler and work.
 
+## Follow-up: other sessions are revoked on reset
+A reset is exactly the situation where "the attacker still has a session" matters (that is often *why* someone
+resets). `updatePasswordAction` now calls `signOut({ scope: "others" })` right after a successful
+`updateUser({ password })`: this session stays (the person is mid-flow and lands signed in), every other
+session for that account is revoked. It is **best-effort** — wrapped so a failed revoke can never turn a
+successful password change into an on-screen error. `tsc`/eslint/565 tests/build clean.
+
 ## Note on cross-device links
 Because this is the PKCE flow, the code verifier lives in a cookie set when the request was made — so the reset
 link is expected to be opened **in the same browser** it was requested from. Opening it on another device/
