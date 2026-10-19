@@ -16,7 +16,8 @@ export type ImageKey =
   | "rel-parents" | "rel-partner" | "rel-friends" | "rel-colleagues" | "rel-kids"
   | "diary-desk" | "order-hero" | "auth-welcome"
   | `world-${string}`      // an occasion/category page banner, keyed by the category slug (world-birthday, world-wedding…)
-  | `shopfront-${string}`; // a default boutique front for vendors without their own banner (shopfront-perfume, -jewellery, -florist)
+  | `shopfront-${string}`  // a default boutique front for vendors without their own banner (shopfront-perfume, -jewellery, -florist)
+  | `type-${string}`;      // a "Shop by Type" card photo on /shop, keyed by the product-type slug (type-jewellery, type-cakes-bakery…)
 
 export interface SiteImage {
   src: string;

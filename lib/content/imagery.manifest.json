@@ -209,6 +209,131 @@
     "width": 1254,
     "height": 1254
   },
+  "type-baby-kids": {
+    "src": "/images/type-baby-kids.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-bags-wallets": {
+    "src": "/images/type-bags-wallets.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-beauty-wellness": {
+    "src": "/images/type-beauty-wellness.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-books-art-hobbies": {
+    "src": "/images/type-books-art-hobbies.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-cakes-bakery": {
+    "src": "/images/type-cakes-bakery.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-candles-home-fragrance": {
+    "src": "/images/type-candles-home-fragrance.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-chocolates-sweets": {
+    "src": "/images/type-chocolates-sweets.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-corporate-branded-gifts": {
+    "src": "/images/type-corporate-branded-gifts.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-electronics-gadgets": {
+    "src": "/images/type-electronics-gadgets.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-fashion-apparel": {
+    "src": "/images/type-fashion-apparel.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-fitness-travel": {
+    "src": "/images/type-fitness-travel.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-flowers-plants": {
+    "src": "/images/type-flowers-plants.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-gift-hampers-boxes": {
+    "src": "/images/type-gift-hampers-boxes.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-gourmet-dry-fruits": {
+    "src": "/images/type-gourmet-dry-fruits.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-handicrafts-artisanal": {
+    "src": "/images/type-handicrafts-artisanal.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-home-living": {
+    "src": "/images/type-home-living.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-jewellery": {
+    "src": "/images/type-jewellery.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-leather-stationery": {
+    "src": "/images/type-leather-stationery.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-party-celebration": {
+    "src": "/images/type-party-celebration.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-personalized-gifts": {
+    "src": "/images/type-personalized-gifts.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-pet-gifts": {
+    "src": "/images/type-pet-gifts.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-pooja-spiritual": {
+    "src": "/images/type-pooja-spiritual.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-toys-games": {
+    "src": "/images/type-toys-games.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-watches-accessories": {
+    "src": "/images/type-watches-accessories.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "type-wedding-festive": {
+    "src": "/images/type-wedding-festive.webp",
+    "width": 1600,
+    "height": 900
+  },
   "world-anniversary": {
     "src": "/images/world-anniversary.webp",
     "width": 1600,

@@ -267,3 +267,107 @@ The Christmas theme is already built and live in `/admin/themes` (colours, the c
 Once synced, these replace the native pictures automatically — and only — while the Christmas theme is the live/previewed one (`siteImage(key, "christmas")` in `lib/content/imagery.ts` already prefers a theme-specific picture over the native one). Nothing to build: this is a pure drop-in, same as Batch 1 was for the native look.
 
 Until these exist, Sprint 4 (B2 cinematic entrance, B5 parallax hero) stays on hold — see `PROGRESS.md`. The flat `hero-atrium.png` keeps doing its current job (the plain homepage hero) regardless; these three are additional files, not a replacement for it.
+
+---
+
+# Batch 7 — "Shop by Type" card photos (the 25 cards on `/shop`)
+
+`/shop` is the last major page that still looks unfinished: every card is a bare icon-in-a-circle tile, because product types have never had artwork the way occasion categories do. This batch fills that page. It is **pure drop-in** — `components/shop/ProductTypeCard.tsx` now looks up `type-<slug>` and, the moment a file exists, draws a full-bleed photo card (the exact same treatment the occasion cards on `/categories` and `/mall` already use). Types with no file yet quietly keep the icon tile they have today, so **do these in any order, any number at a time. The page never breaks and nothing looks half-finished while you're partway through.**
+
+**The wiring is already done — the file name is the only thing that matters.**
+
+- Save each picture as a PNG with the **exact file name below** and drop it straight into `ui-references/batch-1/` — **top level, not a subfolder** (a subfolder means "only while this festival theme is live", which is not what these are).
+- Then run `npm run images:sync` (or just tell me you've added them and I'll run it). Nothing else. No code change, ever.
+- The name must match the **product type's slug** — the word in its page URL, e.g. `/shop/jewellery` → `type-jewellery.png`. If a type is ever renamed in `/admin/product-types`, the slug is what the file name has to follow.
+- These are a **separate namespace** from the occasion pictures, so they never collide: `world-wedding` is the Wedding *occasion* page banner, `type-wedding-festive` is the Wedding & Festive card on `/shop`.
+- Only the 25 top-level types need pictures. Sub-types (Necklaces, Photo Cakes…) have no card of their own.
+
+**Shape: landscape — same as the `world-*` pictures.** The card is literally the same component at the same size, so the crop behaves identically.
+
+## STYLE LINE
+
+The Batch 1 STYLE LINE is already in your ChatGPT conversation — reuse the same one. Then paste this **once**, and it applies to all 25:
+
+> For every picture in this batch, on top of the style above: ONE clear hero subject, photographed close and simply — a product still-life, not a busy room. Warm golden-hour light, shallow depth of field, and a surface of cream marble or dark polished wood with brass and copper accents. Keep the subject in the upper two-thirds and leave the **bottom strip simple and uncluttered** (the card writes the type's name over it, on a soft dark gradient), and keep the **top-left corner plain** (a small round badge sits there). It is seen as a small thumbnail in a grid of 25, so it must read instantly — one recognisable subject, no clutter, no collage. Absolutely no text, letters, numbers, labels, price tags, monograms, brand marks or logos anywhere — including on the objects that normally carry them (book spines, game boxes, mugs, screens, jars, plaques, tags): those must be completely blank. No people. Landscape.
+
+## The pictures (file name → what it's for)
+
+**Priority: 1–12 are the twelve types in the header's own "Shop by Type" menu — the only ones most visitors will ever see. 13–25 complete the page. Nothing depends on the order.**
+
+**1 · `type-cakes-bakery.png`** · Cakes & Bakery
+> A bakery counter at golden hour: a two-tier frosted celebration cake on a brass cake stand with one slice plated beside it, a tray of cupcakes, a few brownies and cookies, a piping bag and a small bowl of fresh berries, warm bakery light, cream marble and copper accents.
+
+**2 · `type-flowers-plants.png`** · Flowers & Plants
+> An abundant fresh bouquet of roses, ranunculus and dried stems in a glass vase, standing beside a small leafy potted plant, with kraft wrapping paper, a coil of satin ribbon and brass scissors on cream marble, soft golden side light.
+
+**3 · `type-gift-hampers-boxes.png`** · Gift Hampers & Boxes
+> A woven wicker hamper with its lid open, filled with wrapped gifts, a jar of preserves and a candle; folded sheets of kraft wrapping paper and spools of satin ribbon leaning beside it, brass scissors, cream marble surface, warm light.
+
+**4 · `type-chocolates-sweets.png`** · Chocolates & Sweets
+> An open box of handmade dark and milk chocolate truffles beside a brass tray of Indian mithai — barfi and ladoo with pistachio slivers and a touch of edible gold leaf — with a copper spoon, cream marble, warm light.
+
+**5 · `type-personalized-gifts.png`** · Personalized Gifts
+> Keepsakes that have been *made for someone*, on cream marble: a plain wooden photo frame holding a soft-focus arrangement of dried flowers, a smooth brass plate, a plain ceramic mug, a small tooled leather keyring, and a brass pen. Every surface is completely blank — no engraving, initials, writing or numbers anywhere.
+
+**6 · `type-jewellery.png`** · Jewellery
+> Fine gold jewellery laid on a deep-green velvet display tray: a necklace, a pair of earrings, a bangle and a ring, lit by warm jewellery-case spotlights, brass trim, cream marble beneath, soft bokeh highlights.
+
+**7 · `type-home-living.png`** · Home & Living
+> A warm, empty living-room corner: layered cushions in forest green and cream on a linen sofa, a woven basket, a glazed ceramic vase of dried stems, a brass table lamp glowing, a folded wool throw, a woven tray — no people, cream walls, soft afternoon light.
+
+**8 · `type-candles-home-fragrance.png`** · Candles & Home Fragrance
+> A cluster of lit scented candles in amber glass jars, a reed diffuser in dark green glass, a small brass dish of incense with one faint wisp of smoke, dried eucalyptus sprigs, on cream marble, warm evening glow.
+
+**9 · `type-beauty-wellness.png`** · Beauty & Wellness
+> A spa still-life: unbranded amber glass skincare bottles with blank labels, a folded waffle towel, eucalyptus sprigs, a brass bowl of bath salts and a lit candle, a few rose petals on cream marble, warm light.
+
+**10 · `type-fashion-apparel.png`** · Fashion & Apparel
+> Deep-green silk saree fabric with a gold border draped over a wooden stand, a folded cream knitted shawl beside it, brass hangers, cream marble, soft golden side light, shallow depth of field.
+
+**11 · `type-gourmet-dry-fruits.png`** · Gourmet & Dry Fruits
+> Small brass bowls of almonds, cashews, pistachios, dried figs and apricots, a glass jar of honey with a copper dipper, a brass tea caddy of loose leaves and a cup of tea, warm side light on cream marble.
+
+**12 · `type-toys-games.png`** · Toys & Games
+> A soft cream teddy bear with a satin bow, a wooden stacking-ring toy, a few plain wooden blocks with completely blank faces, a spinning top, and a plain unmarked board-game box on a soft cream rug, warm light.
+
+**13 · `type-electronics-gadgets.png`** · Electronics & Gadgets
+> Matte dark-green over-ear headphones resting on a brass stand, a fabric-covered smart speaker, a smartwatch with a completely blank screen, a compact power bank and a neatly coiled braided cable, on dark polished wood, warm rim light.
+
+**14 · `type-watches-accessories.png`** · Watches & Accessories
+> A leather-strapped automatic watch on a brass watch stand, a pair of sunglasses, a rolled leather belt with a brass buckle and a small tray of cufflinks, on dark polished wood, soft window light.
+
+**15 · `type-bags-wallets.png`** · Bags & Wallets
+> A tan leather tote beside a compact bifold wallet, a small clutch and a brass-buckled satchel, cream marble surface, soft golden side light, shallow depth of field.
+
+**16 · `type-leather-stationery.png`** · Leather & Stationery
+> A cream leather journal lying open with completely blank pages, a brass fountain pen, a leather pencil case, a brass ruler and a pair of brass scissors, a wax seal and a sprig of dried flowers, warm desk light.
+
+**17 · `type-wedding-festive.png`** · Wedding & Festive
+> A trousseau scene, no people: a neat stack of silk sarees in deep green and gold, a wrapped gift box with a copper ribbon, marigold and rose garlands, brass urns with lit diyas, and a brass tray of rakhis, warm golden light and bokeh.
+
+**18 · `type-pooja-spiritual.png`** · Pooja & Spiritual
+> A brass pooja thali with a lit diya, incense with a soft wisp of smoke, small bowls of kumkum, a small brass idol on a carved wooden stand, marigold flowers and red-and-gold silk cloth, warm lamp light.
+
+**19 · `type-baby-kids.png`** · Kids & Baby
+> A baby gift set on a soft cream blanket: tiny knitted booties and a bonnet, a small cream teddy, a muslin swaddle, a little silver keepsake spoon and a wooden rattle — pastel cream, blush and sage, soft daylight, no people.
+
+**20 · `type-party-celebration.png`** · Party & Celebration
+> A celebration table: a frosted cake with lit candles, a bunch of balloons in forest green, gold and blush, paper streamers and scattered confetti, a few plain unmarked party hats and a piñata, warm bokeh lights.
+
+**21 · `type-corporate-branded-gifts.png`** · Corporate & Branded Gifts
+> A refined executive gifting set: a rigid dark-green gift box with a copper ribbon, a leather notebook with a completely blank cover, a brass pen, a small wooden award plaque with no engraving, and a small potted plant on an executive desk, warm window light.
+
+**22 · `type-handicrafts-artisanal.png`** · Handicrafts & Artisanal
+> Indian handmade crafts on a rustic wooden table: an etched brass pot, a glazed ceramic vase, a folded handloom textile in ochre and green, a small carved wooden panel, and a couple of terracotta pieces, warm light, no writing or motifs that read as letters.
+
+**23 · `type-books-art-hobbies.png`** · Books, Art & Hobbies
+> A stack of hardback books with plain, completely unmarked covers and spines, an open sketchbook with a blank page and a pencil, a tray of watercolour pans with a brush, and a small wooden ukulele, warm desk light.
+
+**24 · `type-fitness-travel.png`** · Fitness & Travel
+> An active-lifestyle still-life on warm wooden floorboards in morning light: a stainless steel water bottle, a rolled yoga mat with a strap, a small pair of dumbbells, a canvas duffel bag, a brass compass and a folded towel, no text anywhere.
+
+**25 · `type-pet-gifts.png`** · Pet Gifts
+> A pet gift basket: a new cream-and-green plush toy, a ceramic treat jar filled with bone-shaped biscuits, a folded knitted blanket, a soft leather collar with a plain brass tag (no engraving) and a matching lead, and a ceramic bowl — warm light, no animals needed.
+
+## What this unlocks
+When each file lands and `npm run images:sync` runs, that type's card on `/shop` becomes a photo card the same way the occasion cards did — and because they're identified by slug, renaming or reordering types in `/admin/product-types` never breaks the link. Nothing else changes; the icon-tile fallback stays for whichever types you haven't done yet.
