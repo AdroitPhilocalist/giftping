@@ -43,3 +43,6 @@ next-env.d.ts
 
 # claude code local settings (machine-specific, not shared)
 .claude/settings.local.json
+
+# kilo code local workspace data (machine-specific, not shared)
+.kilo/
