@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/db/server";
 import { createAdminClient } from "@/lib/db/admin";
 import { requireRole } from "@/lib/auth/session";
+import { appBaseUrl, notifyUser } from "@/lib/notifications/notify";
+import { buildVendorDecisionEmail } from "@/lib/notifications/templates";
 
 export interface AdminActionResult {
   error?: string;
@@ -56,13 +58,26 @@ export async function approveVendorAction(vendorId: string): Promise<AdminAction
   await supabase.from("vendor_private").update({ rejection_reason: null }).eq("vendor_id", vendorId);
 
   await audit(admin.id, "vendor.approved", "vendor", vendorId, { status: vendor.status }, { status: "approved" });
-  await notify(
-    vendor.user_id,
-    "Your vendor application was approved",
-    `${vendor.business_name} is approved. You can now add products from your vendor dashboard.`,
-    "vendor_approved",
-    "/vendor/dashboard",
-  );
+  // In-app + push + email. Approval also changes what the account can reach, so the person has to be told — an in-app row alone
+  // was only seen by a vendor who happened to sign in for another reason. (notifyUser never throws; a failed email can't fail the
+  // approval, which has already been written above.)
+  const base = appBaseUrl();
+  await notifyUser({
+    userId: vendor.user_id,
+    category: "vendor_updates",
+    type: "vendor_approved",
+    title: "Your vendor application was approved",
+    message: `${vendor.business_name} is approved. You can now add products from your vendor dashboard.`,
+    linkUrl: "/vendor/dashboard",
+    email: buildVendorDecisionEmail({
+      vendorName: vendor.business_name,
+      kind: "approved",
+      reason: null,
+      dashboardUrl: `${base}/vendor/dashboard`,
+      registerUrl: `${base}/vendor/register`,
+      preferencesUrl: `${base}/account/notifications`,
+    }),
+  });
 
   revalidatePath("/admin/vendors");
   revalidatePath("/admin/dashboard");
@@ -84,7 +99,23 @@ export async function rejectVendorAction(vendorId: string, reason: string): Prom
 
   await audit(admin.id, "vendor.rejected", "vendor", vendorId, { status: vendor.status }, { status: "rejected", reason: cleaned });
   if (vendor.user_id) {
-    await notify(vendor.user_id, "Update on your vendor application", cleaned, "vendor_rejected", "/vendor/register");
+    const base = appBaseUrl();
+    await notifyUser({
+      userId: vendor.user_id,
+      category: "vendor_updates",
+      type: "vendor_rejected",
+      title: "Update on your vendor application",
+      message: cleaned,
+      linkUrl: "/vendor/register",
+      email: buildVendorDecisionEmail({
+        vendorName: vendor.business_name,
+        kind: "rejected",
+        reason: cleaned,
+        dashboardUrl: `${base}/vendor/dashboard`,
+        registerUrl: `${base}/vendor/register`,
+        preferencesUrl: `${base}/account/notifications`,
+      }),
+    });
   }
 
   revalidatePath("/admin/vendors");

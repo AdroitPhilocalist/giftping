@@ -10,6 +10,7 @@ import { getRequestIp } from "@/lib/auth/request-ip";
 import { getMyVendor } from "@/lib/db/vendor-portal";
 import { ancestorChain } from "@/lib/catalog/product-types";
 import { encryptSecret } from "@/lib/security/encryption";
+import { notifyUser } from "@/lib/notifications/notify";
 import { removeProductImageFiles } from "@/lib/storage/upload";
 import { uniqueSlug } from "@/lib/utils/slug";
 import { vendorApplicationSchema, type VendorApplicationInput } from "@/lib/validation/vendor.schema";
@@ -86,6 +87,21 @@ export async function registerVendorAction(raw: VendorApplicationInput): Promise
     // (deliberately), so this compensating cleanup is the one place the service role is used here.
     await createAdminClient().from("vendors").delete().eq("id", vendor.id);
     return { error: "We couldn't submit your application. Please try again." };
+  }
+
+  // Tell the reviewers it's waiting — in-app + push, the same way a new return request alerts them (lib/commerce/returns.ts).
+  // Before this, an application sat in the queue silently until an admin happened to open /admin/vendors. Best effort: the
+  // application is already saved, and notifyUser never throws.
+  const { data: admins } = await createAdminClient().from("users").select("id").eq("role", "admin").eq("is_active", true);
+  for (const adminUser of admins ?? []) {
+    await notifyUser({
+      userId: adminUser.id,
+      category: "vendor_updates",
+      type: "admin_vendor_application",
+      title: "New vendor application",
+      message: `${input.businessName} has applied to sell.`,
+      linkUrl: "/admin/vendors",
+    });
   }
 
   revalidatePath("/vendor/register");

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LegalPage } from "@/components/pages/LegalPage";
 import { SITE } from "@/lib/site";
 
@@ -22,7 +23,18 @@ export default function TermsPage() {
         { heading: "Personalised gifts", body: ["Names and messages you add are printed or written as you typed them. Please check spelling before you order. Please keep messages lawful and kind — we and the boutiques may decline content that is abusive or unlawful."] },
         { heading: "Delivery", body: ["Each boutique ships its own items, so an order from more than one boutique may arrive in separate parcels on different days. Delivery estimates are estimates. You must be able to receive the parcel at the address you give."] },
         { heading: "Returns, cancellations and refunds", body: ["These are set out in our Refund Policy, which forms part of these terms."] },
-        { heading: "Boutiques", body: ["Boutiques are independent sellers who agree to our seller terms and are responsible for their products, descriptions and packing. We review boutiques and products before they appear, and may suspend a boutique that does not meet our standards."] },
+        { heading: "Boutiques", body: [
+          { node: (
+            <p>
+              Boutiques are independent sellers who agree to our{" "}
+              <Link href="/vendor/terms" className="font-medium text-brand-secondary-dark underline underline-offset-2 hover:text-brand-secondary">
+                vendor terms
+              </Link>{" "}
+              and are responsible for their products, descriptions and packing. We review boutiques and products before they appear, and may suspend a
+              boutique that does not meet our standards.
+            </p>
+          ) },
+        ] },
         { heading: "Acceptable use", body: ["Please don’t misuse the site: no attempts to break or overload it, to access other people’s accounts or data, or to place orders you do not intend to pay for."] },
         { heading: "Our responsibility", body: ["We take care to run the site well and to fix problems quickly, but we cannot promise it will always be available or error free. Nothing in these terms limits any right you have under Indian consumer law."] },
         { heading: "Changes", body: ["We may update these terms as the site grows. The date at the top shows the latest version; orders are governed by the terms in force when you placed them."] },

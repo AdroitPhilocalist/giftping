@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { safeUrl } from "./email-layout";
-import { buildOrderCancelledEmail, buildDataExportEmail, buildPriceDropEmail, buildOrderConfirmedEmail, buildPayoutPaidEmail, buildReturnUpdateEmail, buildShipmentEmail, buildVendorAccountEmail, buildVendorNewOrderEmail } from "./templates";
+import { buildOrderCancelledEmail, buildDataExportEmail, buildPriceDropEmail, buildOrderConfirmedEmail, buildPayoutPaidEmail, buildReturnUpdateEmail, buildShipmentEmail, buildVendorAccountEmail, buildVendorDecisionEmail, buildVendorNewOrderEmail } from "./templates";
 
 const prefs = "https://giftping-lime.vercel.app/account/notifications";
 const order = { firstName: "Asha", orderNumber: "GP-100028", items: [{ name: "Premium Gift Hamper", quantity: 1, totalLabel: "₹2,499", detail: "Wrapping: Gold" }], totalLabel: "₹2,499", deliverTo: { name: "Asha Nair", line: "12 Marine Drive, Kochi, Kerala — 682031" }, orderUrl: "https://giftping-lime.vercel.app/orders/abc", preferencesUrl: prefs };
@@ -64,6 +64,27 @@ describe("email templates", () => {
     expect(sus.subject).toBe("Your GiftPing boutique has been paused");
     expect(sus.html).not.toContain("<script>");
     expect(buildVendorAccountEmail({ vendorName: "V", kind: "reinstated", reason: null, dashboardUrl: "https://x.test", preferencesUrl: prefs }).subject).toBe("Your GiftPing boutique is live again");
+  });
+  it("vendor decision emails: approved and rejected, with the reviewer's note escaped and a truthful footer", () => {
+    const base = { vendorName: "<b>Aurelia</b>", reason: null, dashboardUrl: "https://x.test/vendor/dashboard", registerUrl: "https://x.test/vendor/register", preferencesUrl: prefs };
+
+    const yes = buildVendorDecisionEmail({ ...base, kind: "approved" });
+    expect(yes.subject).toBe("Your GiftPing boutique is approved");
+    expect(yes.html).not.toContain("<b>Aurelia</b>");
+    expect(yes.html).toContain("https://x.test/vendor/dashboard");
+    expect(yes.text).toContain("Dashboard: https://x.test/vendor/dashboard");
+    // A vendor can be approved before selling anything, so this must not claim to be "because of your order".
+    expect(yes.html).toContain("because you applied to sell on GiftPing");
+    expect(yes.html).not.toContain("because of your GiftPing order");
+
+    const no = buildVendorDecisionEmail({ ...base, kind: "rejected", reason: "GSTIN <script>alert(1)</script> could not be verified" });
+    expect(no.subject).toBe("An update on your GiftPing vendor application");
+    expect(no.html).not.toContain("<script>");
+    expect(no.html).toContain("&lt;script&gt;");
+    expect(no.html).toContain("https://x.test/vendor/register");
+    expect(no.text).toContain("Our note:");
+    // The rejection email is the only place the reason reaches the applicant outside the site.
+    expect(no.text).toContain("could not be verified");
   });
   it("return and refund emails: wording per outcome, notes and names escaped", () => {
     const base = { firstName: "Asha", orderNumber: "GP-7", productName: "<b>Hamper</b>", note: "Pickup on <Monday>", orderUrl: "https://x.test/orders/1", preferencesUrl: prefs };

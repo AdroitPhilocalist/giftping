@@ -1,32 +1,39 @@
+import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, PauseCircle, XCircle } from "lucide-react";
 import { VendorApplicationForm } from "@/components/vendor/VendorApplicationForm";
+import { VendorSignupLanding } from "@/components/vendor/VendorSignupLanding";
+import { VendorStatusPanel } from "@/components/vendor/VendorStatusPanel";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { getServerUser } from "@/lib/auth/session";
 import { getMyVendor } from "@/lib/db/vendor-portal";
+import { siteImage } from "@/lib/content/imagery";
+import { getActiveTheme } from "@/lib/theme/active";
+import { getCommerceSettings } from "@/lib/commerce/settings";
 
+export const metadata: Metadata = { title: "Become a GiftPing Vendor" };
+
+/**
+ * /vendor/register — three different pages wearing one URL, so all three were rebuilt as one flow:
+ *
+ *  1. a SIGNED-OUT visitor gets the storefront pitch (components/vendor/VendorSignupLanding.tsx) — what the mall is, what a
+ *     boutique gets, how approval works, and the money. It was previously a centred heading and two buttons.
+ *  2. a signed-in applicant gets the five-step wizard (components/vendor/VendorApplicationForm.tsx) with a live shopfront preview.
+ *  3. someone who has already applied gets their answer (components/vendor/VendorStatusPanel.tsx), with their own boutique drawn
+ *     on it.
+ *
+ * The application itself is unchanged underneath: same schema, same `registerVendorAction`, same redirect behaviour, and the page
+ * stays a public (non-gated) vendor path — see `isVendorPath` in lib/auth/paths.ts.
+ */
 export default async function VendorRegisterPage() {
   const user = await getServerUser();
 
   if (!user) {
-    return (
-      <div className="mx-auto max-w-xl text-center">
-        <h1 className="font-heading text-3xl text-brand-dark">Become a GiftPing Vendor</h1>
-        <p className="mt-2 text-brand-dark/60">
-          Open a boutique in GiftPing Mall and reach shoppers looking for the perfect gift. Create an
-          account or sign in first — it takes a minute.
-        </p>
-        <div className="mt-6 flex justify-center gap-3">
-          <Button asChild>
-            <Link href="/sign-up">Create an account</Link>
-          </Button>
-          <Button variant="secondary" asChild>
-            <Link href="/sign-in?redirectTo=/vendor/register">Sign in</Link>
-          </Button>
-        </div>
-      </div>
-    );
+    // The payout-hold fact is the platform's own live setting (see lib/commerce/settings.ts), never hardcoded, so the page can't
+    // drift from what the payout functions actually do. The commission rate is deliberately not shown: it is set per boutique,
+    // and the client asked that no number appear on public pages.
+    const [theme, settings] = await Promise.all([getActiveTheme(), getCommerceSettings()]);
+    return <VendorSignupLanding art={siteImage("world-boutiques", theme.id)} holdDays={settings.payoutHoldDays} />;
   }
 
   const vendor = await getMyVendor(user.id);
@@ -34,62 +41,89 @@ export default async function VendorRegisterPage() {
 
   if (vendor?.status === "approved") {
     return (
-      <StatusCard icon={<CheckCircle2 className="h-8 w-8 text-brand-primary" />} title={`${vendor.business_name} is approved`}>
-        <p className="text-brand-dark/60">Your boutique is live in the mall. Add your first products from your dashboard.</p>
-        <Button asChild className="mt-5">
-          <Link href="/vendor/dashboard">Go to vendor dashboard</Link>
-        </Button>
-      </StatusCard>
+      <VendorStatusPanel
+        businessName={vendor.business_name}
+        eyebrow="Application approved"
+        title={`${vendor.business_name} is live in the mall`}
+        icon={<CheckCircle2 className="h-6 w-6 text-brand-primary" strokeWidth={1.7} aria-hidden="true" />}
+        action={
+          <Button asChild size="lg">
+            <Link href="/vendor/dashboard">Go to vendor dashboard</Link>
+          </Button>
+        }
+      >
+        <p>
+          Shoppers can find you on Boutique Avenue from now on. Your dashboard is where your products, orders, returns and payouts live — start by
+          adding the first few products, and upload your shopfront banner and logo whenever you&apos;re ready.
+        </p>
+      </VendorStatusPanel>
     );
   }
 
   if (vendor?.status === "rejected") {
     return (
-      <StatusCard icon={<XCircle className="h-8 w-8 text-red-600" />} title="Your application wasn't approved">
-        <p className="text-brand-dark/60">{details?.rejection_reason ?? "Please contact support for details."}</p>
-      </StatusCard>
+      <VendorStatusPanel
+        businessName={vendor.business_name}
+        eyebrow="Application not approved"
+        title="Your application wasn't approved"
+        icon={<XCircle className="h-6 w-6 text-red-600" strokeWidth={1.7} aria-hidden="true" />}
+      >
+        <p>{details?.rejection_reason ?? "Please contact support and we'll explain what happened."}</p>
+        <p className="mt-3">
+          If it was something fixable — a document, a registration number, a detail in your brand story — get in touch and we&apos;ll take another look.
+        </p>
+      </VendorStatusPanel>
     );
   }
 
   if (vendor?.status === "suspended") {
     return (
-      <StatusCard icon={<XCircle className="h-8 w-8 text-brand-secondary-dark" />} title="Your boutique is paused">
-        <p className="text-brand-dark/60">
-          {vendor.business_name} is currently paused and your products are hidden from shoppers. Orders that were already paid are being
-          looked after by the GiftPing team. Please reply to the email we sent you, or contact support, to sort this out.
+      <VendorStatusPanel
+        businessName={vendor.business_name}
+        eyebrow="Boutique paused"
+        title={`${vendor.business_name} is paused`}
+        icon={<PauseCircle className="h-6 w-6 text-brand-secondary-dark" strokeWidth={1.7} aria-hidden="true" />}
+      >
+        <p>
+          Your boutique is currently paused and your products are hidden from shoppers. Orders that were already paid are being looked after by the
+          GiftPing team.
         </p>
-      </StatusCard>
+        <p className="mt-3">Please reply to the email we sent you, or contact support, and we&apos;ll sort this out with you.</p>
+      </VendorStatusPanel>
     );
   }
 
   if (vendor) {
     return (
-      <StatusCard icon={<Clock className="h-8 w-8 text-brand-secondary-dark" />} title="Application under review">
-        <p className="text-brand-dark/60">
-          Thanks for applying, {vendor.business_name}. Our team reviews every application before a boutique
-          goes live — you&apos;ll see the decision here and in your notifications.
+      <VendorStatusPanel
+        businessName={vendor.business_name}
+        eyebrow="Application received"
+        title="Your application is under review"
+        icon={<Clock className="h-6 w-6 text-brand-secondary-dark" strokeWidth={1.7} aria-hidden="true" />}
+      >
+        <p>
+          Thanks for applying, {vendor.business_name}. Our team reviews every application before a boutique goes live — you&apos;ll see the decision
+          here and in your notifications, and nothing you entered is shown to shoppers until then.
         </p>
-      </StatusCard>
+      </VendorStatusPanel>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
-      <h1 className="font-heading text-3xl text-brand-dark">Become a GiftPing Vendor</h1>
-      <p className="mb-6 mt-2 text-brand-dark/60">
-        Tell us about your business. We review each application before a boutique goes live.
-      </p>
-      <VendorApplicationForm />
+    <div className="mx-auto max-w-5xl">
+      <div className="rise">
+        <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-brand-secondary-dark">Vendor application</p>
+        <h1 className="mt-3 font-heading text-4xl leading-tight text-brand-dark sm:text-5xl">
+          Apply to sell on <span className="accent-word">GiftPing</span>.
+        </h1>
+        <p className="mt-4 max-w-2xl text-base leading-relaxed text-brand-dark/70">
+          Four short sections — your business, your tax details, where we send your earnings, and where couriers collect from. Nothing is published
+          until our team approves it, and you can step back to any section before you submit.
+        </p>
+      </div>
+      <div className="mt-8">
+        <VendorApplicationForm />
+      </div>
     </div>
-  );
-}
-
-function StatusCard({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
-  return (
-    <Card className="mx-auto max-w-xl text-center">
-      <div className="mb-3 flex justify-center">{icon}</div>
-      <h1 className="font-heading text-2xl text-brand-dark">{title}</h1>
-      <div className="mt-2">{children}</div>
-    </Card>
   );
 }

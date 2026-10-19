@@ -16,6 +16,9 @@ describe("isVendorPath", () => {
   it("does not match the public vendor sign-up funnel", () => {
     expect(isVendorPath("/vendor/register")).toBe(false);
   });
+  it("does not match the vendor terms, which the public application form links to", () => {
+    expect(isVendorPath("/vendor/terms")).toBe(false);
+  });
 });
 
 describe("isAdminPath", () => {

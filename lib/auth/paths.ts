@@ -11,8 +11,9 @@
  */
 
 // Part of the storefront funnel, not the portal: anyone (including a signed-out visitor applying to
-// sell) must be able to reach it.
-export const VENDOR_PUBLIC_PATHS = ["/vendor/register"];
+// sell) must be able to reach these. /vendor/terms is the seller-side terms the application form's own
+// checkbox refers to, so it has to be readable before the applicant has an account.
+export const VENDOR_PUBLIC_PATHS = ["/vendor/register", "/vendor/terms"];
 
 export function isProtectedCustomerPath(pathname: string) {
   return (

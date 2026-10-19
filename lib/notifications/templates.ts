@@ -6,6 +6,10 @@ const row = (left: string, right: string) =>
 const footer = (preferencesUrl: string) =>
   `You're getting this because of your GiftPing order. <a href="${escapeHtml(preferencesUrl)}" style="color:#888">Notification settings</a>.`;
 
+// Vendor mail is not "because of your order" — it may arrive before the boutique has sold anything at all.
+const vendorFooter = (preferencesUrl: string) =>
+  `You're getting this because you applied to sell on GiftPing. <a href="${escapeHtml(preferencesUrl)}" style="color:#888">Notification settings</a>.`;
+
 // ---------------------------------------------------------------------------
 // Order confirmed (customer)
 // ---------------------------------------------------------------------------
@@ -212,10 +216,48 @@ export function buildVendorAccountEmail(i: VendorAccountInput): BuiltEmail {
       ? `<p style="margin:0 0 12px;color:#555">Hi ${escapeHtml(i.vendorName)}, your boutique has been paused and your products are hidden from shoppers.${i.reason ? ` Reason: ${escapeHtml(i.reason)}.` : ""}</p><p style="margin:0;color:#777;font-size:13px">Orders that were already paid will be looked after by the GiftPing team. Reply to this email if you'd like to talk it through.</p>`
       : `<p style="margin:0;color:#555">Hi ${escapeHtml(i.vendorName)}, good news — your boutique has been reinstated and your products are visible to shoppers again.</p>`,
     cta: { label: "Open your dashboard", url: i.dashboardUrl },
-    footerHtml: footer(i.preferencesUrl),
+    footerHtml: vendorFooter(i.preferencesUrl),
   });
   const text = [`Hi ${i.vendorName},`, "", suspended ? `Your boutique has been paused and your products are hidden.${i.reason ? ` Reason: ${i.reason}.` : ""}` : "Your boutique has been reinstated and is visible to shoppers again.", `Dashboard: ${i.dashboardUrl}`].join("\n");
   return { subject: suspended ? "Your GiftPing boutique has been paused" : "Your GiftPing boutique is live again", html, text };
+}
+
+export interface VendorDecisionInput {
+  vendorName: string;
+  kind: "approved" | "rejected";
+  /** The reviewer's short note — only ever shown on a rejection. */
+  reason: string | null;
+  dashboardUrl: string;
+  registerUrl: string;
+  preferencesUrl: string;
+}
+
+/**
+ * The outcome of an application, by email. This is the message that used to be an in-app row and nothing else, so a vendor could
+ * be approved (and their role silently upgraded) and never find out unless they happened to sign in.
+ */
+export function buildVendorDecisionEmail(i: VendorDecisionInput): BuiltEmail {
+  const approved = i.kind === "approved";
+  const html = renderEmailFrame({
+    preheader: approved ? "Your GiftPing boutique is open" : "An update on your GiftPing application",
+    heading: approved ? "You're approved — your boutique is open" : "An update on your application",
+    bodyHtml: approved
+      ? `<p style="margin:0 0 12px;color:#555">Hi ${escapeHtml(i.vendorName)}, your application has been approved. Your account is a vendor account now, and your dashboard is open.</p><p style="margin:0;color:#555">Start by adding your first products and uploading your banner and logo. Every new product is reviewed by our team before it appears in the mall.</p>`
+      : `<p style="margin:0 0 12px;color:#555">Hi ${escapeHtml(i.vendorName)}, thank you for applying to sell on GiftPing. We're not able to approve the application as it stands.</p>${i.reason ? `<p style="margin:0 0 12px;color:#555">Our note: ${escapeHtml(i.reason)}</p>` : ""}<p style="margin:0;color:#777;font-size:13px">If it's something fixable — a document, a registration number, a detail in your brand story — reply to this email and a person will take another look with you.</p>`,
+    cta: approved ? { label: "Open your dashboard", url: i.dashboardUrl } : { label: "View your application", url: i.registerUrl },
+    footerHtml: vendorFooter(i.preferencesUrl),
+  });
+  const text = [
+    `Hi ${i.vendorName},`,
+    "",
+    approved
+      ? "Your application has been approved. Your account is a vendor account now and your dashboard is open. Start by adding your first products and uploading your banner and logo — every new product is reviewed before it appears in the mall."
+      : `Thank you for applying to sell on GiftPing. We're not able to approve the application as it stands.${i.reason ? ` Our note: ${i.reason}` : ""}`,
+    ...(approved ? [] : ["", "If it's something fixable — a document, a registration number, a detail in your brand story — reply to this email and a person will take another look with you."]),
+    "",
+    approved ? `Dashboard: ${i.dashboardUrl}` : `Your application: ${i.registerUrl}`,
+  ].join("\n");
+  return { subject: approved ? "Your GiftPing boutique is approved" : "An update on your GiftPing vendor application", html, text };
 }
 
 // ---------------------------------------------------------------------------
