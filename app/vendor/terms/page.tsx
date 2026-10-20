@@ -1,4 +1,7 @@
-import { LegalPage } from "@/components/pages/LegalPage";
+import Link from "next/link";
+import { BadgeCheck, ClipboardCheck, ReceiptText, Undo2 } from "lucide-react";
+import { InstrumentPage } from "@/components/legal/InstrumentPage";
+import { Button } from "@/components/ui/Button";
 import { SITE } from "@/lib/site";
 
 export const metadata = {
@@ -11,6 +14,10 @@ export const metadata = {
  * the GiftPing vendor terms and commission structure") and by the customer Terms & Conditions, which said boutiques "agree to our
  * seller terms" while no such page existed anywhere on the site.
  *
+ * Rendered as an instrument (`components/legal/InstrumentPage.tsx`) rather than a plain article: paper, margin rule, numbered
+ * clauses, a seal and — until `SITE.legalReviewed` is flipped — a DRAFT stamp. The wrapper is generic; only the words below are
+ * vendor-specific.
+ *
  * Written from how the platform actually behaves — every claim here is something the code does today:
  *
  *  - applications are reviewed before a boutique goes live and products start `pending` (`supabase/migrations/*.dml`, the
@@ -22,8 +29,8 @@ export const metadata = {
  *  - a suspended boutique's products stop being purchasable (`lib/commerce/cart.ts`).
  *
  * Deliberately does NOT state a commission percentage: the rate is per-boutique (`resolveCommissionRate`) and the client has asked
- * that it not appear on public pages. Like every other policy page it shows a "draft — awaiting legal review" notice until
- * `SITE.legalReviewed` is flipped in `lib/site.ts`.
+ * that it not appear on public pages. The "at a glance" block restates four facts that appear in the clauses — it adds no claim
+ * of its own.
  *
  * It is a public page on purpose: `VENDOR_PUBLIC_PATHS` in `lib/auth/paths.ts` keeps it out of the gated portal, because anyone
  * considering applying must be able to read it before they have an account. It is also deliberately absent from the sitemap —
@@ -31,11 +38,18 @@ export const metadata = {
  */
 export default function VendorTermsPage() {
   return (
-    <LegalPage
+    <InstrumentPage
       eyebrow="The small print"
-      title="Vendor Terms"
+      title={<>Vendor <span className="accent-word">terms</span></>}
       intro="What it means to sell on GiftPing, written so it can be understood on a first read."
+      recordLabel="Vendor terms"
       updated="19 October 2026"
+      facts={[
+        { icon: BadgeCheck, label: "Free to apply", note: "Applying costs nothing, and so does listing a product." },
+        { icon: ClipboardCheck, label: "Read before it's live", note: "Applications and new listings are checked by our team first." },
+        { icon: ReceiptText, label: "Commission from the payout", note: "Taken out of each order you fulfil — never invoiced." },
+        { icon: Undo2, label: "Refunds touch one item", note: "A refund never reduces the rest of what you're owed." },
+      ]}
       sections={[
         {
           heading: "Becoming a vendor",
@@ -112,10 +126,31 @@ export default function VendorTermsPage() {
         {
           heading: "Questions",
           body: [
-            `If anything here is unclear, or you need something in writing before you apply, write to us through the contact page and a person will answer.`,
+            {
+              node: (
+                <p>
+                  If anything here is unclear, or you need something in writing before you apply, write to us through the{" "}
+                  <Link href="/contact" className="font-medium text-brand-secondary-dark underline decoration-brand-secondary/40 underline-offset-4 hover:decoration-brand-secondary">
+                    contact page
+                  </Link>{" "}
+                  and a person will answer.
+                </p>
+              ),
+            },
           ],
         },
       ]}
+      closing="Reading this page doesn't accept the terms — you'll be asked to agree when you apply."
+      actions={
+        <>
+          <Button asChild size="lg">
+            <Link href="/vendor/register">Apply to sell</Link>
+          </Button>
+          <Button asChild variant="secondary" size="lg">
+            <Link href="/contact">Ask a question</Link>
+          </Button>
+        </>
+      }
     />
   );
 }

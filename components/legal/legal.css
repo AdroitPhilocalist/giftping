@@ -1,0 +1,335 @@
+/* ============================================================================
+   THE LEGAL INSTRUMENT — a printed deed on warm laid paper, held between two
+   brass rods, sealed and stamped.
+
+   Used by /vendor/terms via components/legal/InstrumentPage.tsx, and available
+   to any other policy or vendor document that wants the same shell (import the
+   component; it brings this file with it).
+
+   Rules for this file:
+   - Every colour is derived from the --gp-* theme tokens, so a festival theme
+     re-inks the "paper" instead of fighting it.
+   - It lives in Tailwind's `components` layer so utilities still win on top of
+     these rules. Nothing in app/layout.tsx may import it (see
+     lib/theme/css-order.test.ts) — a page or a page-level component may.
+   - Scoped to .deed-*; nothing here leaks.
+   ============================================================================ */
+@layer components {
+
+.deed-scope {
+  --deed-paper: var(--gp-surface);
+  --deed-wash: color-mix(in srgb, var(--gp-peach) 55%, transparent);
+  --deed-rule: color-mix(in srgb, var(--gp-ink) 12%, transparent);
+  --deed-rule-faint: color-mix(in srgb, var(--gp-ink) 7%, transparent);
+  --deed-margin-rule: color-mix(in srgb, var(--gp-copper) 34%, transparent);
+  /* brass: a light face, a mid tone and a shadow, all pulled from the accent so a theme re-metals the rods */
+  --deed-brass-hi: color-mix(in srgb, var(--gp-copper) 30%, #ffe9bd);
+  --deed-brass: color-mix(in srgb, var(--gp-copper) 74%, #c08a3e);
+  --deed-brass-lo: color-mix(in srgb, var(--gp-copper) 46%, #45270a);
+  /* sealing wax and stamp ink: copper pushed towards red, which is how both read on paper */
+  --deed-seal: color-mix(in srgb, var(--gp-copper) 76%, #8f2c17);
+  --deed-seal-hi: color-mix(in srgb, var(--deed-seal) 55%, #ffd0ab);
+  --deed-seal-lo: color-mix(in srgb, var(--deed-seal) 62%, #2a0a03);
+  --deed-stamp: color-mix(in srgb, var(--gp-copper) 72%, #8a2a1a);
+  --deed-hand: var(--font-caveat), "Segoe Script", "Bradley Hand", cursive;
+}
+
+/* ------------------------------------------------------------------ the sheet */
+
+.deed-sheet {
+  position: relative;
+  isolation: isolate;
+  background-color: var(--deed-paper);
+  /* a warm wash from the top-left corner and a second at the foot: paper that has sat in a folder, not a white web card */
+  background-image:
+    radial-gradient(120% 70% at 8% 0%, var(--deed-wash), transparent 62%),
+    radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--gp-peach) 38%, transparent), transparent 60%);
+  border: 1px solid color-mix(in srgb, var(--gp-ink) 9%, transparent);
+  border-radius: 0 0 3px 3px;
+  box-shadow:
+    0 36px 70px -50px rgb(28 25 22 / 0.75),
+    /* the shadow the top rod casts where the paper slides out from under it */
+    inset 0 7px 11px -9px rgb(28 25 22 / 0.5),
+    inset 0 -1px 0 color-mix(in srgb, var(--gp-ink) 6%, transparent);
+}
+/* the fibre of the paper: an SVG noise tile behind the text, above the wash */
+.deed-sheet::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.5;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23g)' opacity='0.06'/%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+/* ------------------------------------------------------------------ brass rods */
+
+.deed-roll {
+  position: relative;
+  height: 0.8rem;
+  margin: 0 -0.55rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    var(--deed-brass-hi) 0%,
+    var(--deed-brass) 22%,
+    var(--deed-brass-lo) 54%,
+    var(--deed-brass) 80%,
+    var(--deed-brass-hi) 100%
+  );
+  box-shadow: 0 10px 16px -12px rgb(28 25 22 / 0.8);
+}
+/* the turned end caps: a disc at each end, lit from the same corner as the rod */
+.deed-roll::before,
+.deed-roll::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: -0.55rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, var(--deed-brass-hi), var(--deed-brass) 58%, var(--deed-brass-lo));
+  box-shadow:
+    0 1px 2px rgb(28 25 22 / 0.35),
+    inset 0 0 0 1px color-mix(in srgb, var(--deed-brass-lo) 55%, transparent);
+}
+.deed-roll::before { left: -0.35rem; }
+.deed-roll::after { right: -0.35rem; }
+.deed-roll--top { margin-bottom: -1px; }
+.deed-roll--bottom { margin-top: -1px; }
+
+/* ------------------------------------------------------------------ clauses */
+
+.deed-clauses { position: relative; }
+
+/* the double margin rule a legal pad is printed with, once there is room for a gutter */
+@media (min-width: 1024px) {
+  .deed-clauses::before {
+    content: "";
+    position: absolute;
+    top: 0.35rem;
+    bottom: 0.35rem;
+    left: 3.55rem;
+    width: 5px;
+    border-left: 1px solid var(--deed-margin-rule);
+    border-right: 1px solid color-mix(in srgb, var(--deed-margin-rule) 45%, transparent);
+  }
+}
+
+.deed-clause { position: relative; }
+
+.deed-clause-num {
+  display: block;
+  margin-bottom: 0.3rem;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--gp-copper) 78%, transparent);
+}
+@media (min-width: 1024px) {
+  .deed-clause { padding-left: 5.4rem; }
+  .deed-clause-num {
+    position: absolute;
+    left: 0;
+    top: 0.22rem;
+    margin: 0;
+    width: 3rem;
+    text-align: right;
+    font-size: 1.45rem;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: color-mix(in srgb, var(--gp-copper) 58%, transparent);
+  }
+}
+
+/* the anchor beside a heading, so a clause can be linked to directly: faint on touch (where there is no hover to reveal it),
+   invisible until the heading is hovered or the link is focused on a pointer device */
+.deed-anchor {
+  margin-left: 0.15rem;
+  font-size: 0.95rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--gp-copper) 38%, transparent);
+  transition: color 180ms var(--gp-ease);
+}
+@media (hover: hover) {
+  .deed-anchor { color: transparent; }
+  .group:hover .deed-anchor,
+  .deed-anchor:focus-visible { color: color-mix(in srgb, var(--gp-copper) 70%, transparent); }
+}
+
+/* ------------------------------------------------------------------ "at a glance" particulars */
+
+.deed-facts {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-top: 1px solid var(--deed-rule);
+}
+@media (min-width: 640px) {
+  .deed-facts { grid-template-columns: 1fr 1fr; }
+}
+.deed-fact {
+  padding: 1rem 0;
+  border-top: 1px solid var(--deed-rule-faint);
+}
+.deed-fact:first-child { border-top: 0; padding-top: 0; }
+@media (min-width: 640px) {
+  .deed-fact { padding: 1.05rem 1.25rem; }
+  .deed-fact:nth-child(odd) { padding-left: 0; }
+  .deed-fact:nth-child(even) { border-left: 1px solid var(--deed-rule-faint); }
+  .deed-fact:nth-child(-n + 2) { border-top: 0; padding-top: 0.2rem; }
+  .deed-fact:nth-last-child(-n + 2) { padding-bottom: 0.2rem; }
+}
+
+/* ------------------------------------------------------------------ the draft stamp */
+
+.deed-stamp {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.5rem 1rem 0.6rem;
+  border: 2px solid var(--deed-stamp);
+  border-radius: 2px;
+  color: var(--deed-stamp);
+  /* the inner hairline that makes a rubber stamp read as a stamp */
+  box-shadow: inset 0 0 0 1px var(--deed-stamp);
+  opacity: 0.78;
+  transform: rotate(-7deg);
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  user-select: none;
+  animation: deed-stamp-press 0.7s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.deed-stamp-line {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-indent: 0.3em; /* balances the trailing letter-space so the word stays centred */
+}
+.deed-stamp-rule { width: 100%; height: 1px; background: currentColor; opacity: 0.5; }
+.deed-stamp-fine {
+  font-size: 0.48rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+@keyframes deed-stamp-press {
+  0% { opacity: 0; transform: rotate(-7deg) scale(1.45); }
+  62% { opacity: 0.9; transform: rotate(-7deg) scale(0.97); }
+  100% { opacity: 0.78; transform: rotate(-7deg) scale(1); }
+}
+
+/* ------------------------------------------------------------------ wax seal + signature */
+
+.deed-seal {
+  position: relative;
+  display: inline-block;
+  width: 5.5rem;
+  height: 5.5rem;
+  flex: none;
+}
+@media (min-width: 640px) {
+  .deed-seal { width: 6.25rem; height: 6.25rem; }
+}
+.deed-seal svg { position: relative; z-index: 1; width: 100%; height: 100%; }
+.deed-seal-wax { fill: var(--deed-seal); }
+.deed-seal-ring { fill: none; stroke: var(--deed-seal-lo); stroke-opacity: 0.45; stroke-width: 2.2; }
+.deed-seal-dots { fill: none; stroke: var(--deed-seal-hi); stroke-opacity: 0.45; stroke-width: 1; stroke-dasharray: 1.3 3.1; }
+.deed-seal-glyph {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--gp-font-display), Georgia, serif;
+  font-size: 1.45rem;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--deed-seal-hi) 96%, #fff);
+  text-shadow:
+    0 1px 0 color-mix(in srgb, var(--deed-seal-lo) 70%, transparent),
+    0 -1px 0 color-mix(in srgb, var(--deed-seal-hi) 35%, transparent);
+  transform: rotate(-6deg);
+}
+/* the ribbon tucked under the wax */
+.deed-seal-tail {
+  position: absolute;
+  left: 50%;
+  bottom: -0.6rem;
+  z-index: 0;
+  width: 2.1rem;
+  height: 2.3rem;
+  margin-left: -1.05rem;
+  background: linear-gradient(180deg, var(--deed-seal), var(--deed-seal-lo));
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 50% 78%, 12% 100%);
+  transform: rotate(4deg);
+  opacity: 0.92;
+}
+
+.deed-signature {
+  font-family: var(--deed-hand);
+  font-size: 2.5rem;
+  line-height: 0.9;
+  color: var(--gp-primary);
+  transform: rotate(-2deg);
+  transform-origin: left center;
+}
+@media (min-width: 640px) {
+  .deed-signature { font-size: 3rem; }
+}
+
+/* ------------------------------------------------------------------ notices */
+
+.deed-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  background: color-mix(in srgb, var(--gp-peach) 45%, transparent);
+  border-left: 3px solid color-mix(in srgb, var(--gp-copper) 70%, transparent);
+}
+
+/* ------------------------------------------------------------------ print: it is a document, after all */
+
+@media print {
+  /* A document page should print as the document: hide the site chrome the root layout adds around every page (fixed header,
+     trust strip, footer, toaster, the festival layer) and drop the top padding standing in for the fixed header. Scoped with
+     :has() so the rule only applies while a deed is actually on the page — Next keeps a route's CSS loaded across client-side
+     navigations, and printing some other page must not lose its header. */
+  body:has(.deed-scope) > *:not(main) { display: none !important; }
+  body:has(.deed-scope) main { padding-top: 0 !important; }
+
+  .deed-noprint { display: none !important; }
+  .deed-roll { display: none; }
+  .deed-sheet {
+    background-image: none;
+    border-color: var(--deed-rule);
+    box-shadow: none;
+  }
+  .deed-sheet::before { display: none; }
+  .deed-stamp,
+  .deed-seal {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .deed-clause { break-inside: avoid; }
+  .deed-clause h2 { break-after: avoid; }
+}
+
+/* ------------------------------------------------------------------ reduced motion */
+
+@media (prefers-reduced-motion: reduce) {
+  .deed-stamp {
+    animation: none;
+    transform: rotate(-7deg);
+    opacity: 0.78;
+  }
+}
+
+}

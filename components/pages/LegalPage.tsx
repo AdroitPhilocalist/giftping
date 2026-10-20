@@ -1,18 +1,9 @@
-import type { ReactNode } from "react";
-import { Fragment } from "react";
 import { PageHero } from "@/components/pages/PageHero";
+import { LegalBodyView } from "@/components/legal/LegalBodyView";
+import type { LegalSection } from "@/components/legal/types";
 import { SITE } from "@/lib/site";
 
-/**
- * A paragraph is a plain string; a bullet list or a paragraph that needs a link inside it gets its own variant, so a policy can
- * point at another policy (the Terms point at the vendor terms) without the component having to guess at markup.
- */
-export type LegalBody = string | { list: string[] } | { node: ReactNode };
-
-export interface LegalSection {
-  heading: string;
-  body: LegalBody[];
-}
+export type { LegalBody, LegalSection } from "@/components/legal/types";
 
 /** A policy page: readable width, numbered headings, and a visible "draft" notice until the client's advisers have signed the text off (lib/site.ts). */
 export function LegalPage({ eyebrow, title, intro, updated, sections }: { eyebrow: string; title: string; intro: string; updated: string; sections: LegalSection[] }) {
@@ -34,17 +25,7 @@ export function LegalPage({ eyebrow, title, intro, updated, sections }: { eyebro
                 {s.heading}
               </h2>
               <div className="mt-3 space-y-3 leading-relaxed text-brand-dark/75">
-                {s.body.map((b, k) =>
-                  typeof b === "string" ? (
-                    <p key={k}>{b}</p>
-                  ) : "node" in b ? (
-                    <Fragment key={k}>{b.node}</Fragment>
-                  ) : (
-                    <ul key={k} className="list-disc space-y-1.5 pl-5 marker:text-brand-secondary">
-                      {b.list.map((li) => <li key={li}>{li}</li>)}
-                    </ul>
-                  ),
-                )}
+                <LegalBodyView body={s.body} />
               </div>
             </section>
           ))}
