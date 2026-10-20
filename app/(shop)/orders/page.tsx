@@ -42,6 +42,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
             const progress = describeOrderProgress(order.status);
             const units = order.items.reduce((n, i) => n + i.quantity, 0);
             const step = progress.completed === null ? null : Math.min(progress.completed, ORDER_STEPS.length - 1);
+            const badgeVariant = (() => {
+              if (progress.tone === "waiting") return "waiting";
+              if (progress.tone === "cancelled") return "cancelled";
+              if (progress.tone === "done") return "done";
+              if (progress.completed === 3) return "shipped";
+              return "progress";
+            })();
             return (
               <li key={order.id}>
                 <Link href={`/orders/${order.id}`} className="group block rounded-card border border-brand-dark/[0.06] bg-brand-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lift">
@@ -50,7 +57,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                       <p className="font-heading text-lg text-brand-dark">{order.order_number}</p>
                       <p className="text-xs text-brand-dark/55">Placed {new Date(order.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · {units} {units === 1 ? "item" : "items"}</p>
                     </div>
-                    <Badge variant={progress.tone === "waiting" ? "gold" : progress.tone === "cancelled" ? "neutral" : "primary"}>{ORDER_STATUS_LABEL[order.status] ?? order.status}</Badge>
+                    <Badge variant={badgeVariant}>{ORDER_STATUS_LABEL[order.status] ?? order.status}</Badge>
                   </div>
 
                   <div className="mt-4 flex items-center gap-3">

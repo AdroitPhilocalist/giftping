@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
     remotePatterns: supabaseHost
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]
       : [],
+    dangerouslyAllowLocalIP: true,
     // AVIF first (smaller than WebP for photographic art), falling back to WebP for browsers that don't
     // support it — Next negotiates by the request's Accept header, so every visitor still gets a working
     // image either way. Already covered by the Vercel Pro image-optimization allowance (see CLAUDE.md).

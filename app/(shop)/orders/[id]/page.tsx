@@ -18,11 +18,12 @@ import { isRazorpayConfigured } from "@/lib/integrations/razorpay";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { WriteReviewButton } from "@/components/shop/ReviewDialogs";
 import { Badge } from "@/components/ui/Badge";
+import type { BadgeVariant } from "@/components/ui/Badge";
 import { getServerUser } from "@/lib/auth/session";
 import { RETURN_REASONS, returnWindow, type ReturnReason } from "@/lib/commerce/refunds";
 import { getReturnWindowDays } from "@/lib/commerce/returns";
 import { getMyOrder } from "@/lib/db/orders";
-import { getReviewedProductIds } from "@/lib/db/reviews";
+import { getReviewedProducts } from "@/lib/db/reviews";
 import { formatCurrency } from "@/lib/utils/format";
 
 export const metadata = { title: "Your Order — GiftPing" };
@@ -47,7 +48,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
   if (!user) notFound(); // proxy.ts redirects signed-out visitors first
 
   // windowDays/theme/reviewedProductIds don't depend on the order itself — fetch alongside it, not after it.
-  const [order, windowDays, theme, reviewedProductIds] = await Promise.all([getMyOrder(id, user.id), getReturnWindowDays(), getActiveTheme(), getReviewedProductIds(user.id)]);
+  const [order, windowDays, theme, reviewedProducts] = await Promise.all([getMyOrder(id, user.id), getReturnWindowDays(), getActiveTheme(), getReviewedProducts(user.id)]);
   if (!order) notFound();
 
   const progress = describeOrderProgress(order.status);
@@ -102,7 +103,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                       {group.name}
                       {expressRequested ? <span className="flex items-center gap-1 rounded-full bg-brand-secondary/15 px-2 py-0.5 font-sans text-[11px] font-semibold text-brand-secondary-dark"><Zap className="h-3 w-3" /> Express</span> : null}
                     </p>
-                    <Badge variant={shipment?.status === "delivered" ? "primary" : "gold"}>
+                    <Badge variant={shipmentBadgeVariant(shipment?.status, allPending)}>
                       {shipment?.awb_number
                         ? (SHIPMENT_STATUS_LABEL[shipment.status] ?? shipment.status)
                         : allPending
@@ -171,14 +172,18 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                   // product_id is nullable at the type level (a defensive FK column), but every real order item has one —
                   // a null here would mean the product row itself is gone, which nothing in this app currently does.
                   const canReview = isDelivered && Boolean(item.product_id);
-                  const hasReview = item.product_id ? reviewedProductIds.has(item.product_id) : false;
+                  const existingReview = item.product_id ? reviewedProducts.get(item.product_id) ?? null : null;
                   return (
                     <li key={item.id} className="flex flex-wrap gap-3 py-3 text-sm">
-                      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-dark/10">
-                        <ProductImage src={item.product_image} alt={item.product_name} className="h-full w-full" sizes="64px" />
-                      </div>
+                      <Link href={`/products/${item.product?.slug}`} className="block">
+                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border border-brand-dark/10">
+                          <ProductImage src={item.product_image} alt={item.product_name} className="h-full w-full" sizes="64px" />
+                        </div>
+                      </Link>
                       <div className="min-w-0 flex-1">
-                        <p className="font-medium text-brand-dark">{item.product_name}</p>
+                        <Link href={`/products/${item.product?.slug}`} className="font-medium text-brand-dark hover:underline">
+                          {item.product_name}
+                        </Link>
                         {item.variant_label ? <p className="text-xs text-brand-dark/60">{item.variant_label}</p> : null}
                         {personalizationSummary(p) ? <p className="text-xs text-brand-dark/60">{personalizationSummary(p)}</p> : null}
                         <p className="text-xs text-brand-dark/50">
@@ -212,7 +217,7 @@ export default async function OrderPage({ params }: { params: Promise<{ id: stri
                             />
                           ) : null}
                           {canReview && item.product_id ? (
-                            <WriteReviewButton productId={item.product_id} orderItemId={item.id} productName={item.product_name} hasReview={hasReview} />
+                            <WriteReviewButton productId={item.product_id} orderItemId={item.id} productName={item.product_name} existingReview={existingReview} />
                           ) : null}
                         </div>
                       ) : null}
@@ -265,4 +270,26 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
       <dd className="text-brand-dark">{value}</dd>
     </div>
   );
+}
+
+/** Maps a shipment (courier) status to a distinct badge variant so each stage reads differently. */
+function shipmentBadgeVariant(status: string | undefined, allPending: boolean): BadgeVariant {
+  if (!status || allPending) return "waiting";
+  switch (status) {
+    case "pending":
+      return "waiting";
+    case "confirmed":
+      return "progress";
+    case "picked_up":
+    case "in_transit":
+    case "out_for_delivery":
+      return "shipped";
+    case "delivered":
+      return "done";
+    case "rto_initiated":
+    case "cancelled":
+      return "cancelled";
+    default:
+      return "progress";
+  }
 }

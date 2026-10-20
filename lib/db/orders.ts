@@ -7,7 +7,8 @@ const ORDER_SELECT = `
     id, product_id, vendor_id, product_name, product_image, variant_label, personalization, quantity,
     unit_price, total_price, discount_amount, refunded_amount, returned_quantity,
     fulfilment_status,
-    vendor:vendors ( business_name, slug )
+    vendor:vendors ( business_name, slug ),
+    product:products ( slug )
   ),
   shipments (
     id, vendor_id, status, awb_number, courier_name, tracking_url, estimated_delivery, is_return, delivered_at,
@@ -32,7 +33,7 @@ export async function getMyOrder(orderId: string, userId: string) {
 
 const ORDER_LIST_SELECT = `
   id, order_number, status, created_at, total_amount,
-  items:order_items ( id, product_name, product_image, quantity )
+  items:order_items ( id, product_id, product_name, product_image, quantity, product:products(slug) )
 `;
 
 /** The shopper's orders, newest first, with just enough per order for a list card. RLS + the explicit customer filter: only their own. */

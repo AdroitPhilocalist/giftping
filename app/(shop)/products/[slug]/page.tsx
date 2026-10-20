@@ -10,12 +10,13 @@ import { ProductBuyBox } from "@/components/shop/ProductBuyBox";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { ProductTabs } from "@/components/shop/ProductTabs";
+import { EditReviewButton } from "@/components/shop/ReviewDialogs";
 import { ReviewList } from "@/components/shop/ReviewList";
 import { VendorLogo } from "@/components/shop/VendorLogo";
 import { WishlistButton } from "@/components/shop/WishlistButton";
 import { Badge } from "@/components/ui/Badge";
 import { getProductBySlug, getRelatedProducts } from "@/lib/db/products";
-import { getProductReviews } from "@/lib/db/reviews";
+import { getMyReviewForProduct, getProductReviews } from "@/lib/db/reviews";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getCommerceSettings } from "@/lib/commerce/settings";
@@ -51,9 +52,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const [product, user] = await Promise.all([getProductBySlug(slug), getServerUser()]);
   if (!product) notFound();
 
-  const [related, { reviews, total: reviewTotal }, wishlistIds, settings, returnDays] = await Promise.all([
+  const [related, { reviews, total: reviewTotal }, ownReview, wishlistIds, settings, returnDays] = await Promise.all([
     getRelatedProducts(product.id, product.category_id),
     getProductReviews(product.id),
+    user ? getMyReviewForProduct(product.id, user.id) : Promise.resolve(null),
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
     getCommerceSettings(),
     getReturnWindowDays(),
@@ -127,15 +129,29 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     </div>
   );
 
+  // The list below shows the first page of reviews. Keep the edit action reachable even when the
+  // viewer's own review is older than that page; when it is visible, the action sits on the card instead.
+  const ownReviewVisible = ownReview ? reviews.some((review) => review.id === ownReview.id) : false;
   const reviewsPanel = (
     <div className="max-w-3xl">
-      {product.review_count > 0 ? (
-        <p className="mb-5 flex items-center gap-2 text-brand-dark/70">
-          <Star className="h-5 w-5 fill-brand-secondary text-brand-secondary" aria-hidden="true" />
-          <span className="font-heading text-2xl text-brand-dark">{product.average_rating.toFixed(1)}</span> from {product.review_count} {product.review_count === 1 ? "review" : "reviews"}
-        </p>
-      ) : null}
-      <ReviewList reviews={reviews} total={reviewTotal} />
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        {product.review_count > 0 ? (
+          <p className="flex items-center gap-2 text-brand-dark/70">
+            <Star className="h-5 w-5 fill-brand-secondary text-brand-secondary" aria-hidden="true" />
+            <span className="font-heading text-2xl text-brand-dark">{product.average_rating.toFixed(1)}</span> from {product.review_count} {product.review_count === 1 ? "review" : "reviews"}
+          </p>
+        ) : <span />}
+        {ownReview && !ownReviewVisible ? (
+          <EditReviewButton
+            reviewId={ownReview.id}
+            productName={product.name}
+            rating={ownReview.rating}
+            title={ownReview.title}
+            body={ownReview.body ?? ""}
+          />
+        ) : null}
+      </div>
+      <ReviewList reviews={reviews} total={reviewTotal} productName={product.name} ownReview={ownReview} />
     </div>
   );
 

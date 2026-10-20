@@ -10,6 +10,7 @@ import { StarRatingInput } from "@/components/shop/StarRatingInput";
 import { toast } from "@/components/ui/Toast";
 import { deleteReviewAction, editReviewAction, submitReviewAction } from "@/lib/shop/review-actions";
 import type { ReviewActionResult } from "@/lib/shop/review-actions";
+import type { ReviewSummary } from "@/lib/db/reviews";
 
 interface Draft { rating: number; title: string; body: string }
 
@@ -34,11 +35,17 @@ function ReviewFields({ draft, onChange, error }: { draft: Draft; onChange: (nex
 }
 
 /** On a delivered order item that has no review yet ("Write a review"), or already does ("Edit your review" —
- * submitting again upserts the same row, so this one dialog covers both without needing to know which case it is). */
-export function WriteReviewButton({ productId, orderItemId, productName, hasReview }: { productId: string; orderItemId: string; productName: string; hasReview: boolean }) {
+ * submitting again upserts the same row, so this one dialog covers both without needing to know which case it is).
+ * When a review already exists, start from its values so editing never opens a blank form. */
+export function WriteReviewButton({ productId, orderItemId, productName, existingReview }: { productId: string; orderItemId: string; productName: string; existingReview: ReviewSummary | null }) {
   const router = useRouter();
+  const hasReview = existingReview !== null;
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState<Draft>({ rating: 5, title: "", body: "" });
+  const [draft, setDraft] = useState<Draft>({
+    rating: existingReview?.rating ?? 5,
+    title: existingReview?.title ?? "",
+    body: existingReview?.body ?? "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 

@@ -14,14 +14,39 @@ export async function getUserReviews(userId: string) {
   return data ?? [];
 }
 
-/** Which of a user's products they've already reviewed — reviews.product_id keyed by user, not by which
- * order it came from (the unique constraint is per product, not per purchase). Used to show "Write a
- * review" vs. "Edit your review" on an order's delivered items without a heavier per-item join. */
-export async function getReviewedProductIds(userId: string): Promise<Set<string>> {
+export interface ReviewSummary {
+  id: string;
+  rating: number;
+  title: string | null;
+  body: string | null;
+}
+
+/** A user's reviews keyed by product — reviews.product_id is unique per user, not per purchase — so a
+ * delivered order item can offer a prefilled "Edit your review" instead of a blank form. */
+export async function getReviewedProducts(userId: string): Promise<Map<string, ReviewSummary>> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("reviews").select("product_id").eq("user_id", userId);
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("id, product_id, rating, title, body")
+    .eq("user_id", userId);
   if (error) throw error;
-  return new Set((data ?? []).map((r) => r.product_id));
+  return new Map(
+    (data ?? []).map((r) => [r.product_id, { id: r.id, rating: r.rating, title: r.title, body: r.body }]),
+  );
+}
+
+/** The signed-in viewer's own review for one product, if any — lets the product page offer an edit action
+ * even when their review falls outside the first page of reviews it shows. */
+export async function getMyReviewForProduct(productId: string, userId: string): Promise<ReviewSummary | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reviews")
+    .select("id, rating, title, body")
+    .eq("product_id", productId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
 }
 
 export async function getProductReviews(productId: string, page = 1, pageSize = 10) {
