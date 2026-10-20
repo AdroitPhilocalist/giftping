@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { Check, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { AddressForm } from "@/components/shop/AddressForm";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,8 @@ import { toast } from "@/components/ui/Toast";
 import { deleteAddressAction, setDefaultAddressAction } from "@/lib/account/address-actions";
 import type { SavedAddress } from "@/lib/db/addresses";
 import { cn } from "@/lib/utils/cn";
+
+const compactAction = "h-8 min-h-8 px-3 text-xs";
 
 /**
  * Lists saved addresses with add / edit / delete / set-default. With `selectedId` + `onSelect` it doubles as
@@ -89,18 +91,44 @@ export function AddressBook({
                 {address.city}, {address.state} — {address.pincode}
               </p>
               <p className="text-brand-dark/60">Mobile: {address.phone}</p>
-              <div className="mt-2 flex flex-wrap gap-3 text-xs">
-                <button type="button" onClick={() => setEditing(address.id)} className="flex items-center gap-1 text-brand-dark/60 hover:text-brand-primary">
-                  <Pencil className="h-3 w-3" /> Edit
-                </button>
-                {address.is_default ? null : (
-                  <button type="button" onClick={() => makeDefault(address.id)} className="text-brand-dark/60 hover:text-brand-primary">
-                    Make default
-                  </button>
-                )}
-                <button type="button" onClick={() => remove(address.id)} className="flex items-center gap-1 text-brand-dark/50 hover:text-red-700">
-                  <Trash2 className="h-3 w-3" /> Delete
-                </button>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  {address.is_default ? null : (
+                    <Button
+                      type="button"
+                      variant="gold"
+                      size="sm"
+                      className={compactAction}
+                      onClick={() => makeDefault(address.id)}
+                      disabled={isPending}
+                      aria-label={`Make the address for ${address.recipient_name} the default`}
+                    >
+                      <Check className="h-3.5 w-3.5" aria-hidden="true" /> Make default
+                    </Button>
+                  )}
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className={compactAction}
+                    onClick={() => setEditing(address.id)}
+                    disabled={isPending}
+                    aria-label={`Edit the address for ${address.recipient_name}`}
+                  >
+                    <Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit
+                  </Button>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className={cn(compactAction, "text-red-700/70 hover:bg-red-50 hover:text-red-800")}
+                  onClick={() => remove(address.id)}
+                  disabled={isPending}
+                  aria-label={`Delete the address for ${address.recipient_name}`}
+                >
+                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete
+                </Button>
               </div>
             </div>
           </div>
