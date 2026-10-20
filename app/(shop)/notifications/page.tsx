@@ -14,8 +14,11 @@ export default async function NotificationsPage() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="font-heading text-3xl text-brand-dark">Notifications</h1>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="font-heading text-3xl text-brand-dark">Notifications</h1>
+          <p className="mt-1 text-sm text-brand-dark/60">Order updates, diary reminders, and notes from the team.</p>
+        </div>
         {unread > 0 ? <MarkAllReadButton /> : null}
       </div>
       {items.length === 0 ? (
