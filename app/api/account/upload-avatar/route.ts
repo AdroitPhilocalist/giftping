@@ -24,23 +24,29 @@ export async function POST(request: Request) {
     if (!(file instanceof File)) return NextResponse.json({ error: "Choose an image." }, { status: 400 });
     const bytes = Buffer.from(await file.arrayBuffer());
 
-    const { data: before } = await (await createClient()).from("users").select("avatar_url").eq("id", user.id).maybeSingle();
-    const avatar = await processUserAvatar(bytes);
+    const supabase = await createClient();
+    // Fetch the old avatar URL in parallel with image processing — they're independent,
+    // so this overlaps a Supabase round-trip with the sharp work instead of serialising them.
+    const [beforeResult, avatar] = await Promise.all([
+      supabase.from("users").select("avatar_url").eq("id", user.id).maybeSingle(),
+      processUserAvatar(bytes),
+    ]);
+    const { data: before } = beforeResult;
     const stored = await storeUserAvatar(user.id, avatar);
 
-    const { data, error } = await (await createClient())
+    const { data, error } = await supabase
       .from("users")
       .update({ avatar_url: stored.url })
       .eq("id", user.id)
       .select("id");
     if (error || !data || data.length === 0) {
-      await removeAvatarFile(stored.url);
+      removeAvatarFile(stored.url); // best effort, don't block the error response
       return NextResponse.json({ error: "Couldn't save the photo." }, { status: 500 });
     }
 
-    await removeAvatarFile(before?.avatar_url ?? null); // the new file is saved; the old one is no longer referenced
+    // Best-effort cleanup of the old file — don't block the response on storage deletion.
+    removeAvatarFile(before?.avatar_url ?? null);
     revalidatePath("/account/profile");
-    revalidatePath("/", "layout");
     return NextResponse.json({ url: stored.url });
   } catch (error) {
     if (error instanceof AuthError) return NextResponse.json({ error: "Not allowed." }, { status: error.code === "UNAUTHENTICATED" ? 401 : 403 });
