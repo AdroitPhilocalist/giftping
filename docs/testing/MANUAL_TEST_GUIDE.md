@@ -116,6 +116,8 @@ account menu (top-right) → **Sign Out** first.
 - Step 7: as you scroll, you pass a row of occasion icons (Birthday, Anniversary, Wedding, Corporate, More —
   each one clickable), a carousel of banner images, a "Shop by relationship" section with photo cards, and
   finally a footer with links at the very bottom.
+- Clicking the **Corporate** icon opens `/corporate-gifting`, the B2B page — not the old
+  `/categories/corporate-gifting` product grid. (The full corporate walkthrough is in section 19.)
 
 **❌ Something's wrong if:** Either button does nothing or leads to a broken/blank page, or scrolling reveals
 a visibly broken layout (overlapping text, a huge empty gap, an image that never loads).
@@ -155,20 +157,41 @@ scroll position, or the text inside it becomes unreadable at any point (e.g. dar
 **❌ Something's wrong if:** Hovering does nothing, clicking a number goes nowhere or 404s, or any card shows
 a broken image.
 
-### 1.4 — Occasions page (photo cards vs plain cards)
+### 1.4 — Occasions page (photo cards + the corporate branch)
 
 **Steps:**
 1. Click **"Occasions"** in the header navigation (or go to `/categories`).
-2. Look at each card in the grid: Birthday, Anniversary, Wedding, Corporate Gifting, Housewarming, Thank You,
-   Festivals, For Her, For Him.
+2. Look at each card in the grid: Birthday, Anniversary, Wedding, Housewarming, Thank You, Festivals,
+   For Her, For Him. **Corporate Gifting is deliberately not in this grid** — it has its own B2B landing page.
+3. Below the grid, click the dark-green **"Corporate gifting, handled."** banner.
 
-**✅ Correct if:** Birthday, Anniversary, Wedding, Corporate Gifting, Housewarming, Thank You, and Festivals
-all show a **full photo** as their card background. **For Her and For Him show a plain card with just an icon
-in a circle, no photo** — this is intentional (their photo artwork shows real luxury-brand logos, a trademark
-issue, so it's deliberately hidden here), not a bug.
+**✅ Correct if:** every occasion card shows a **full photo** as its card background, For Her/For Him use the
+clean regenerated artwork (no visible brand names), and the corporate banner takes you to
+`/corporate-gifting` rather than the old product-grid category.
 
-**❌ Something's wrong if:** Any of the first seven categories (Birthday through Festivals) shows a plain
-icon card instead of a photo, or if For Her/For Him unexpectedly show a photo with visible brand names on it.
+**❌ Something's wrong if:** Corporate Gifting still appears as an occasion card, any occasion card shows a
+broken/plain placeholder without a photo, or the banner links back into `/categories/corporate-gifting`.
+
+### 1.4b — Corporate gifting page (first look)
+
+**Steps:**
+1. Click **Corporate Gifting** in the header (or go to `/corporate-gifting`).
+2. Look at the hero, then scroll through: the four "what we handle" cards, "the details, handled", the
+   four-step process, the corporate product row and the FAQ.
+3. Click **Request a proposal** in the hero and confirm it jumps down to the enquiry form.
+4. Scroll back up and click **Browse corporate gifts** (or **Explore the collection**).
+
+**✅ Correct if:** the page reads like a B2B service page — a headline, a short explanation of what GiftPing
+handles, a process, branding options, a few curated products and an enquiry form — rather than a plain product
+grid. **Request a proposal** lands on the form without the fixed header covering its heading, and **Browse
+corporate gifts** opens the corporate collection at `/categories/corporate-gifting`.
+
+**❌ Something's wrong if:** the page is just a product grid, an image is broken, **Request a proposal** does
+nothing or lands somewhere with the heading hidden under the header, or **Browse corporate gifts** goes to
+`/shop/corporate-branded-gifts` instead of the collection.
+
+ℹ️ The full quote form, admin inbox, notification, access-control, SEO, mobile and client-demo tests are in
+**section 19 — Corporate gifting (B2B)**. That is the section to use when showing this to the client.
 
 ### 1.5 — An individual occasion page
 
@@ -1378,6 +1401,29 @@ nothing belonging to any other user.
 created yourself and don't need afterward. This is meant to be close to irreversible — **do not** run it
 against the shared `test-customer` account.
 
+### 10.15 — Corporate enquiries inbox
+
+**Steps:**
+1. Sign in as `test-admin@giftping.test` and open **Admin → Corporate** (or go to
+   `/admin/corporate-enquiries`).
+2. If there is a demo lead, open it. If not, create one first using **section 19.5**.
+3. Check that the card shows the company, contact name, email, phone, gifting need, quantity, budget,
+   delivery city/date, branding requirements and the enquirer's note.
+4. Change the status to **Contacted**, type an internal note such as “Demo walkthrough — no follow-up
+   needed.”, then click **Save**.
+5. Refresh the page.
+6. Click the **Contacted** filter, then the **New** filter.
+
+**✅ Correct if:** the lead is visible to the admin, its status is **New** when first submitted, the status
+and note survive a refresh, the **Contacted** filter shows the lead after saving, and the **New** filter no
+longer does. The **All** count includes it.
+
+**❌ Something's wrong if:** the lead is missing, any submitted field is blank or garbled, **Save** appears to
+work but the change disappears on refresh, or the status filters show the wrong leads.
+
+ℹ️ The full end-to-end sequence — public form → bell notification → inbox → status → cleanup — is in
+**section 19.7**, with a client demo run sheet in **19.12**.
+
 ---
 
 ## 10a. Personalization, wrap preview, and the gift finder
@@ -1716,8 +1762,9 @@ like "Birthday — GiftPing".
 
 **✅ Correct if:** `robots.txt` disallows admin, vendor portal (`/vendor/`), cart, checkout, accounts, and
 diary — but does **NOT** disallow `/vendors/…` (plural, the public boutique pages) or `/products/…`.
-`sitemap.xml` lists products, boutiques, occasions, and main pages — including `/shop` and the Shop by Type pages
-that currently hold a live product (see test 10e.15) — and a suspended vendor's page drops out of it.
+`sitemap.xml` lists products, boutiques, occasions, and main pages — including `/shop`, the Shop by Type pages
+that currently hold a live product (see test 10e.15), `/corporate-gifting` and the corporate collection
+`/categories/corporate-gifting` (see test 19.9) — and a suspended vendor's page drops out of it.
 
 **❌ Something's wrong if:** `robots.txt` accidentally blocks the public `/vendors/` pages (a classic
 prefix-matching mistake), or a suspended vendor's page remains in the sitemap.
@@ -2578,6 +2625,25 @@ always appear too, regardless of whether push succeeded.
 **❌ Something's wrong if:** The in-app notification is missing (push failing silently is more tolerable,
 since it depends on browser/OS permissions outside the app's control).
 
+### 11.5 — A corporate enquiry reaches the admin bell
+
+**Steps:**
+1. Submit a valid corporate brief (see **19.5** for the exact demo values).
+2. Sign in as `test-admin@giftping.test` (if you were already signed in, refresh once so the bell count is
+   current).
+3. Look at the notification bell in the header.
+4. Open the bell and click the new corporate notification.
+
+**✅ Correct if:** the bell shows a new unread notification titled **“New corporate enquiry from …”** with
+the contact's name, quantity range and gifting need in the message, and clicking it opens
+`/admin/corporate-enquiries` with that lead visible.
+
+**❌ Something's wrong if:** no notification arrives, the bell count never changes, or the notification opens
+a different page or an empty inbox.
+
+ℹ️ Every active admin gets their own copy of the notification. The full public-form → inbox → status flow is
+in **section 19.7**.
+
 ---
 
 ## 12. Visual / cross-cutting checks
@@ -3139,6 +3205,355 @@ notice, which is normal).
 instead of a placeholder) updates on Google's own schedule, not something this app controls directly. Expect
 it to look right within a week or two of these fixes going live — it's not something you can verify by
 clicking anything in the app itself.
+
+---
+
+## 19. Corporate gifting (B2B)
+
+This is the full corporate journey: the new B2B page, the quote form, the admin notification and the
+admin inbox. Use it to explore the feature yourself and as the script for showing it to the client.
+
+**Showing this to the client?** Jump to **19.12** for the 8–10 minute run sheet, and do a dry run of
+**19.5–19.7** first.
+
+> **Setup — do this once before testing the form:** apply
+> `supabase/migrations/20261021100000_corporate_enquiries.sql`, either with `supabase db push` or by running
+> the SQL file in the Supabase SQL editor.
+>
+> The page and all the field validation work without it. A **valid** submission, however, will show
+> “We couldn't save your brief just now” until the table exists. That is a missing-database-setup message, not
+> a UI bug. The admin inbox will also have nowhere to read from.
+>
+> **No deletion button:** the admin inbox deliberately has no delete. Finish every test by marking the demo
+> lead **Lost** with a note such as “Demo walkthrough — no follow-up needed.” (see 19.13).
+
+ℹ️ **What this feature deliberately does not do.** It is a **quote-first** flow, not a bulk checkout. It does
+not charge a card, place an order, enforce a minimum order quantity, calculate volume pricing, or create one
+delivery address per employee. The team replies manually with a curated shortlist and a quote. Don't present
+those as missing features during the demo; they are the next phase if the client wants them.
+
+ℹ️ The form is public — a signed-out visitor can submit a brief without creating an account. The team replies
+by email.
+
+ℹ️ **Spam guard:** the server allows **five successful submissions per IP per 10 minutes**. If you have been
+testing repeatedly, the limit may trigger earlier than you expect. Wait ten minutes or use a different network.
+Don't test the limit during the client demo.
+
+### 19.1 — Every corporate entry point goes to the right page
+
+**Steps:**
+1. Sign out. On the homepage, click the **Corporate** icon in the occasion quick-links row.
+2. Go back to the homepage. Click **Corporate Gifting** in the header.
+3. Scroll to the footer and click **Corporate Gifting** under **Explore**.
+4. Go to `/mall` and click the **Corporate Lounge** card/zone.
+5. Go to `/categories` and check whether a **Corporate Gifting** card appears in the occasion grid.
+6. On desktop, hover **Occasions** in the header. On a phone, open the menu and check that **Corporate
+   Gifting** is its own top-level item (the phone menu does not expand Occasions).
+
+**✅ Correct if:**
+- Steps 1–4 all land on `/corporate-gifting`, the B2B page.
+- Step 5 shows **no Corporate Gifting card** in the occasion grid, but does show a separate dark-green
+  **“Corporate gifting, handled.”** banner; clicking that banner opens `/corporate-gifting`.
+- On desktop, the Occasions menu has no Corporate Gifting item, while the separate top-level **Corporate
+  Gifting** header item remains. On a phone, the slide-out menu shows **Corporate Gifting** as a top-level
+  item.
+
+**❌ Something's wrong if:** any of the first four entry points still opens `/categories/corporate-gifting`
+or `/shop/corporate-branded-gifts`, the `/categories` banner is missing or points at the old category, or
+Corporate still appears as an Occasions sub-item.
+
+ℹ️ The old category has **not** been deleted. It is still the curated product collection and is reached from
+the corporate page's **Browse corporate gifts** button.
+
+### 19.2 — The page itself is a B2B page, not a product grid
+
+**Steps:**
+1. Open `/corporate-gifting`.
+2. Check the hero: the headline “Your name on every gift / Our care in every detail”, the hero image, the
+   **Request a proposal** and **Browse corporate gifts** buttons, and the four small trust points.
+3. Scroll through the page and check each section: the four use-case cards, “the details, handled”, the
+   four-step process, the corporate product row, the enquiry form and the FAQ.
+4. Click **Request a proposal** in the hero, then scroll back up and click the same link in the small
+   section bar under the hero.
+5. Scroll back to the product row and click **Explore the collection** (or the hero's **Browse corporate
+   gifts**).
+
+**✅ Correct if:**
+- The page explains who the gifts are for, what GiftPing handles, how the process works, what can be branded
+  and what happens next.
+- Every section is present and readable; no image is broken and no card is empty.
+- Both **Request a proposal** links jump to the enquiry form, with the form heading visible below the fixed
+  header — not hidden underneath it.
+- **Browse corporate gifts** opens `/categories/corporate-gifting`.
+
+**❌ Something's wrong if:** the page is only a product grid, a section is missing or blank, an image is
+broken, a CTA does nothing, or the form heading is hidden under the header after the jump.
+
+### 19.3 — The corporate collection still works
+
+**Steps:**
+1. From `/corporate-gifting`, click **Browse corporate gifts**.
+2. Confirm the URL is `/categories/corporate-gifting`.
+3. Click one of the product cards.
+4. On the product page, if the product is in stock, add it to the cart, then go back to the collection.
+5. Go directly to `/categories/corporate-gifting` in a new tab.
+
+**✅ Correct if:** the collection loads with real corporate products, product cards open real product pages,
+an in-stock product can be added to the cart, and the direct URL works too.
+
+**❌ Something's wrong if:** **Browse corporate gifts** goes to `/shop/corporate-branded-gifts`, the
+collection is empty, a product card 404s, or an in-stock product can't be added to the cart.
+
+ℹ️ `/shop/corporate-branded-gifts` is the product-type/taxonomy route, not the corporate front door. It may
+show no products; that is not a bug. Do not use it in the client demo.
+
+### 19.4 — Form validation (no database needed)
+
+**Steps:**
+1. Open `/corporate-gifting`, click **Request a proposal**, and scroll to the form.
+2. Leave everything blank and click **Request a proposal** at the bottom of the form.
+3. Scroll up to the first field and look at the error messages beside each field.
+4. Type an invalid work email (for example `asha`) and an invalid phone (for example `123`).
+5. Leave the consent checkbox unticked and click submit again.
+6. Fill every other required field correctly, fix the email and phone, leave consent unticked, and submit
+   once more.
+
+**✅ Correct if:**
+- The empty submit shows specific errors for **Company**, **Your name**, **Work email**, **Phone**,
+  **what you are gifting for**, **quantity**, **budget** and the **consent** checkbox.
+- **Delivery city**, **delivery date**, **branding** and **anything else** are optional and do not produce
+  “required” errors.
+- The invalid email and phone each show their own message.
+- The unticked consent shows “Please agree to be contacted about this enquiry.”
+- The form does **not** show the success panel while any of these are wrong, and each error disappears as you
+  fix that field.
+
+**❌ Something's wrong if:** the form submits silently with missing required fields, shows one generic error
+with no field guidance, makes the optional fields required, or never clears an error after you fix it.
+
+ℹ️ This test is safe to run even before the migration is applied, because nothing is saved until every field
+is valid.
+
+ℹ️ If your browser lets you type into the date field, try a past date as well: it should show “Choose today
+or a later date” instead of accepting it. The picker's minimum date also blocks past dates.
+
+### 19.5 — A valid brief saves and confirms
+
+**Before this test:** apply the migration (see the setup note at the top of section 19).
+
+Use these exact values so the lead is easy to find in the inbox:
+
+| Field | Value |
+|---|---|
+| Company | `Demo Client Pvt Ltd` |
+| Your name | `Asha Nair` |
+| Work email | `corporate.demo@example.com` |
+| Phone | `+91 98765 43210` |
+| What are you gifting for? | **Client & partner gifting** |
+| How many gifts? | **25–99 gifts** |
+| Budget per gift | **₹2,500–₹5,000 per gift** |
+| Delivery city | `Bengaluru` |
+| When do you need them? | Pick a date about four weeks from today |
+| Branding or personalisation | `Logo engraved on the notebooks; logo on the outer box.` |
+| Anything else | `Demo walkthrough — please mark this lead Lost after testing.` |
+| Consent | **Ticked** |
+
+**Steps:**
+1. Fill every field exactly as above.
+2. Click **Request a proposal**.
+3. Watch the button while it submits.
+4. When the confirmation appears, click **Send another brief**.
+5. Confirm the form is empty again, then leave the page without submitting a second one.
+
+**✅ Correct if:** the button may briefly show **“Sending your brief…”** and become disabled, then the form is
+replaced by the **“Your brief is with us.”** confirmation. **Send another brief** brings back a blank form.
+
+**❌ Something's wrong if:** the button does nothing, the success panel never appears, or you see
+“We couldn't save your brief just now.” — in that last case, check the migration setup before reporting a UI
+bug. (If the confirmation appears but the lead is missing from the admin inbox, continue to 19.7.)
+
+ℹ️ Don't submit the same brief repeatedly. Five successful submissions per IP per ten minutes are allowed;
+after that the form will politely ask you to wait.
+
+### 19.6 — The admin gets a bell notification
+
+**Steps:**
+1. In a private/incognito window (or after signing out), sign in as `test-admin@giftping.test`.
+2. If you were already signed in before submitting the brief, refresh the page once so the bell's unread
+   count is current.
+3. Look at the notification bell in the header.
+4. Open the bell.
+5. Find the notification with **“Demo Client Pvt Ltd”** in the title and click it.
+
+**✅ Correct if:** the bell shows a new unread notification titled
+**“New corporate enquiry from Demo Client Pvt Ltd”**, with **Asha Nair**, **25–99 gifts** and
+**Client & partner gifting** in the message. Clicking it opens `/admin/corporate-enquiries` with the demo lead
+visible.
+
+**❌ Something's wrong if:** the bell count does not change, no notification appears for the admin, the
+notification text is blank or garbled, or clicking it opens a different page or an empty inbox.
+
+ℹ️ Every active admin gets their own notification. If you have more than one admin account, each bell should
+show a copy.
+
+### 19.7 — The admin inbox, status and internal note
+
+**Steps:**
+1. As `test-admin@giftping.test`, open **Admin → Corporate** (or `/admin/corporate-enquiries`).
+2. Find the **Demo Client Pvt Ltd** card.
+3. Check every field against the table in 19.5.
+4. Confirm its status badge says **New**.
+5. Click the **New** filter, then the **All** filter.
+6. Change the status to **Contacted**.
+7. Type an internal note: `Demo walkthrough — no follow-up needed.`
+8. Click **Save**.
+9. Refresh the page.
+10. Click the **Contacted** filter, then the **New** filter.
+
+**✅ Correct if:**
+- All submitted details appear on the card, including the optional city, date, branding and note.
+- The status starts as **New** and the **New** filter includes it.
+- **Save** shows a small **Saved** confirmation.
+- After refresh, the status is still **Contacted** and the note is still there.
+- The **Contacted** filter includes the lead; the **New** filter no longer does.
+- The **All** count includes it.
+- The **Reply by email** link points to `corporate.demo@example.com` (your browser may open or ask for a
+  mail app).
+
+**❌ Something's wrong if:** the lead is missing, a field is blank or scrambled, the status or note reverts
+after refresh, the filters put it in the wrong bucket, or the email link goes to the wrong address.
+
+ℹ️ The inbox is a working queue, not a delete screen. To tidy up after testing, set the lead to **Lost** and
+save (see 19.13). Status and note changes are also written to the database audit log, but there is no
+audit-log screen in the admin UI, so that part isn't visible on this page.
+
+### 19.8 — Only admins can open the corporate inbox
+
+**Steps:**
+1. Sign out and go directly to `/admin/corporate-enquiries`.
+2. Sign in as `test-customer@giftping.test` and try the same URL.
+3. Sign in as `test-vendor@giftping.test` and try the same URL.
+4. Sign in as `test-admin@giftping.test` and try the same URL.
+
+**✅ Correct if:** the signed-out visit redirects to sign-in; the customer and vendor are bounced away (to the
+homepage) rather than shown the inbox; only the admin sees the enquiries.
+
+**❌ Something's wrong if:** a customer or vendor can read any corporate lead, or the admin is blocked from
+their own inbox.
+
+ℹ️ This is a specific check on top of the general admin-area protection in test 2.7.
+
+### 19.9 — SEO and discoverability
+
+**Steps:**
+1. Open `/corporate-gifting` and look at the browser tab title.
+2. View the page source and search for `name="description"` and `rel="canonical"`.
+3. Open `/sitemap.xml` and search for `corporate-gifting`.
+4. Open `/robots.txt` and check that `/corporate-gifting` is not disallowed.
+5. Sign in as the admin, open **Admin → SEO**, and find **Corporate gifting** in the list.
+
+**✅ Correct if:**
+- By default, the tab title is **“Corporate Gifting — Bulk & Branded Gifts | GiftPing”** (or the admin's
+  saved override, if one has been set).
+- By default, the meta description mentions corporate gifting, branding, GST invoicing and delivery, and is
+  not the generic homepage description.
+- The canonical URL points to `/corporate-gifting` (usually shown as the full production URL ending in
+  `/corporate-gifting`).
+- The sitemap contains both `/corporate-gifting` and `/categories/corporate-gifting`.
+- `robots.txt` does not block the page.
+- The SEO editor lists **Corporate gifting** and can edit its title/description.
+
+**❌ Something's wrong if:** the page uses the category title/description, has no canonical, is missing from
+the sitemap, is accidentally blocked in `robots.txt`, or does not appear in the admin SEO list.
+
+ℹ️ Both URLs are in the sitemap on purpose: `/corporate-gifting` is the B2B service page, and
+`/categories/corporate-gifting` is the product collection. That is not duplicate content; they serve
+different search intent.
+
+### 19.10 — Phone / responsive check
+
+**Steps:**
+1. Open `/corporate-gifting` at phone width (a real phone, or browser responsive mode at about **390px**).
+2. Check the header: use the menu to find **Corporate Gifting**.
+3. Check the hero: the headline, image and two buttons should stack cleanly.
+4. Tap **Request a proposal**.
+5. Scroll through the form and check that every field is full-width and readable.
+6. Try to scroll the page left/right.
+7. Scroll to the bottom of the form and check that the fixed bottom navigation does not hide the submit
+   button.
+
+**✅ Correct if:** nothing is cut off, there is no horizontal scrolling, the two hero buttons stack, the form
+is one column, the process/content remains readable, and the form starts within about one screen of the
+section heading after tapping the CTA. The bottom navigation may cover the very bottom of the page as you
+scroll, but you can still scroll the submit button above it.
+
+**❌ Something's wrong if:** text or cards run off the right edge, the page scrolls sideways, the header
+covers the form heading, the form is still two columns on a phone, or the submit button cannot be reached.
+
+ℹ️ The form's intro deliberately hides the numbered “what happens next” list and the “Prefer to talk?”
+card on smaller screens so the form itself comes up quickly. The same process is still visible in the
+**How it works** section higher up the page.
+
+### 19.11 — Spam / rate-limit guard (optional — do not use during a client demo)
+
+⚠️ This test creates **five extra leads** and there is no delete button. Only run it if you are willing to
+mark five demo leads **Lost** afterward. It is not needed to demonstrate the feature. **Wait at least ten
+minutes after any earlier successful submission**, otherwise the limit may already be partly used.
+
+**Steps:**
+1. Submit a valid brief five times in a row, using company names `Demo Rate 1` to `Demo Rate 5`.
+2. Immediately submit a sixth valid brief.
+3. Check the admin inbox.
+
+**✅ Correct if:** the first five are accepted, the sixth shows a polite “That's a few enquiries in a short
+time” message and does **not** create a lead. The inbox shows five new demo leads.
+
+**❌ Something's wrong if:** the sixth is accepted too, or the first or second is blocked.
+
+ℹ️ The limit is five per IP per ten minutes. If you have already submitted during testing, the limit may
+trigger earlier; wait ten minutes or use a different network before running this.
+
+### 19.12 — Client demo run sheet (about 8–10 minutes)
+
+Use this order when showing the owner/client. It tells the story from “what a business buyer sees” to “what
+the GiftPing team sees.”
+
+| Time | Do this | Say this |
+|---|---|---|
+| 0:00 | Start signed out on the homepage. Click the **Corporate** quick link or the header **Corporate Gifting**. | “Corporate gifting now has its own front door, instead of being buried as another occasion.” |
+| 0:45 | Scroll the hero, the four use cases and “the details, handled”. | “This is the B2B proposition: client gifts, employee recognition, onboarding, festive gifting, branding and delivery — not just a product grid.” |
+| 1:45 | Show the four-step process and the branding options. | “The team handles the brief, the shortlist, the quote, production, packing and delivery. The client isn't left to work it out alone.” |
+| 2:30 | Show the product row. Click **Browse corporate gifts**, show the collection, then go back. | “The collection is the starting point. We can also source beyond it, which is why the quote comes first.” |
+| 3:15 | Click **Request a proposal**, submit the form empty, then scroll up to show the field errors. | “The brief is structured. We capture the company, quantity, budget, branding and delivery needs up front.” |
+| 4:00 | Fill in the demo values from 19.5 and submit. | “One submission, and the team is notified. No lost emails, no ‘someone will get back to you’ black hole.” |
+| 4:45 | Show the **“Your brief is with us”** confirmation. | “The buyer gets a clear confirmation, and we get a complete brief.” |
+| 5:15 | Switch to the admin window (refresh once if the bell looks unchanged). Show the bell notification, then open **Admin → Corporate**. | “Every active admin sees it in the bell. The inbox is the single place to work the lead.” |
+| 6:15 | Change the status to **Contacted**, add a note, and save. | “The team can track it as a pipeline: New, Contacted, Quoted, Won or Lost, with internal notes.” |
+| 7:00 | Show `/categories` and the corporate banner, then show the page at phone width. | “Corporate is no longer mixed into Occasions, and the same journey works on a phone.” |
+| 7:45 | Close. | “This phase is quote-first. It does not pretend to be a bulk checkout yet; volume pricing, MOQ rules and multi-address delivery would be the next phase if you want them.” |
+
+**Before the demo:** apply the migration, do one full dry run of 19.5–19.7, then clean up that dry-run lead
+(19.13). **After the demo:** clean up the demo lead the same way so it doesn't sit in the New queue.
+
+### 19.13 — Cleanup after testing or a demo
+
+**Steps:**
+1. As the admin, open **Admin → Corporate**.
+2. Find every lead named `Demo Client Pvt Ltd`, `Demo Rate 1`–`Demo Rate 5`, or any other test brief you
+   created.
+3. Set each one's status to **Lost**.
+4. Add an internal note such as `Test/demo lead — no follow-up needed.`
+5. Click **Save** on each.
+6. If you used the bell, open each corporate notification once (or use **Mark all as read** if these are the
+   only unread items).
+
+**✅ Correct if:** the **New** and **Contacted** filters no longer show your demo leads, and each one has a
+clear internal note explaining why it is closed.
+
+**❌ Something's wrong if:** a demo lead remains in **New** or **Contacted**, or has no note, so the team
+might mistake it for a real buyer.
+
+ℹ️ There is intentionally no delete button. **Lost** plus a clear note is the safe archive for a test lead.
 
 ---
 

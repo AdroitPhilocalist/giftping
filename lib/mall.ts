@@ -24,7 +24,7 @@ export const MALL_ZONES: MallZone[] = [
   { id: "boutiques", n: 5, title: "Boutique Avenue", sub: "Curated brand stores", href: "/vendors", icon: "store", guide: "Boutique Avenue: every shop is a small business we love." },
   { id: "for-her", n: 6, title: "Gifts for Her", sub: "Elegant, thoughtful, hers", href: "/categories/for-her", icon: "flower", guide: "Gifts for Her — elegant, thoughtful, hers." },
   { id: "for-him", n: 7, title: "Gifts for Him", sub: "Timeless picks he'll love", href: "/categories/for-him", icon: "watch", guide: "Gifts for Him — timeless picks he'll actually use." },
-  { id: "corporate", n: 8, title: "Corporate Lounge", sub: "Gifting that builds bonds", href: "/categories/corporate-gifting", icon: "briefcase", guide: "The Corporate Lounge: gifting that builds bonds." },
+  { id: "corporate", n: 8, title: "Corporate Lounge", sub: "Gifting that builds bonds", href: "/corporate-gifting", icon: "briefcase", guide: "The Corporate Lounge: gifting that builds bonds." },
   { id: "atrium", n: 9, title: "The Gift Atrium", sub: "Our signature picks", href: "/categories", icon: "gift", guide: "The Gift Atrium: our signature picks, all in one place." },
 ];
 

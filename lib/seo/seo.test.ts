@@ -109,7 +109,7 @@ describe("sitemap", () => {
 
   it("lists the fixed pages, legal pages and every category/boutique/product/relationship", () => {
     const u = urls(src);
-    for (const expected of ["https://giftping.example", "https://giftping.example/mall", "https://giftping.example/categories", "https://giftping.example/privacy", "https://giftping.example/categories/birthday", "https://giftping.example/vendors/lumiere-keepsakes", "https://giftping.example/products/luxe-memory-hamper", "https://giftping.example/gifts-for/mom", "https://giftping.example/shop/jewellery", "https://giftping.example/shop/jewellery/necklaces"]) expect(u).toContain(expected);
+    for (const expected of ["https://giftping.example", "https://giftping.example/mall", "https://giftping.example/corporate-gifting", "https://giftping.example/categories", "https://giftping.example/privacy", "https://giftping.example/categories/birthday", "https://giftping.example/vendors/lumiere-keepsakes", "https://giftping.example/products/luxe-memory-hamper", "https://giftping.example/gifts-for/mom", "https://giftping.example/shop/jewellery", "https://giftping.example/shop/jewellery/necklaces"]) expect(u).toContain(expected);
   });
   it("de-duplicates", () => {
     const u = urls(src);

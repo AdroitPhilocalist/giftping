@@ -64,6 +64,14 @@ export const SEO_PAGES = [
     description: "Tell us who it's for, the occasion, your budget and what they love — GiftPing's gift finder suggests thoughtful gifts from boutiques across India.",
   },
   {
+    key: "corporate-gifting",
+    label: "Corporate gifting",
+    path: "/corporate-gifting",
+    title: "Corporate Gifting — Bulk & Branded Gifts | GiftPing",
+    description:
+      "Thoughtful corporate gifting for clients, employees and teams — curated gifts, branding, GST invoicing and delivery across India. Request a proposal.",
+  },
+  {
     key: "about",
     label: "About us",
     path: "/about",

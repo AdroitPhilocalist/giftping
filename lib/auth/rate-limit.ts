@@ -41,6 +41,8 @@ export const dispatchRateLimit = createLimiter(20, "1 m");
 export const diaryRateLimit = createLimiter(60, "1 m");
 // Review submissions/edits/deletes.
 export const reviewRateLimit = createLimiter(20, "1 m");
+// Public corporate quote requests — each one notifies the admin team, so keep it deliberately low.
+export const corporateEnquiryRateLimit = createLimiter(5, "10 m");
 // Admin messages to a vendor or a broadcast to all vendors — low volume, but each one sends real email/push.
 export const adminMessageRateLimit = createLimiter(20, "1 m");
 

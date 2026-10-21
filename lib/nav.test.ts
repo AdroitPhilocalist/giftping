@@ -11,5 +11,6 @@ describe("isCurrent", () => {
     expect(isCurrent("/vendors/aurelia-gifts", "/vendors")).toBe(true);
     expect(isCurrent("/vendors-club", "/vendors")).toBe(false);
     expect(isCurrent("/categories/corporate-gifting", "/categories")).toBe(true);
+    expect(isCurrent("/corporate-gifting", "/corporate-gifting")).toBe(true);
   });
 });

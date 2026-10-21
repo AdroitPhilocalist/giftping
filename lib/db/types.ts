@@ -500,6 +500,80 @@ export type Database = {
           },
         ]
       }
+      corporate_enquiries: {
+        Row: {
+          branding_requirements: string | null
+          budget_range: string
+          company_name: string
+          consent_at: string
+          contact_name: string
+          created_at: string
+          delivery_city: string | null
+          delivery_date: string | null
+          gifting_need: string
+          id: string
+          internal_note: string | null
+          message: string | null
+          phone: string
+          quantity_range: string
+          source: string
+          status: string
+          updated_at: string
+          user_id: string | null
+          work_email: string
+        }
+        Insert: {
+          branding_requirements?: string | null
+          budget_range: string
+          company_name: string
+          consent_at?: string
+          contact_name: string
+          created_at?: string
+          delivery_city?: string | null
+          delivery_date?: string | null
+          gifting_need: string
+          id?: string
+          internal_note?: string | null
+          message?: string | null
+          phone: string
+          quantity_range: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          work_email: string
+        }
+        Update: {
+          branding_requirements?: string | null
+          budget_range?: string
+          company_name?: string
+          consent_at?: string
+          contact_name?: string
+          created_at?: string
+          delivery_city?: string | null
+          delivery_date?: string | null
+          gifting_need?: string
+          id?: string
+          internal_note?: string | null
+          message?: string | null
+          phone?: string
+          quantity_range?: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+          work_email?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "corporate_enquiries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       diary_contacts: {
         Row: {
           budget_max: number | null

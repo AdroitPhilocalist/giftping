@@ -113,13 +113,16 @@ function MegaPanel({ open, onMouseEnter, onMouseLeave, children }: { open: boole
 }
 
 function OccasionsPanel({ categories }: { categories: MegaCategory[] }) {
-  if (categories.length === 0) {
+  // Corporate gifting has its own top-level destination now; a second door in the occasion menu would
+  // split the same audience between a B2B landing page and a product grid.
+  const occasions = categories.filter((category) => category.slug !== "corporate-gifting");
+  if (occasions.length === 0) {
     return <EmptyPanelLink href="/categories">Browse every occasion →</EmptyPanelLink>;
   }
   return (
     <>
       <ul className="grid grid-cols-3 gap-1.5">
-        {categories.slice(0, 6).map((c) => {
+        {occasions.slice(0, 6).map((c) => {
           const Icon = occasionIcon(c.slug);
           return (
             <li key={c.id}>

@@ -13,7 +13,7 @@ const columns = [
       { label: "Occasions", href: "/categories" },
       { label: "Boutiques", href: "/vendors" },
       { label: "Personal Gifting Diary", href: "/diary" },
-      { label: "Corporate Gifting", href: "/categories/corporate-gifting" },
+      { label: "Corporate Gifting", href: "/corporate-gifting" },
     ],
   },
   {

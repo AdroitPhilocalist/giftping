@@ -14,7 +14,7 @@ const OCCASIONS = [
   { label: "Birthday", href: "/categories/birthday", icon: Cake },
   { label: "Anniversary", href: "/categories/anniversary", icon: Heart },
   { label: "Wedding", href: "/categories/wedding", icon: Gem },
-  { label: "Corporate", href: "/categories/corporate-gifting", icon: Briefcase },
+  { label: "Corporate", href: "/corporate-gifting", icon: Briefcase },
   { label: "More", href: "/categories", icon: LayoutGrid },
 ] as const;
 

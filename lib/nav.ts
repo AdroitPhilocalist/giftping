@@ -9,7 +9,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Occasions", href: "/categories" },
   { label: "Shop by Type", href: "/shop" },
   { label: "Boutiques", href: "/vendors" },
-  { label: "Corporate Gifting", href: "/categories/corporate-gifting" },
+  { label: "Corporate Gifting", href: "/corporate-gifting" },
   { label: "About Us", href: "/about" },
 ];
 
