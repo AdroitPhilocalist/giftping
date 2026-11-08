@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CRAWL_QUERY_PATHS, isNoIndexQuery } from "./crawl";
 import { SEO_PAGES, SEO_PAGE_KEYS, getSeoPage, lengthState, resolveSeo, truncateText } from "./pages";
 import { absoluteUrl, siteUrl } from "./site";
 import { PRIVATE_PATHS, buildRobots, ruleBlocks } from "./robots";
@@ -92,6 +93,22 @@ describe("robots", () => {
     expect(buildRobots({ VERCEL_ENV: "development" })).toEqual({ rules: [{ userAgent: "*", disallow: "/" }] });
     expect(JSON.stringify(buildRobots({}))).toContain("/admin");
     expect(JSON.stringify(buildRobots({ VERCEL_ENV: "production" }))).toContain("/admin");
+  });
+  it("blocks query-string catalogue variants without using a global query rule", () => {
+    const robots = JSON.stringify(buildRobots({ NEXT_PUBLIC_APP_URL: "https://giftping.example", VERCEL_ENV: "production" }));
+    for (const rule of CRAWL_QUERY_PATHS) expect(robots).toContain(rule);
+    // `/*?` would also block /_next/image?url=..., so the rules must stay path-specific.
+    expect(robots).not.toContain('"/*?*"');
+  });
+  it("marks only shop/category query pages as noindex", () => {
+    expect(isNoIndexQuery("/shop", "?sort=newest")).toBe(true);
+    expect(isNoIndexQuery("/shop/fashion-apparel/socks-innerwear", "?vendor=x")).toBe(true);
+    expect(isNoIndexQuery("/shop/fashion-apparel/socks-innerwear.rsc", "?_rsc=abc")).toBe(true);
+    expect(isNoIndexQuery("/categories/birthday", "?page=2")).toBe(true);
+    expect(isNoIndexQuery("/shop/fashion-apparel/socks-innerwear", "")).toBe(false);
+    expect(isNoIndexQuery("/categories/birthday", "")).toBe(false);
+    expect(isNoIndexQuery("/products/luxe-memory-hamper", "?utm_source=x")).toBe(false);
+    expect(isNoIndexQuery("/_next/image", "?url=%2Fhero.jpg")).toBe(false);
   });
 });
 

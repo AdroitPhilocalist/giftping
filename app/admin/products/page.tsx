@@ -1,20 +1,61 @@
 import { DecisionButtons } from "@/components/admin/DecisionButtons";
+import { ProductReviewDetails } from "@/components/admin/ProductReviewDetails";
 import { ProductImage } from "@/components/shop/ProductImage";
 import { Card } from "@/components/ui/Card";
 import { createClient } from "@/lib/db/server";
 import { requireRole } from "@/lib/auth/session";
+import { captureProductSnapshots } from "@/lib/vendor/product-snapshot";
+import {
+  PRODUCT_APPROVED_ACTION,
+  PRODUCT_VENDOR_CHANGE_ACTION,
+  type ProductReviewAuditRow,
+} from "@/lib/catalog/product-review";
 import { formatCurrency } from "@/lib/utils/format";
+
+type ReviewLogRow = ProductReviewAuditRow & { entity_id: string | null };
 
 export default async function AdminProductsPage() {
   await requireRole("admin");
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
-    .select("id, name, short_description, description, base_price, sale_price, stock_quantity, thumbnail_url, occasion_tags, recipient_tags, vendor:vendors(business_name), category:categories(name)")
+    .select("id, name, short_description, description, base_price, sale_price, stock_quantity, thumbnail_url, occasion_tags, recipient_tags, approved_at, vendor:vendors(business_name), category:categories(name)")
     .eq("status", "pending")
     .order("updated_at", { ascending: true });
 
   const products = data ?? [];
+  const productIds = products.map((product) => product.id);
+
+  // One query for the current full state, one for the before/after trail. The trail also needs the
+  // approval marker so the diff is measured from the last approved version, not from an edit that
+  // an earlier reviewer already approved.
+  const snapshots = await captureProductSnapshots(supabase, productIds);
+  let reviewLogs: ReviewLogRow[] = [];
+  if (productIds.length > 0) {
+    const { data: logs } = await supabase
+      .from("audit_logs")
+      .select("id, action, entity_id, before_data, after_data, created_at")
+      .eq("entity_type", "product")
+      .in("entity_id", productIds)
+      .in("action", [PRODUCT_VENDOR_CHANGE_ACTION, PRODUCT_APPROVED_ACTION])
+      .order("created_at", { ascending: false })
+      .limit(2000);
+    reviewLogs = (logs ?? []) as ReviewLogRow[];
+  }
+
+  const historyByProduct = new Map<string, ProductReviewAuditRow[]>();
+  for (const row of reviewLogs) {
+    if (!row.entity_id) continue;
+    const history = historyByProduct.get(row.entity_id) ?? [];
+    history.push({
+      id: row.id,
+      action: row.action,
+      created_at: row.created_at,
+      before_data: row.before_data,
+      after_data: row.after_data,
+    });
+    historyByProduct.set(row.entity_id, history);
+  }
 
   return (
     <div>
@@ -44,6 +85,11 @@ export default async function AdminProductsPage() {
                   <p className="mt-2 text-xs text-brand-dark/50">
                     {[...product.occasion_tags, ...product.recipient_tags].join(" · ") || "No occasion/recipient tags"}
                   </p>
+                  <ProductReviewDetails
+                    history={historyByProduct.get(product.id) ?? []}
+                    current={snapshots.get(product.id) ?? null}
+                    everApproved={Boolean(product.approved_at)}
+                  />
                 </div>
               </Card>
             );

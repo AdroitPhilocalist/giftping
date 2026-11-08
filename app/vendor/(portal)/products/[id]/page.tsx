@@ -45,6 +45,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         productTypes={productTypes}
         productAttributes={productAttributes}
         primaryImageUrl={images[0]?.medium_url ?? images[0]?.url ?? null}
+        willGoOffline={product.status === "active"}
         defaultValues={{
           name: product.name,
           categoryId: product.category_id ?? "",

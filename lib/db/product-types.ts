@@ -17,7 +17,7 @@ export const getActiveProductAttributes = cache(async function getActiveProductA
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("product_attributes")
-    .select("id, product_type_id, key, label, input_type, options")
+    .select("id, product_type_id, key, label, input_type, options, sort_order")
     .eq("is_active", true)
     .order("sort_order");
   if (error) throw error;

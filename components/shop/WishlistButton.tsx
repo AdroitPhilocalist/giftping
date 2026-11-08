@@ -40,6 +40,9 @@ export function WishlistButton({
         return;
       }
       setWishlisted(result.wishlisted);
+      // Re-render the current route (and the header/mobile tab bar, which carry the saved count) so the badge and any
+      // wishlist view stay in step immediately after adding or removing a gift.
+      router.refresh();
     });
   }
 

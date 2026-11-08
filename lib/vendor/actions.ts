@@ -15,6 +15,8 @@ import { removeProductImageFiles } from "@/lib/storage/upload";
 import { uniqueSlug } from "@/lib/utils/slug";
 import { vendorApplicationSchema, type VendorApplicationInput } from "@/lib/validation/vendor.schema";
 import { parseFreeTags, productSchema, type ProductFormInput } from "@/lib/validation/product.schema";
+import type { ProductSnapshot } from "@/lib/catalog/product-review";
+import { captureProductSnapshot, recordProductChange } from "@/lib/vendor/product-snapshot";
 import { sendBackToReviewIfLive, syncProductThumbnail } from "@/lib/vendor/product-helpers";
 
 export interface VendorActionResult {
@@ -151,6 +153,7 @@ export async function saveProductAction(
   };
 
   let id = productId;
+  let before: ProductSnapshot | null = null;
 
   if (id === null) {
     const { data, error } = await supabase
@@ -163,6 +166,11 @@ export async function saveProductAction(
     }
     id = data.id;
   } else {
+    // Capture the version the reviewer last knew about before this save changes it. A null here means
+    // the row is gone (or not this vendor's), so don't silently update a product we can't review.
+    before = await captureProductSnapshot(supabase, id, vendor.id);
+    if (!before) return { error: "Product not found." };
+
     const { error } = await supabase.from("products").update(fields).eq("id", id).eq("vendor_id", vendor.id);
     if (error) {
       return { error: error.code === "23505" ? "That SKU is already in use." : "Couldn't save the product." };
@@ -171,9 +179,17 @@ export async function saveProductAction(
   }
 
   const variantError = await syncVariants(supabase, id, input.variants);
-  if (variantError) return { error: variantError, id };
+  if (variantError) {
+    // The details above were saved even though a variant failed. Record what the reviewer would actually
+    // see instead of leaving the queue with no diff at all.
+    const after = await captureProductSnapshot(supabase, id, vendor.id);
+    if (after) await recordProductChange({ actorId: user.id, productId: id, before, after });
+    return { error: variantError, id };
+  }
 
   const attributeError = await syncAttributeValues(supabase, id, input.productTypeId, input.attributeValues);
+  const after = await captureProductSnapshot(supabase, id, vendor.id);
+  if (after) await recordProductChange({ actorId: user.id, productId: id, before, after });
   if (attributeError) return { error: attributeError, id };
 
   revalidatePath("/vendor/products");
@@ -261,11 +277,13 @@ export async function setProductActiveAction(productId: string, active: boolean)
   if (!vendor) return { error: "No vendor profile." };
 
   const supabase = await createClient();
+  let before: ProductSnapshot | null = null;
   // A listing without a photo shows a blank placeholder to shoppers (and lands in the reviewer's queue), so it can't be sent for review yet.
   if (active) {
     const { data: product } = await supabase.from("products").select("thumbnail_url").eq("id", productId).eq("vendor_id", vendor.id).maybeSingle();
     if (!product) return { error: "Product not found." };
     if (!product.thumbnail_url) return { error: "Add at least one photo before sending this product for review." };
+    before = await captureProductSnapshot(supabase, productId, vendor.id);
   }
   // Deactivating is instant. Reactivating goes back through admin review ('pending') — the DB trigger
   // doesn't let a vendor set 'active' themselves.
@@ -276,6 +294,12 @@ export async function setProductActiveAction(productId: string, active: boolean)
     .eq("vendor_id", vendor.id);
 
   if (error) return { error: "Couldn't update the product." };
+
+  if (active) {
+    const after = await captureProductSnapshot(supabase, productId, vendor.id);
+    if (before && after) await recordProductChange({ actorId: user.id, productId, before, after });
+  }
+
   revalidatePath("/vendor/products");
   return { success: true };
 }
@@ -297,6 +321,7 @@ export async function deleteProductImageAction(imageId: string): Promise<VendorA
     .maybeSingle();
   if (!image) return { error: "Image not found." };
 
+  const before = await captureProductSnapshot(supabase, image.product_id);
   const { error } = await supabase.from("product_images").delete().eq("id", imageId);
   if (error) return { error: "Couldn't remove the image." };
 
@@ -315,6 +340,11 @@ export async function deleteProductImageAction(imageId: string): Promise<VendorA
   await syncProductThumbnail(supabase, image.product_id);
   await sendBackToReviewIfLive(supabase, image.product_id);
 
+  const after = await captureProductSnapshot(supabase, image.product_id);
+  if (before && after) {
+    await recordProductChange({ actorId: user.id, productId: image.product_id, before, after });
+  }
+
   revalidatePath("/vendor/products");
   return { success: true };
 }
@@ -324,14 +354,24 @@ export async function setPrimaryImageAction(imageId: string): Promise<VendorActi
   if (!user) return { error: "Sign in again to continue." };
 
   const supabase = await createClient();
-  const { data: image } = await supabase.from("product_images").select("id, product_id").eq("id", imageId).maybeSingle();
+  const { data: image } = await supabase.from("product_images").select("id, product_id, is_primary").eq("id", imageId).maybeSingle();
   if (!image) return { error: "Image not found." };
+  if (image.is_primary) return { success: true };
 
+  const before = await captureProductSnapshot(supabase, image.product_id);
   await supabase.from("product_images").update({ is_primary: false }).eq("product_id", image.product_id);
   const { error } = await supabase.from("product_images").update({ is_primary: true }).eq("id", imageId);
   if (error) return { error: "Couldn't update the image." };
 
   await syncProductThumbnail(supabase, image.product_id);
+  // The main photo is part of the listing, so swapping it puts a live product back in the review queue too.
+  await sendBackToReviewIfLive(supabase, image.product_id);
+
+  const after = await captureProductSnapshot(supabase, image.product_id);
+  if (before && after) {
+    await recordProductChange({ actorId: user.id, productId: image.product_id, before, after });
+  }
+
   revalidatePath("/vendor/products");
   return { success: true };
 }

@@ -27,7 +27,10 @@ export interface ProductListFilters {
 
 export async function listProducts(filters: ProductListFilters = {}) {
   const supabase = await createClient();
-  const page = filters.page ?? 1;
+  // The URL is user-controlled. Clamp before turning it into a range: a huge page number should
+  // behave like page 1, not ask PostgREST for an impossible offset.
+  const requestedPage = Number(filters.page ?? 1);
+  const page = Number.isFinite(requestedPage) ? Math.min(1000, Math.max(1, Math.floor(requestedPage))) : 1;
   const pageSize = filters.pageSize ?? 12;
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
@@ -92,7 +95,14 @@ export async function listProducts(filters: ProductListFilters = {}) {
   }
 
   const { data, error, count } = await query.range(from, to);
-  if (error) throw error;
+  if (error) {
+    // PostgREST returns PGRST103 when the range starts beyond the last row (e.g. ?page=2 on an
+    // empty type). Treat it as an empty result rather than a 500 — the page itself is noindexed.
+    if (error.code === "PGRST103") {
+      return { products: [], total: 0, page: 1, pageSize, totalPages: 1 };
+    }
+    throw error;
+  }
 
   return {
     products: data ?? [],
@@ -115,7 +125,8 @@ export const getProductBySlug = cache(async function getProductBySlug(slug: stri
       vendor:vendors ( id, business_name, slug, logo_url, short_description, average_rating, review_count ),
       category:categories ( id, name, slug ),
       images:product_images ( id, url, alt_text, sort_order, is_primary ),
-      variants:product_variants ( id, name, value, price_adjustment, stock_quantity, is_active, image_url )
+      variants:product_variants ( id, name, value, price_adjustment, stock_quantity, is_active, image_url ),
+      attribute_values:product_attribute_values ( attribute_id, value )
     `,
     )
     .eq("slug", slug)

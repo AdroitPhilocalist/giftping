@@ -6,7 +6,7 @@ import { SlidersHorizontal, X } from "lucide-react";
 
 /**
  * Phone version of the filter panel: a "Filters" button that opens a bottom sheet holding the very same sections (server-rendered and passed in as `children`).
- * Each option is still a link, so choosing one reloads the results behind the sheet while it stays open — you can combine several, then "Show N gifts".
+ * Each option is a client-side filter action, so choosing one updates the results behind the sheet while it stays open — you can combine several, then "Show N gifts".
  * Below `lg` only; the desktop panel is a fixed column beside the products.
  */
 export function FilterDrawer({ count, total, children }: { count: number; total: number; children: ReactNode }) {

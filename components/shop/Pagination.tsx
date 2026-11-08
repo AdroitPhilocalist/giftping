@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { IntentLink } from "@/components/shop/ShopNavigation";
 import { cn } from "@/lib/utils/cn";
 
 export function Pagination({
@@ -19,19 +19,21 @@ export function Pagination({
   return (
     <nav className="mt-8 flex items-center justify-center gap-1" aria-label="Pagination">
       {page > 1 ? (
-        <Link
+        <IntentLink
           href={buildHref(page - 1)}
+          rel="nofollow"
           className="rounded-full px-3 py-2 text-sm text-brand-dark/70 hover:bg-brand-dark/5"
         >
           Prev
-        </Link>
+        </IntentLink>
       ) : null}
 
       {pages.map((p, i) => (
         <span key={p} className="flex items-center">
           {i > 0 && pages[i - 1] !== p - 1 ? <span className="px-1 text-brand-dark/30">…</span> : null}
-          <Link
+          <IntentLink
             href={buildHref(p)}
+            rel="nofollow"
             className={cn(
               "flex h-9 w-9 items-center justify-center rounded-full text-sm",
               p === page
@@ -40,17 +42,18 @@ export function Pagination({
             )}
           >
             {p}
-          </Link>
+          </IntentLink>
         </span>
       ))}
 
       {page < totalPages ? (
-        <Link
+        <IntentLink
           href={buildHref(page + 1)}
+          rel="nofollow"
           className="rounded-full px-3 py-2 text-sm text-brand-dark/70 hover:bg-brand-dark/5"
         >
           Next
-        </Link>
+        </IntentLink>
       ) : null}
     </nav>
   );

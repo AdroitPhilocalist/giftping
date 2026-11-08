@@ -263,6 +263,11 @@
 .gf-applied { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.65rem 0.3rem 0.8rem; border-radius: 999px; background: color-mix(in srgb, var(--gp-peach) 75%, var(--gp-surface)); border: 1px solid color-mix(in srgb, var(--gp-copper) 35%, transparent); font-size: 0.8rem; color: var(--gp-ink); transition: background 0.2s, border-color 0.2s; }
 .gf-applied:hover { background: color-mix(in srgb, var(--gp-copper) 18%, var(--gp-surface)); border-color: var(--gp-copper); }
 
+/* These classes are shared by links and the filter buttons, so normalise the button defaults. */
+.gf-chip, .gf-row, .gf-switch-row, .gf-sort, .gf-applied { cursor: pointer; }
+.gf-row, .gf-switch-row { text-align: left; }
+.gf-switch-row { padding: 0; }
+
 .gf-scroll { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--gp-copper) 40%, transparent) transparent; }
 @keyframes gf-sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
 .gf-sheet[data-state="open"] { animation: gf-sheet-in 0.32s var(--gp-ease); }

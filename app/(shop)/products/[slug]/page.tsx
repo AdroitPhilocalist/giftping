@@ -16,11 +16,13 @@ import { VendorLogo } from "@/components/shop/VendorLogo";
 import { WishlistButton } from "@/components/shop/WishlistButton";
 import { Badge } from "@/components/ui/Badge";
 import { getProductBySlug, getRelatedProducts } from "@/lib/db/products";
+import { getActiveProductAttributes, getActiveProductTypes } from "@/lib/db/product-types";
 import { getMyReviewForProduct, getProductReviews } from "@/lib/db/reviews";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { getCommerceSettings } from "@/lib/commerce/settings";
 import { getReturnWindowDays } from "@/lib/commerce/returns";
+import { resolveProductSpecifications } from "@/lib/catalog/product-attributes";
 import { labelForTag } from "@/lib/catalog/tags";
 import { formatCurrency } from "@/lib/utils/format";
 import { parsePersonalizationOptions } from "@/lib/personalization/engraving";
@@ -48,9 +50,18 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  // user doesn't depend on the product — fetch it alongside instead of after.
-  const [product, user] = await Promise.all([getProductBySlug(slug), getServerUser()]);
+  // None of these depend on each other — fetch them alongside instead of after.
+  const [product, user, productTypes, productAttributes] = await Promise.all([
+    getProductBySlug(slug),
+    getServerUser(),
+    getActiveProductTypes(),
+    getActiveProductAttributes(),
+  ]);
   if (!product) notFound();
+
+  // Type-specific details (Flavor, Metal, Scent...) already stored for filtering on /shop/... — the same answers
+  // are useful to a shopper on the product itself. Cached product-type/attribute lists resolve the labels.
+  const specifications = resolveProductSpecifications(product.product_type_id, productTypes, productAttributes, product.attribute_values);
 
   const [related, { reviews, total: reviewTotal }, ownReview, wishlistIds, settings, returnDays] = await Promise.all([
     getRelatedProducts(product.id, product.category_id),
@@ -107,6 +118,19 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       </dl>
     </div>
   );
+
+  const specificationsPanel = specifications.length > 0 ? (
+    <div className="max-w-3xl">
+      <dl className="divide-y divide-brand-dark/10 overflow-hidden rounded-card border border-brand-dark/10 bg-brand-surface px-5 text-sm">
+        {specifications.map((specification) => (
+          <div key={specification.attributeId} className="flex items-start justify-between gap-6 py-3">
+            <dt className="text-brand-dark/55">{specification.label}</dt>
+            <dd className="text-right text-brand-dark">{specification.values.join(", ")}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  ) : null;
 
   const delivery = (
     <div className="grid gap-6 md:grid-cols-2">
@@ -244,7 +268,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <ProductTabs about={about} delivery={delivery} reviews={reviewsPanel} reviewCount={reviewTotal} />
+        <ProductTabs about={about} specifications={specificationsPanel} delivery={delivery} reviews={reviewsPanel} reviewCount={reviewTotal} />
       </div>
 
       {related.length > 0 ? (

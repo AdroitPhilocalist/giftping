@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { Baby, Briefcase, Cake, Check, ChevronDown, ChevronRight, Flower2, Gem, Gift, Heart, Home as HomeIcon, IndianRupee, Package, SlidersHorizontal, Store, Tag, Users, Watch } from "lucide-react";
+import { FilterAction } from "@/components/shop/ShopNavigation";
 import { VendorLogo } from "@/components/shop/VendorLogo";
 import { OCCASION_TAGS, RECIPIENT_TAGS, labelForTag } from "@/lib/catalog/tags";
 import { attributeAppliedFilters, clearAllPatch, PRICE_PRESETS, activePricePreset, appliedFilters, type AttributeFilterSection, type FilterPatch, type FilterState } from "@/lib/shop/filters";
@@ -34,16 +34,18 @@ function Section({ title, icon: Icon, active = false, defaultOpen = true, childr
 function Chip({ href, selected, icon: Icon, children }: { href: string; selected: boolean; icon?: typeof Gift; children: React.ReactNode }) {
   const Glyph = selected ? Check : Icon;
   return (
-    <Link href={href} aria-current={selected ? "true" : undefined} className="gf-chip">
+    <FilterAction href={href} aria-current={selected ? "true" : undefined} className="gf-chip">
       {Glyph ? <Glyph className="h-3.5 w-3.5" strokeWidth={selected ? 2.4 : 1.7} aria-hidden="true" /> : null}
       {children}
-    </Link>
+    </FilterAction>
   );
 }
 
 /**
- * The filter sections, as plain links to the same page with one thing changed — server-rendered, shareable, works without JavaScript. Tapping the chosen option
- * again clears it. Used inside the desktop panel (`ShopFilters`) and inside the phone's bottom sheet (`FilterDrawer`).
+ * The filter sections, as buttons that navigate to the same page with one thing changed. Buttons keep
+ * the query-string variants out of the crawlable link graph while still letting a shopper tweak one
+ * filter from an empty result page. Tapping the chosen option again clears it. Used inside the desktop
+ * panel (`ShopFilters`) and inside the phone's bottom sheet (`FilterDrawer`).
  */
 export function FilterSections({ vendors, current, hrefFor, hide, attributeSections = [] }: { vendors: Vendor[]; current: FilterState; hrefFor: (patch: FilterPatch) => string; hide?: Hide; attributeSections?: AttributeFilterSection[] }) {
   const toggle = (key: keyof FilterState, value: string) => hrefFor({ [key]: current[key] === value ? undefined : value });
@@ -79,11 +81,11 @@ export function FilterSections({ vendors, current, hrefFor, hide, attributeSecti
               const on = current.vendor === v.slug;
               return (
                 <li key={v.slug}>
-                  <Link href={toggle("vendor", v.slug)} aria-current={on ? "true" : undefined} className="gf-row">
+                  <FilterAction href={toggle("vendor", v.slug)} aria-current={on ? "true" : undefined} className="gf-row">
                     <span className="gf-radio" aria-hidden="true" />
                     <VendorLogo url={v.logo_url ?? null} name={v.business_name} sizeClass="h-6 w-6" iconClass="h-3 w-3" className="shrink-0" />
                     <span className="min-w-0 flex-1 truncate">{v.business_name}</span>
-                  </Link>
+                  </FilterAction>
                 </li>
               );
             })}
@@ -117,11 +119,11 @@ export function FilterSections({ vendors, current, hrefFor, hide, attributeSecti
         </form>
       </Section>
       <div className="border-t border-dashed border-brand-secondary/30 pt-4">
-        <Link href={toggle("inStock", "true")} role="switch" aria-checked={inStock} aria-current={inStock ? "true" : undefined} className="gf-switch-row">
+        <FilterAction href={toggle("inStock", "true")} role="switch" aria-checked={inStock} aria-current={inStock ? "true" : undefined} className="gf-switch-row">
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-brand-accent text-brand-secondary-dark"><Package className="h-3.5 w-3.5" strokeWidth={1.8} aria-hidden="true" /></span>
           <span className="flex-1 font-heading text-[1.02rem] text-brand-dark">In stock only</span>
           <span className="gf-switch" aria-hidden="true"><i /></span>
-        </Link>
+        </FilterAction>
       </div>
     </div>
   );
@@ -139,7 +141,7 @@ export function ShopFilters({ vendors, current, hrefFor, hide, attributeSections
           Filters
           {count > 0 ? <span className="grid h-5 min-w-5 place-items-center rounded-full bg-brand-secondary px-1.5 font-sans text-[11px] font-semibold text-brand-on-secondary">{count}</span> : null}
         </h2>
-        {count > 0 ? <Link href={hrefFor(clearAllPatch(attributeSections))} className="text-xs font-medium text-brand-secondary-dark underline-offset-2 hover:underline">Clear all</Link> : null}
+        {count > 0 ? <FilterAction href={hrefFor(clearAllPatch(attributeSections))} className="text-xs font-medium text-brand-secondary-dark underline-offset-2 hover:underline">Clear all</FilterAction> : null}
       </header>
       <div className="gf-scroll px-5 py-3 lg:max-h-[calc(100vh-15rem)] lg:overflow-y-auto">
         <FilterSections vendors={vendors} current={current} hrefFor={hrefFor} hide={hide} attributeSections={attributeSections} />

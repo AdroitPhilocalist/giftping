@@ -13,6 +13,18 @@ export interface FilterState {
   minPrice?: string;
   maxPrice?: string;
 }
+export type RawSearchParams = Record<string, string | string[] | undefined>;
+
+/**
+ * Next.js gives repeated query keys an array. The catalogue treats every key as a single value, so
+ * keep the first one and discard the rest — this also keeps `.trim()` / `.split()` in the helpers
+ * below from receiving an array from a crafted URL like `?minPrice=1&minPrice=2`.
+ */
+export function normalizeSearchParams(raw: RawSearchParams): Record<string, string | undefined> {
+  return Object.fromEntries(
+    Object.entries(raw).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value]),
+  );
+}
 // Widened past `keyof FilterState` on purpose: a /shop/... page also patches dynamic `attr_<key>` params
 // (one per category-specific attribute) that FilterState can't name statically. Every existing caller's
 // object literal still type-checks unchanged — this only loosens what's additionally allowed.
@@ -27,6 +39,35 @@ export const SORT_OPTIONS = [
 ] as const;
 
 export const DEFAULT_SORT = "popularity";
+
+/** A hard ceiling on page numbers, so a crafted `?page=999999999` cannot ask PostgREST for an absurd range. */
+export const MAX_PAGE = 1000;
+
+/** Parse the URL's page number. Invalid, negative, zero and non-finite values fall back to page 1. */
+export function pageNumber(raw: string | undefined): number {
+  const n = Number(raw ?? "1");
+  return Number.isFinite(n) ? Math.min(MAX_PAGE, Math.max(1, Math.floor(n))) : 1;
+}
+
+/** Parse one end of a price range. Blank, negative and non-finite values are ignored. */
+export function priceValue(raw: string | undefined): number | undefined {
+  if (raw === undefined || raw.trim() === "") return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
+
+/** Parse a min/max pair, putting a reversed range back in the right order. */
+export function priceRange(minRaw: string | undefined, maxRaw: string | undefined): { minPrice?: number; maxPrice?: number } {
+  const min = priceValue(minRaw);
+  const max = priceValue(maxRaw);
+  if (min !== undefined && max !== undefined && min > max) return { minPrice: max, maxPrice: min };
+  return { minPrice: min, maxPrice: max };
+}
+
+/** Only a known sort value is allowed to survive from the URL. */
+export function sortValue(raw: string | undefined): string | undefined {
+  return SORT_OPTIONS.some((o) => o.value === raw) ? raw : undefined;
+}
 
 /** One-tap price bands. `min`/`max` are whole rupees; an open end is simply absent. */
 export const PRICE_PRESETS: { label: string; min?: number; max?: number }[] = [

@@ -5,6 +5,7 @@ import { createClient } from "@/lib/db/server";
 import { getMyVendor } from "@/lib/db/vendor-portal";
 import { ImageValidationError, MAX_UPLOAD_BYTES, processProductImage } from "@/lib/storage/resize";
 import { removeProductImageFiles, storeProductImage } from "@/lib/storage/upload";
+import { captureProductSnapshot, recordProductChange } from "@/lib/vendor/product-snapshot";
 import { sendBackToReviewIfLive, syncProductThumbnail } from "@/lib/vendor/product-helpers";
 
 const MAX_IMAGES_PER_PRODUCT = 8;
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `A product can have at most ${MAX_IMAGES_PER_PRODUCT} photos.` }, { status: 400 });
     }
 
+    const before = await captureProductSnapshot(supabase, product.id, vendor.id);
     const processed = await processProductImage(Buffer.from(await file.arrayBuffer()));
     const stored = await storeProductImage(vendor.id, product.id, processed);
 
@@ -83,6 +85,11 @@ export async function POST(request: Request) {
 
     await syncProductThumbnail(supabase, product.id);
     await sendBackToReviewIfLive(supabase, product.id);
+
+    const after = await captureProductSnapshot(supabase, product.id, vendor.id);
+    if (before && after) {
+      await recordProductChange({ actorId: user.id, productId: product.id, before, after });
+    }
 
     return NextResponse.json({ id: row.id, url: stored.mediumUrl });
   } catch (error) {

@@ -6,21 +6,19 @@ import { ProductCard } from "@/components/shop/ProductCard";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 import { SpotlightSection } from "@/components/motion/SpotlightSection";
 import { ShopFilters } from "@/components/shop/ShopFilters";
+import { FilterAction } from "@/components/shop/ShopNavigation";
 import { ShopToolbar } from "@/components/shop/ShopToolbar";
 import { Pagination } from "@/components/shop/Pagination";
 import { getActiveProductAttributes, getActiveProductTypes } from "@/lib/db/product-types";
 import { getVendorsForProductTypes } from "@/lib/db/vendors";
 import { listProducts, type ProductListFilters } from "@/lib/db/products";
 import { ancestorChain, descendantIds } from "@/lib/catalog/product-types";
-import { clearAllPatch, decodeAttrValues, type AttributeFilterSection, type FilterPatch } from "@/lib/shop/filters";
+import { clearAllPatch, decodeAttrValues, normalizeSearchParams, pageNumber, priceRange, sortValue, type AttributeFilterSection, type FilterPatch, type RawSearchParams } from "@/lib/shop/filters";
 import { getServerUser } from "@/lib/auth/session";
 import { getWishlistProductIds } from "@/lib/db/wishlists";
 import { SEO_LIMITS, truncateText } from "@/lib/seo/pages";
 import { baseOpenGraph } from "@/lib/seo/site";
 import { breadcrumbJsonLd, jsonLdScript } from "@/lib/seo/structured-data";
-
-// Filter/sort variations are the same content under many URLs — keep them out of the index.
-const FILTER_PARAMS_PREFIX = ["sort", "vendor", "occasion", "recipient", "inStock", "minPrice", "maxPrice"] as const;
 
 async function resolve(path: string[]) {
   const slug = path[path.length - 1];
@@ -31,20 +29,22 @@ async function resolve(path: string[]) {
   return { productType, types, attributes, canonical };
 }
 
-export async function generateMetadata({ params, searchParams }: { params: Promise<{ path: string[] }>; searchParams: Promise<Record<string, string | undefined>> }): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: { params: Promise<{ path: string[] }>; searchParams: Promise<RawSearchParams> }): Promise<Metadata> {
   const { path } = await params;
-  const sp = await searchParams;
+  const sp = normalizeSearchParams(await searchParams);
   const { productType, canonical } = await resolve(path);
   if (!productType || !canonical) return {};
   const title = productType.meta_title?.trim() || `${productType.name} — GiftPing`;
   const description = productType.meta_description?.trim() || truncateText(productType.description, SEO_LIMITS.descriptionIdeal) || `Shop ${productType.name} gifts from GiftPing's boutiques.`;
-  const isFiltered = FILTER_PARAMS_PREFIX.some((k) => sp[k]) || Object.keys(sp).some((k) => k.startsWith("attr_"));
+  // Any query string is a filter/sort/page/internal-router variant. Leave the query-free URL as
+  // the only indexable version (canonical points there) and tell crawlers not to walk its links.
+  const isFiltered = Object.keys(sp).length > 0;
   return {
     title,
     description,
     alternates: { canonical },
     openGraph: { ...baseOpenGraph(), title, description, url: canonical },
-    ...(isFiltered ? { robots: { index: false, follow: true } } : {}),
+    ...(isFiltered ? { robots: { index: false, follow: false } } : {}),
   };
 }
 
@@ -53,10 +53,10 @@ export default async function ShopTypePage({
   searchParams,
 }: {
   params: Promise<{ path: string[] }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<RawSearchParams>;
 }) {
   const { path } = await params;
-  const sp = await searchParams;
+  const sp = normalizeSearchParams(await searchParams);
   const [{ productType, types, attributes, canonical }, user] = await Promise.all([resolve(path), getServerUser()]);
   if (!productType || !canonical) notFound();
   if (`/shop/${path.join("/")}` !== canonical) {
@@ -68,13 +68,18 @@ export default async function ShopTypePage({
   const chainIds = new Set(ancestorChain(types, productType.id).map((t) => t.id));
   const effectiveAttributes = attributes.filter((a) => chainIds.has(a.product_type_id));
 
-  const page = Number(sp.page ?? "1") || 1;
-  const minPrice = sp.minPrice ? Number(sp.minPrice) : undefined;
-  const maxPrice = sp.maxPrice ? Number(sp.maxPrice) : undefined;
+  const page = pageNumber(sp.page);
+  const { minPrice, maxPrice } = priceRange(sp.minPrice, sp.maxPrice);
+  const sortParam = sortValue(sp.sort);
+  const inStockParam = sp.inStock === "true" ? "true" : undefined;
 
   const attributeFilters: Record<string, string[]> = {};
   for (const a of effectiveAttributes) {
-    const values = decodeAttrValues(sp[`attr_${a.id}`]);
+    // The URL is user-controlled: keep only values this attribute actually offers, and cap the list
+    // so a crafted query cannot turn one filter into an unbounded SQL IN clause.
+    const values = decodeAttrValues(sp[`attr_${a.id}`])
+      .filter((v) => a.options.includes(v))
+      .slice(0, 50);
     if (values.length > 0) attributeFilters[a.id] = values;
   }
 
@@ -83,10 +88,10 @@ export default async function ShopTypePage({
     vendorSlug: sp.vendor || undefined,
     occasionTag: sp.occasion || undefined,
     recipientTag: sp.recipient || undefined,
-    inStockOnly: sp.inStock === "true",
-    sort: (sp.sort as ProductListFilters["sort"]) || "popularity",
-    minPrice: minPrice !== undefined && Number.isFinite(minPrice) ? minPrice : undefined,
-    maxPrice: maxPrice !== undefined && Number.isFinite(maxPrice) ? maxPrice : undefined,
+    inStockOnly: inStockParam === "true",
+    sort: (sortParam as ProductListFilters["sort"]) || "popularity",
+    minPrice,
+    maxPrice,
     attributes: Object.keys(attributeFilters).length > 0 ? attributeFilters : undefined,
     page,
   };
@@ -97,7 +102,11 @@ export default async function ShopTypePage({
     user ? getWishlistProductIds(user.id) : Promise.resolve(new Set<string>()),
   ]);
 
-  const attrParamKeys = effectiveAttributes.map((a) => `attr_${a.id}`);
+  const attrParamValues: Record<string, string> = {};
+  for (const a of effectiveAttributes) {
+    const values = attributeFilters[a.id];
+    if (values?.length) attrParamValues[`attr_${a.id}`] = values.join(",");
+  }
   const urlPath = canonical;
 
   function buildHref(nextPage: number) {
@@ -105,19 +114,18 @@ export default async function ShopTypePage({
     if (sp.vendor) params.set("vendor", sp.vendor);
     if (sp.occasion) params.set("occasion", sp.occasion);
     if (sp.recipient) params.set("recipient", sp.recipient);
-    if (sp.sort) params.set("sort", sp.sort);
-    if (sp.inStock) params.set("inStock", sp.inStock);
-    if (sp.minPrice) params.set("minPrice", sp.minPrice);
-    if (sp.maxPrice) params.set("maxPrice", sp.maxPrice);
-    for (const k of attrParamKeys) if (sp[k]) params.set(k, sp[k]!);
+    if (sortParam) params.set("sort", sortParam);
+    if (inStockParam) params.set("inStock", inStockParam);
+    if (minPrice !== undefined) params.set("minPrice", String(minPrice));
+    if (maxPrice !== undefined) params.set("maxPrice", String(maxPrice));
+    for (const [k, v] of Object.entries(attrParamValues)) params.set(k, v);
     if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
     return `${urlPath}${qs ? `?${qs}` : ""}`;
   }
 
   function hrefFor(patch: FilterPatch) {
-    const merged: Record<string, string | undefined> = { vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, minPrice: sp.minPrice, maxPrice: sp.maxPrice };
-    for (const k of attrParamKeys) merged[k] = sp[k];
+    const merged: Record<string, string | undefined> = { vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sortParam, inStock: inStockParam, minPrice: minPrice !== undefined ? String(minPrice) : undefined, maxPrice: maxPrice !== undefined ? String(maxPrice) : undefined, ...attrParamValues };
     Object.assign(merged, patch);
     const params = new URLSearchParams();
     for (const [k, v] of Object.entries(merged)) if (v) params.set(k, v);
@@ -125,13 +133,13 @@ export default async function ShopTypePage({
     return `${urlPath}${qs ? `?${qs}` : ""}`;
   }
 
-  const current = { vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sp.sort, inStock: sp.inStock, minPrice: sp.minPrice, maxPrice: sp.maxPrice };
+  const current = { vendor: sp.vendor, occasion: sp.occasion, recipient: sp.recipient, sort: sortParam, inStock: inStockParam, minPrice: minPrice !== undefined ? String(minPrice) : undefined, maxPrice: maxPrice !== undefined ? String(maxPrice) : undefined };
   const attributeSections: AttributeFilterSection[] = effectiveAttributes.map((a) => ({
     key: a.id,
     label: a.label,
     inputType: a.input_type,
     options: a.options,
-    selected: decodeAttrValues(sp[`attr_${a.id}`]),
+    selected: attributeFilters[a.id] ?? [],
   }));
 
   const chain = ancestorChain(types, productType.id);
@@ -144,7 +152,7 @@ export default async function ShopTypePage({
   const chips = subcategories.length > 0 ? subcategories : siblings;
   const chipsLabel = subcategories.length > 0 ? `In ${productType.name}` : parentType ? `More in ${parentType.name}` : "";
   const chipHref = (t: { id: string; slug: string }) => `/shop/${ancestorChain(types, t.id).map((c) => c.slug).join("/")}`;
-  const anyFilter = Object.keys(attributeFilters).length > 0 || Boolean(sp.vendor || sp.occasion || sp.recipient || sp.inStock || sp.minPrice || sp.maxPrice);
+  const anyFilter = Object.keys(attributeFilters).length > 0 || Boolean(sp.vendor || sp.occasion || sp.recipient || inStockParam || minPrice !== undefined || maxPrice !== undefined);
 
   return (
     <div>
@@ -192,7 +200,7 @@ export default async function ShopTypePage({
                 {anyFilter ? (
                   <>
                     No gifts match these filters yet.{" "}
-                    <Link href={hrefFor(clearAllPatch(attributeSections))} className="font-medium text-brand-secondary-dark underline">Clear all filters</Link>
+                    <FilterAction href={hrefFor(clearAllPatch(attributeSections))} className="font-medium text-brand-secondary-dark underline">Clear all filters</FilterAction>
                   </>
                 ) : (
                   <>

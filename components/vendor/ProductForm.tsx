@@ -6,7 +6,7 @@ import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { EngravingPlacementEditor } from "@/components/vendor/EngravingPlacementEditor";
 import { DEFAULT_ENGRAVING, ENGRAVING_STYLES, normaliseEngraving, type EngravingConfig, type EngravingPlacement } from "@/lib/personalization/engraving";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, AlertTriangle } from "lucide-react";
 import { saveProductAction } from "@/lib/vendor/actions";
 import { productSchema, type ProductFormInput, type ProductInput } from "@/lib/validation/product.schema";
 import { OCCASION_TAGS, RECIPIENT_TAGS, labelForTag } from "@/lib/catalog/tags";
@@ -59,6 +59,7 @@ export function ProductForm({
   productAttributes,
   defaultValues,
   primaryImageUrl,
+  willGoOffline = false,
 }: {
   productId: string | null;
   categories: { id: string; name: string }[];
@@ -69,6 +70,8 @@ export function ProductForm({
   defaultValues?: Partial<ProductFormInput>;
   /** the product's main photo — the engraving editor draws on it (null until a photo has been uploaded) */
   primaryImageUrl?: string | null;
+  /** true when this is a currently-live product: saving sends it back to review, so the form warns before submit */
+  willGoOffline?: boolean;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -157,7 +160,13 @@ export function ProductForm({
         setServerError(result.error);
         return;
       }
-      toast(productId ? "Saved — it'll be re-reviewed before going live." : "Product created — now add photos.");
+      toast(
+        productId
+          ? willGoOffline
+            ? "Saved — it's now in review and hidden from the mall until approved."
+            : "Saved — it'll be re-reviewed before going live."
+          : "Product created — now add photos.",
+      );
       if (productId === null && result.id) {
         router.push(`/vendor/products/${result.id}`);
       } else {
@@ -407,8 +416,18 @@ export function ProductForm({
 
       {serverError ? <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{serverError}</p> : null}
 
+      {willGoOffline ? (
+        <div className="flex items-start gap-3 rounded-xl border border-brand-secondary/25 bg-brand-accent/60 p-3 text-sm text-brand-dark">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-brand-secondary-dark" aria-hidden="true" />
+          <p>
+            <span className="font-medium">Saving will take this product offline.</span> It goes back into review and returns to the mall only after our team approves it.
+            Wishlisted customers will see it as temporarily unavailable until then.
+          </p>
+        </div>
+      ) : null}
+
       <Button type="submit" size="lg" disabled={isPending}>
-        {isPending ? "Saving…" : productId ? "Save changes" : "Create product"}
+        {isPending ? "Saving…" : productId ? (willGoOffline ? "Save & send for review" : "Save changes") : "Create product"}
       </Button>
     </form>
   );

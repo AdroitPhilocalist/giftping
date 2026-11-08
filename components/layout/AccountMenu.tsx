@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { BookHeart, LayoutDashboard, LogOut, Package, ShieldCheck, User } from "lucide-react";
+import { BookHeart, LogOut, Package, User } from "lucide-react";
 import type { ReactNode } from "react";
 import { signOutAction } from "@/lib/auth/actions";
 import { pushLogout } from "@/lib/push/client";
@@ -37,7 +37,7 @@ export function AccountMenu({ user }: { user: SessionUser }) {
       <DropdownMenu.Trigger asChild>
         <button
           aria-label="Account menu"
-          className="group flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 text-brand-on-primary/85 transition-colors hover:bg-brand-on-primary/12 hover:text-brand-on-primary"
+          className="group flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2 text-brand-on-primary/85 transition-colors hover:bg-brand-on-primary/12 hover:text-brand-on-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-brand-light"
         >
           <span className="grid h-7 w-7 place-items-center rounded-full bg-brand-on-primary/15 text-xs font-semibold text-brand-on-primary ring-1 ring-inset ring-brand-on-primary/25 transition-colors group-hover:bg-brand-secondary group-hover:text-brand-on-secondary group-hover:ring-brand-secondary">
             {initialOf(user.fullName)}
@@ -61,12 +61,6 @@ export function AccountMenu({ user }: { user: SessionUser }) {
           <DropdownMenu.Item asChild><Link href="/account" className={itemClass}><Row icon={User}>My Account</Row></Link></DropdownMenu.Item>
           <DropdownMenu.Item asChild><Link href="/orders" className={itemClass}><Row icon={Package}>My Orders</Row></Link></DropdownMenu.Item>
           <DropdownMenu.Item asChild><Link href="/diary" className={itemClass}><Row icon={BookHeart}>My Diary</Row></Link></DropdownMenu.Item>
-          {user.role === "vendor" ? (
-            <DropdownMenu.Item asChild><Link href="/vendor/dashboard" className={itemClass}><Row icon={LayoutDashboard}>Vendor Dashboard</Row></Link></DropdownMenu.Item>
-          ) : null}
-          {user.role === "admin" ? (
-            <DropdownMenu.Item asChild><Link href="/admin/dashboard" className={itemClass}><Row icon={ShieldCheck}>Admin Dashboard</Row></Link></DropdownMenu.Item>
-          ) : null}
 
           <div className="my-1.5 h-px bg-brand-dark/[0.07]" />
 

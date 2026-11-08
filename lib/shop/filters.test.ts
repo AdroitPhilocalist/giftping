@@ -1,7 +1,53 @@
 import { describe, expect, it } from "vitest";
-import { CLEAR_ALL, PRICE_PRESETS, activePricePreset, appliedFilters, priceLabel } from "./filters";
+import { CLEAR_ALL, MAX_PAGE, PRICE_PRESETS, activePricePreset, appliedFilters, normalizeSearchParams, pageNumber, priceLabel, priceRange, priceValue, sortValue } from "./filters";
 
 const vendors = [{ slug: "aurelia-gifts", business_name: "Aurelia Gifts" }];
+
+describe("URL parameter parsing", () => {
+  it("keeps only the first value when a crawler repeats a query key", () => {
+    expect(normalizeSearchParams({ minPrice: "500", maxPrice: ["1000", "2000"], sort: undefined })).toEqual({
+      minPrice: "500",
+      maxPrice: "1000",
+      sort: undefined,
+    });
+  });
+
+  it("clamps page numbers instead of passing them to PostgREST", () => {
+    expect(pageNumber(undefined)).toBe(1);
+    expect(pageNumber("2")).toBe(2);
+    expect(pageNumber("1.9")).toBe(1);
+    expect(pageNumber("0")).toBe(1);
+    expect(pageNumber("-3")).toBe(1);
+    expect(pageNumber("abc")).toBe(1);
+    expect(pageNumber("Infinity")).toBe(1);
+    expect(pageNumber("999999")).toBe(MAX_PAGE);
+  });
+
+  it("accepts only finite, non-negative prices", () => {
+    expect(priceValue("500")).toBe(500);
+    expect(priceValue("0")).toBe(0);
+    expect(priceValue("")).toBeUndefined();
+    expect(priceValue(" ")).toBeUndefined();
+    expect(priceValue("abc")).toBeUndefined();
+    expect(priceValue("-1")).toBeUndefined();
+    expect(priceValue("Infinity")).toBeUndefined();
+  });
+
+  it("puts a reversed min/max range back in order", () => {
+    expect(priceRange("500", "1000")).toEqual({ minPrice: 500, maxPrice: 1000 });
+    expect(priceRange("1000", "500")).toEqual({ minPrice: 500, maxPrice: 1000 });
+    expect(priceRange("500", undefined)).toEqual({ minPrice: 500, maxPrice: undefined });
+    expect(priceRange("abc", "500")).toEqual({ minPrice: undefined, maxPrice: 500 });
+  });
+
+  it("only lets known sort values survive", () => {
+    expect(sortValue("price_asc")).toBe("price_asc");
+    expect(sortValue("popularity")).toBe("popularity");
+    expect(sortValue("price_drop")).toBeUndefined();
+    expect(sortValue("")).toBeUndefined();
+    expect(sortValue(undefined)).toBeUndefined();
+  });
+});
 
 describe("price presets", () => {
   it("finds the preset that exactly matches the URL's min/max", () => {
