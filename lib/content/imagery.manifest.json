@@ -1,4 +1,19 @@
 {
+  "atrium-layer-far": {
+    "src": "/images/atrium-layer-far.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "atrium-layer-mid": {
+    "src": "/images/atrium-layer-mid.webp",
+    "width": 1600,
+    "height": 900
+  },
+  "atrium-layer-near": {
+    "src": "/images/atrium-layer-near.webp",
+    "width": 1600,
+    "height": 900
+  },
   "auth-welcome": {
     "src": "/images/auth-welcome.webp",
     "width": 1024,
@@ -33,6 +48,11 @@
     "src": "/images/hero-atrium-mobile.webp",
     "width": 941,
     "height": 1672
+  },
+  "hero-atrium-old": {
+    "src": "/images/hero-atrium-old.webp",
+    "width": 1672,
+    "height": 941
   },
   "hero-atrium": {
     "src": "/images/hero-atrium.webp",

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { CRAWL_QUERY_PATHS } from "./crawl";
 import { siteUrl } from "./site";
 
 /**
@@ -40,7 +41,10 @@ export function buildRobots(env: Record<string, string | undefined> = process.en
   const vercelEnv = env.VERCEL_ENV;
   if (vercelEnv && vercelEnv !== "production") return { rules: [{ userAgent: "*", disallow: "/" }] };
   return {
-    rules: [{ userAgent: "*", allow: "/", disallow: [...PRIVATE_PATHS] }],
+    // Query strings on shop/category pages are filter, sort and pagination states — the same content
+    // under a different URL. Keep the query-free pages crawlable and block the combinatorial variants.
+    // These are deliberately path-specific: a global `/*?` would also hide `/_next/image?url=...`.
+    rules: [{ userAgent: "*", allow: "/", disallow: [...PRIVATE_PATHS, ...CRAWL_QUERY_PATHS] }],
     sitemap: `${siteUrl(env)}/sitemap.xml`,
   };
 }

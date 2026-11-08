@@ -11,6 +11,7 @@ import { deletePlanAction, savePlanAction, setPlanStatusAction } from "@/lib/dia
 import { PLAN_COPY, PLAN_STEPS, nextStatus, stepIndex, type PlanStatus } from "@/lib/diary/plans";
 import { daysLabel } from "@/lib/diary/present";
 import { DateRibbon } from "../DateRibbon";
+import { useDiaryMode } from "../DiaryMode";
 import { OccasionSticker } from "../art/OccasionSticker";
 import { Sprig } from "../art/Sprig";
 import { HeartDoodle } from "../art/Doodles";
@@ -45,6 +46,11 @@ export interface PlanViewData {
  * writes the gift into the person's history so next year's reminder can say what you gave.
  */
 export function PlanSheet({ data, personName }: { data: PlanViewData; personName: string }) {
+  const { preview } = useDiaryMode();
+  return preview ? <PreviewPlanSheet data={data} personName={personName} /> : <PlanSheetLive data={data} personName={personName} />;
+}
+
+function PlanSheetLive({ data, personName }: { data: PlanViewData; personName: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [own, setOwn] = useState("");
@@ -165,6 +171,81 @@ export function PlanSheet({ data, personName }: { data: PlanViewData; personName
               )}
               {plan.orderId ? <Link href={`/orders/${plan.orderId}`} className="dy-link inline-flex items-center gap-1.5 md:self-end"><Truck className="h-4 w-4" aria-hidden="true" /> Track order →</Link> : null}
               <button type="button" className="dy-cap self-end underline-offset-2 hover:underline" onClick={() => run(() => deletePlanAction(plan.id), "Plan removed.")} disabled={pending}>Clear plan</button>
+            </div>
+          </div>
+        </>
+      )}
+      <Sprig variant="wild" className="dy-corner !absolute -right-1 -bottom-2 hidden h-20 w-10 sm:block" />
+    </section>
+  );
+}
+
+/**
+ * The read-only version shown inside the guest preview. Same paper, same five-step rail, but every
+ * control is either a link to the product (public) or a sign-in link — no server action can fire.
+ */
+function PreviewPlanSheet({ data, personName }: { data: PlanViewData; personName: string }) {
+  const { signInHref } = useDiaryMode();
+  const plan = data.plan;
+  return (
+    <section id="plan" aria-labelledby="plan-h" className="dy-note dy-note--cream relative scroll-mt-24 px-4 pb-5 pt-6 sm:px-6" style={{ ["--torn" as string]: "var(--dy-torn-4)", ["--tilt" as string]: "-0.5deg" }}>
+      <span className="dy-tape dy-tape--sage" style={{ top: "-0.6rem", left: "12%" }} aria-hidden="true" />
+      <span className="dy-tape dy-tape--blush" style={{ top: "-0.6rem", right: "10%", ["--tape-rot" as string]: "5deg" }} aria-hidden="true" />
+      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <h2 id="plan-h" className="dy-h">Plan for {data.heading} <HeartDoodle className="text-[0.62em]" /></h2>
+        <span className="flex items-center gap-2.5"><span className="dy-cap">{data.dateLabel}</span><DateRibbon daysAway={data.daysAway} label={data.daysAway <= 0 ? "Today!" : `in ${daysLabel(data.daysAway)}`} size="sm" /></span>
+      </div>
+
+      {!plan ? (
+        <div className="mt-4 flex flex-col items-center gap-3 py-3 text-center">
+          <p className="dy-hand max-w-md text-[1.35rem] leading-[1.15]">Nothing planned yet. Sign in to start a plan for {personName} and keep it across the years.</p>
+          <Link href={signInHref} className="dy-btn dy-btn--copper">Sign in to start a plan <span aria-hidden="true">→</span></Link>
+        </div>
+      ) : (
+        <>
+          <ol className="dy-plan-rail mt-4" aria-label="Gift plan progress">
+            {PLAN_STEPS.map((s, i) => {
+              const state = i < stepIndex(plan.status) ? "done" : i === stepIndex(plan.status) ? "now" : "todo";
+              const sub = s === "chosen" && plan.giftName ? plan.giftName : s === "ordered" && plan.orderNumber ? `Order ${plan.orderNumber}` : PLAN_COPY[s].todo;
+              return (
+                <li key={s}>
+                  <div className="dy-plan-step !cursor-default" data-state={state} aria-current={state === "now" ? "step" : undefined}>
+                    <span className="dy-plan-card">
+                      <PlanIcon step={s} className="dy-plan-icon h-11 w-11" />
+                      <span className="dy-hand-b text-[1.35rem] leading-none">{PLAN_COPY[s].title}</span>
+                      <span className="dy-hand line-clamp-2 text-left text-[1.02rem] leading-[1.05] text-[var(--dy-ink-soft)] md:min-h-[2.1rem] md:text-center">{sub}</span>
+                    </span>
+                    <span className="dy-plan-track" aria-hidden="true">
+                      {i > 0 ? <span className="dy-plan-line dy-plan-line--l" data-on={i <= stepIndex(plan.status)} /> : null}
+                      {i < PLAN_STEPS.length - 1 ? <span className="dy-plan-line dy-plan-line--r" data-on={i < stepIndex(plan.status)} /> : null}
+                      <span className="dy-plan-dot relative z-[1]">{state === "done" ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : null}</span>
+                    </span>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+
+          <div className="mt-4 grid items-start gap-4 md:grid-cols-[1fr_auto]">
+            <div className="space-y-3">
+              {plan.giftName ? (
+                <div className="flex items-center gap-3">
+                  <span className="dy-polaroid !p-[3px] block w-14 shrink-0" style={{ ["--tilt" as string]: "-3deg" }}>
+                    <span className="dy-polaroid-photo relative block">{plan.image ? <Image src={plan.image} alt="" fill sizes="56px" className="object-cover" /> : <span className="absolute inset-0 grid place-items-center bg-[var(--dy-paper-lo)]"><OccasionSticker type="other" className="h-8 w-8" /></span>}</span>
+                  </span>
+                  <div className="min-w-0">
+                    <p className="dy-cap">The gift</p>
+                    <p className="dy-hand-b break-words text-[1.4rem] leading-[1.05]">{plan.productSlug ? <Link href={`/products/${plan.productSlug}`} className="hover:text-[var(--gp-copper)]">{plan.giftName}</Link> : plan.giftName}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="dy-hand text-[1.25rem] leading-[1.15] text-[var(--dy-ink-soft)]">A plan is started — sign in to write your own idea and keep it.</p>
+              )}
+              {plan.note ? <p className="dy-hand text-[1.2rem] leading-[1.15]"><span className="dy-cap block">Why this one?</span>{plan.note}</p> : null}
+            </div>
+            <div className="flex flex-col items-stretch gap-2 md:items-end">
+              <Link href={signInHref} className="dy-btn dy-btn--lg dy-btn--copper">Sign in to keep this plan <span aria-hidden="true">→</span></Link>
+              <p className="dy-cap text-left md:text-right">A sample plan — your own dates and gifts stay private.</p>
             </div>
           </div>
         </>

@@ -1,15 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { Feather, Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "@/components/ui/Toast";
 import { updateContactAction } from "@/lib/diary/actions";
+import { useDiaryMode } from "../DiaryMode";
 import { HeartDoodle } from "../art/Doodles";
 
 /** "Private notes": free writing on ruled paper — what she said she liked, what to try next time. Only ever visible to the diary's owner. */
 export function PrivateNotes({ contactId, name, notes }: { contactId: string; name: string; notes: string | null }) {
   const router = useRouter();
+  const { preview, signInHref } = useDiaryMode();
   const [saved, setSaved] = useState(notes ?? "");
   const [draft, setDraft] = useState(notes ?? "");
   const [editing, setEditing] = useState(false);
@@ -31,7 +34,11 @@ export function PrivateNotes({ contactId, name, notes }: { contactId: string; na
       <div className="flex items-center gap-2.5">
         <h2 id="notes-h" className="dy-h"><Feather className="dy-h-icon" aria-hidden="true" /> Private notes <Lock className="h-4 w-4 text-[var(--gp-copper)]" aria-label="Only you can see this" /></h2>
         <span className="flex-1" />
-        {!editing ? <button type="button" className="dy-link" onClick={() => setEditing(true)}>{saved ? "Edit" : "Write a note"}</button> : null}
+        {preview ? (
+          <Link href={signInHref} className="dy-link">Sign in to write your own</Link>
+        ) : !editing ? (
+          <button type="button" className="dy-link" onClick={() => setEditing(true)}>{saved ? "Edit" : "Write a note"}</button>
+        ) : null}
       </div>
       <div className="dy-note dy-note--cream relative mt-3 px-5 py-4" style={{ ["--torn" as string]: "var(--dy-torn-3)", ["--tilt" as string]: "0.7deg" }}>
         <span className="dy-tape dy-tape--blush" style={{ top: "-0.6rem", right: "2rem", ["--tape-rot" as string]: "6deg" }} aria-hidden="true" />

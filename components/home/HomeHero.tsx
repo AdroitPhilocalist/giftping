@@ -54,11 +54,11 @@ export async function HomeHero() {
         </div>
 
         <div className="relative flex min-h-[30rem] flex-col justify-end px-4 pb-24 pt-28 sm:min-h-[34rem] sm:px-6 sm:pb-28 lg:min-h-[640px] lg:justify-center lg:pb-32 lg:pt-24">
-          <div className="mx-auto w-full max-w-7xl lg:px-2">
-            <div className="max-w-2xl">
+          <div className="w-full max-w-7xl lg:px-2">
+            <div className="max-w-2xl text-left">
               <div className="rise">
                 <p className="gp-hero-eyebrow">Welcome to GiftPing Mall</p>
-                <h1 className="gp-hero-title mt-5 font-heading text-[2.7rem] leading-[1.04] sm:text-6xl lg:text-[4.7rem]">
+                <h1 className="gp-hero-title mt-5 font-heading text-[2.4rem] leading-[1.04] sm:text-5xl lg:text-[3.75rem]">
                   A World of Gifts.
                   <br />A World of <span className="gp-hero-gold">Emotions.</span>
                 </h1>

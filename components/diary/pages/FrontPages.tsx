@@ -2,6 +2,7 @@ import { BarChart3, CalendarCheck, Feather, Gift, Heart, Users } from "lucide-re
 import type { GiftingScore } from "@/lib/diary/gifting-score";
 import type { IdeaSet, PlanChip } from "@/lib/diary/home-book";
 import type { YearSummary } from "@/lib/diary/memories";
+import { diaryPersonHref } from "@/lib/diary/links";
 import { daysShort, possessive, tiltFor } from "@/lib/diary/present";
 import type { CalendarMarks, MomentCardData, PersonCardData } from "@/lib/diary/ui-types";
 import { HeartDoodle } from "../art/Doodles";
@@ -28,7 +29,7 @@ import { StreakBadge } from "../StreakBadge";
  */
 
 /** Page 1: whose diary this is, the next moments, and a few ideas for the nearest one. */
-export function FrontLeftPage({ name, moments, plans, ideaSet, options, themeId }: { name: string; moments: MomentCardData[]; plans: PlanChip[]; ideaSet?: IdeaSet; options: PersonOption[]; themeId?: string }) {
+export function FrontLeftPage({ name, moments, plans, ideaSet, options, themeId, preview = false }: { name: string; moments: MomentCardData[]; plans: PlanChip[]; ideaSet?: IdeaSet; options: PersonOption[]; themeId?: string; preview?: boolean }) {
   return (
     <div className="flex h-full flex-col gap-3">
       <header className="relative pb-1 pt-1">
@@ -44,7 +45,7 @@ export function FrontLeftPage({ name, moments, plans, ideaSet, options, themeId 
         <BookmarkSeal top="-1.35rem" className="dy-bookmark" />
       </header>
 
-      <MomentTickets moments={moments} plans={plans} themeId={themeId} className="mt-1" addAction={<AddDateButton people={options} />} />
+      <MomentTickets moments={moments} plans={plans} themeId={themeId} className="mt-1" addAction={<AddDateButton people={options} />} preview={preview} />
 
       {ideaSet ? (
         <section aria-labelledby="front-ideas-h" className="mt-auto">
@@ -121,7 +122,7 @@ function YearScrap({ summary }: { summary: YearSummary }) {
 const PEOPLE_TILES = 6;
 
 /** The people you keep: up to six polaroids with the days to their next moment; a seventh person turns the last tile into "+N more". */
-function PeopleGlance({ people, themeId }: { people: PersonCardData[]; themeId?: string }) {
+function PeopleGlance({ people, themeId, preview = false }: { people: PersonCardData[]; themeId?: string; preview?: boolean }) {
   const overflow = people.length > PEOPLE_TILES;
   const shown = overflow ? people.slice(0, PEOPLE_TILES - 1) : people;
   return (
@@ -131,7 +132,7 @@ function PeopleGlance({ people, themeId }: { people: PersonCardData[]; themeId?:
         {shown.map((p, i) => (
           <li key={p.id} className="dy-in" style={{ ["--in-delay" as string]: `${360 + i * 70}ms` }}>
             <Polaroid
-              href={`/diary/people/${p.id}`}
+              href={diaryPersonHref(p.id, preview)}
               name={p.name}
               photoUrl={p.photoUrl}
               tilt={tiltFor(i, 2.6)}
@@ -156,14 +157,14 @@ function PeopleGlance({ people, themeId }: { people: PersonCardData[]; themeId?:
 }
 
 /** Page 2: the gifting score, this month, and the people — small, with a way to open each. */
-export function FrontRightPage({ today, marks, score, streak, summary, people, themeId }: { today: string; marks: CalendarMarks; score: GiftingScore; streak: number; summary: YearSummary; people: PersonCardData[]; themeId?: string }) {
+export function FrontRightPage({ today, marks, score, streak, summary, people, themeId, preview = false }: { today: string; marks: CalendarMarks; score: GiftingScore; streak: number; summary: YearSummary; people: PersonCardData[]; themeId?: string; preview?: boolean }) {
   return (
     <div className="relative flex h-full flex-col gap-3">
       <ScoreGlance score={score} streak={streak} />
 
       <section aria-label="This month" className="grid items-start gap-4 [grid-template-columns:minmax(0,17.5rem)_1fr]">
         <div>
-          <PaperCalendar today={today} marks={marks} compact hintExtra={<TurnLink to="month">Open the month →</TurnLink>} />
+          <PaperCalendar today={today} marks={marks} compact hintExtra={<TurnLink to="month">Open the month →</TurnLink>} preview={preview} />
         </div>
         <div className="flex flex-col gap-3 pt-4">
           <div className="dy-drop-1"><YearScrap summary={summary} /></div>
@@ -171,7 +172,7 @@ export function FrontRightPage({ today, marks, score, streak, summary, people, t
         </div>
       </section>
 
-      <PeopleGlance people={people} themeId={themeId} />
+      <PeopleGlance people={people} themeId={themeId} preview={preview} />
       <Corner at="br" variant="wild" size="h-24 w-12" className="!bottom-9" />
     </div>
   );

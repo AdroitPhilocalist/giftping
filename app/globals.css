@@ -87,6 +87,9 @@
   --color-brand-secondary-dark: var(--gp-copper-dark);
   --color-brand-on-secondary: var(--gp-on-copper);
   --color-brand-ornament: var(--gp-ornament);
+  --color-brand-gold: var(--gp-hero-gold);
+  --color-brand-gold-light: var(--gp-hero-gold-light);
+  --color-brand-gold-deep: var(--gp-hero-gold-deep);
 
   --color-background: var(--gp-canvas);
   --color-foreground: var(--gp-ink);
@@ -413,6 +416,31 @@ h1, h2, h3, .font-heading {
 }
 .gp-alcove-name { display: block; font-family: var(--gp-font-display); font-size: 1.02rem; line-height: 1.25; color: var(--gp-ink); }
 .gp-alcove-line { display: block; margin-top: 0.2rem; font-size: 0.72rem; line-height: 1.4; color: color-mix(in srgb, var(--gp-ink) 62%, transparent); }
+
+/* The relationship label above each alcove card: name sits proud over the niche — centred, premium, never covering the portrait. */
+.gp-alcove-label { position: relative; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 0.35rem; width: 100%; }
+.gp-alcove-label .gp-alcove-name {
+  font-family: var(--gp-font-display);
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gp-ink);
+  text-shadow: 0 0 10px color-mix(in srgb, var(--gp-copper) 40%, transparent);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));
+}
+.gp-alcove-label:hover .gp-alcove-name { color: var(--gp-copper); text-shadow: 0 0 14px var(--gp-copper); }
+.gp-alcove-label::after {
+  content: "";
+  position: absolute;
+  bottom: -0.35rem;
+  left: 50%;
+  width: 0;
+  height: 1px;
+  background: var(--gp-copper);
+  transition: width 0.4s var(--gp-ease), left 0.4s var(--gp-ease);
+}
+.gp-alcove-label:hover::after { width: 2.6rem; left: calc(50% - 1.3rem); }
+.gp-alcove-label .gp-alcove-line { font-size: 0.68rem; line-height: 1.4; color: color-mix(in srgb, var(--gp-ink) 55%, transparent); margin-top: 0.1rem; }
 
 /* The light comes up. Keyboard focus first — any device, so it is never hover-exclusive — then the mouse. This is a light cue, not motion, so it stays under reduced motion. */
 .gp-alcove:focus-within .gp-alcove-veil { opacity: 0; }
@@ -946,7 +974,51 @@ html[data-hero-header="true"] .gp-header:not([data-condensed="true"]) :is(.gp-lo
    unmounting eagerly, so a short close delay in the component (not here) is what actually forgives the gap while the mouse crosses it. */
 .gp-mega { transition: opacity 0.16s var(--gp-ease), transform 0.16s var(--gp-ease); opacity: 1; transform: translate(-50%, 0); }
 .gp-mega--closed { opacity: 0; transform: translate(-50%, -4px); pointer-events: none; }
-.gp-mega-panel { animation: gp-mega-in 0.22s var(--gp-ease) both; }
+/* A small diamond tucked under the trigger so the panel reads as attached to its nav item rather than floating loose. Painted before the panel child,
+   which covers its lower half and leaves only the top pointing up. */
+.gp-mega::before {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  left: 50%;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-left: 1px solid color-mix(in srgb, var(--gp-hero-gold-deep) 70%, transparent);
+  border-top: 1px solid color-mix(in srgb, var(--gp-hero-gold-deep) 70%, transparent);
+  background: var(--gp-surface);
+  transform: translateX(-50%) rotate(45deg);
+  pointer-events: none;
+}
+/* The menu shares the header's premium finish: a warm ivory ground, espresso type, the same gilded 1px ring as the header pill (gradient-border mask
+   trick), and a champagne sheen along the top edge. Gold, copper and ink only — deliberately no green. Colors come from --gp-* tokens. */
+.gp-mega-panel {
+  position: relative;
+  transform-origin: top center;
+  animation: gp-mega-in 0.22s var(--gp-ease) both;
+}
+.gp-mega-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  padding: 1.2px;
+  background: var(--gp-gold-edge);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.gp-mega-panel::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset-inline: 1.25rem;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gp-hero-gold) 55%, transparent), transparent);
+  pointer-events: none;
+}
 @keyframes gp-mega-in { from { opacity: 0; transform: translateY(-6px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* A small, tasteful open/close motion for the header's own dropdown panels (account menu, notifications) — driven by Radix's own data-state, since the

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Heart, Search, User } from "lucide-react";
-import { DiaryButton } from "@/components/layout/DiaryButton";
+import { Heart, LayoutDashboard, Search, ShieldCheck, User } from "lucide-react";
 import { AccountMenu } from "@/components/layout/AccountMenu";
+import { DiaryButton } from "@/components/layout/DiaryButton";
 import { HeaderShell } from "@/components/layout/HeaderShell";
 import { Logo } from "@/components/layout/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
@@ -41,6 +41,7 @@ export async function Navbar() {
           <NavLinks categories={categories} vendors={vendors} productTypes={topLevelProductTypes} />
 
           <div className="flex items-center gap-0.5 sm:gap-1">
+            <DiaryButton />
             <Link href="/search" aria-label="Search" className={iconButton}><Search className="h-5 w-5" /></Link>
             {user ? (
               <AccountMenu user={user} />
@@ -53,8 +54,29 @@ export async function Navbar() {
               {wishlistCount > 0 ? <span className={`${badge} bg-brand-secondary text-brand-on-secondary`}>{wishlistCount}</span> : null}
             </Link>
             <MiniBasket cartCount={cartCount} iconClass={iconButton} badgeClass={`${badge} bg-brand-secondary text-brand-on-secondary`} />
-            <DiaryButton />
             <MobileMenu signedIn={Boolean(user)} />
+
+            {/* Role-based dashboard buttons — box office style, first-glance visible */}
+            {user?.role === "vendor" && (
+              <Link
+                href="/vendor/dashboard"
+                aria-label="Vendor Dashboard"
+                className="flex items-center gap-1.5 rounded-full bg-brand-secondary px-4 py-2 text-brand-on-secondary font-medium shadow-xl hover:-translate-y-px hover:bg-brand-secondary-dark hover:shadow-2xl transition-all duration-300"
+              >
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Vendor Dashboard</span>
+              </Link>
+            )}
+            {user?.role === "admin" && (
+              <Link
+                href="/admin/dashboard"
+                aria-label="Admin Dashboard"
+                className="flex items-center gap-1.5 rounded-full bg-brand-primary px-4 py-2 text-brand-on-primary font-medium shadow-xl hover:-translate-y-px hover:bg-brand-primary-dark hover:shadow-2xl transition-all duration-300"
+              >
+                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Admin Dashboard</span>
+              </Link>
+            )}
           </div>
         </div>
       </HeaderShell>

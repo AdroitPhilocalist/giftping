@@ -28,7 +28,10 @@ export async function RelationshipCards() {
           return (
             <li key={r.slug} className={i === RELATIONSHIPS.length - 1 ? "col-span-2 sm:col-span-1" : undefined}>
               <Reveal className="h-full" delay={i * 80}>
-                <Link href={`/gifts-for/${r.slug}`} className="gp-alcove group flex h-full flex-col">
+                <Link href={`/gifts-for/${r.slug}`} className="gp-alcove group flex h-full flex-col flex-col gap-2">
+                  <span className="gp-alcove-label flex flex-col items-center gap-1">
+                    <span className="gp-alcove-name">{r.title}</span>
+                  </span>
                   <span className="gp-alcove-stage relative aspect-[4/5] w-full shrink-0">
                     <span className="gp-alcove-halo" aria-hidden="true" />
                     <span className="gp-alcove-arch">
@@ -43,10 +46,6 @@ export async function RelationshipCards() {
                       <span className="gp-alcove-light" aria-hidden="true" />
                       <span className="gp-alcove-tracery" aria-hidden="true" />
                     </span>
-                  </span>
-                  <span className="gp-alcove-plaque">
-                    <span className="gp-alcove-name">{r.title}</span>
-                    <span className="gp-alcove-line">{r.line}</span>
                   </span>
                 </Link>
               </Reveal>

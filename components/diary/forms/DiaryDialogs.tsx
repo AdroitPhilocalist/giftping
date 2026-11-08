@@ -1,9 +1,11 @@
 "use client";
 
 import { Bell, Camera, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition, type ReactNode } from "react";
 import { toast } from "@/components/ui/Toast";
+import { useDiaryMode } from "../DiaryMode";
 import { prepareForUpload } from "@/lib/client/prepare-image";
 import {
   deleteContactAction, deleteEventAction, deleteGiftAction, logGiftAction, saveContactAction, saveEventAction, setEventActiveAction,
@@ -275,7 +277,17 @@ export function GiftDialog({ contactId, contactName, defaultEventType, trigger }
 // ---------------------------------------------------------------------------
 // Small actions
 // ---------------------------------------------------------------------------
-export function RemoveButton({ kind, id, name, className, children }: { kind: "contact" | "event" | "gift"; id: string; name: string; className?: string; children?: ReactNode }) {
+type RemoveButtonProps = { kind: "contact" | "event" | "gift"; id: string; name: string; className?: string; children?: ReactNode };
+
+export function RemoveButton(props: RemoveButtonProps) {
+  const { preview } = useDiaryMode();
+  // A sample row can't be removed. Hiding the destructive action is clearer than sending someone to
+  // sign in just to press "Remove" on data that isn't theirs.
+  if (preview) return null;
+  return <RemoveButtonLive {...props} />;
+}
+
+function RemoveButtonLive({ kind, id, name, className, children }: RemoveButtonProps) {
   const router = useRouter();
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -307,8 +319,23 @@ export function RemoveButton({ kind, id, name, className, children }: { kind: "c
   );
 }
 
+type ReminderSwitchProps = { id: string; active: boolean; label?: string };
+
 /** The bell on a date: pauses or resumes its reminders. Optimistic, with a quiet failure. */
-export function ReminderSwitch({ id, active, label = "Remind me" }: { id: string; active: boolean; label?: string }) {
+export function ReminderSwitch(props: ReminderSwitchProps) {
+  const { preview, signInHref } = useDiaryMode();
+  if (!preview) return <ReminderSwitchLive {...props} />;
+  const label = props.label ?? "Remind me";
+  return (
+    <Link href={signInHref} className="flex items-center gap-2" aria-label={`${label} — sign in to change reminders`} title="Sign in to change reminders">
+      <Bell className="h-4 w-4 text-[var(--dy-ink-soft)]" aria-hidden="true" />
+      <span className="dy-cap whitespace-nowrap">{label}</span>
+      <span className="dy-switch inline-block" aria-checked={props.active ? "true" : "false"} aria-hidden="true" />
+    </Link>
+  );
+}
+
+function ReminderSwitchLive({ id, active, label = "Remind me" }: ReminderSwitchProps) {
   const router = useRouter();
   const [on, setOn] = useState(active);
   const [pending, startTransition] = useTransition();
@@ -339,29 +366,60 @@ export function ReminderSwitch({ id, active, label = "Remind me" }: { id: string
 // ---------------------------------------------------------------------------
 // Ready-made triggers (buttons in the diary's style)
 // ---------------------------------------------------------------------------
-export const AddPersonButton = ({ size = "sm" }: { size?: "sm" | "md" }) => (
-  <PersonDialog trigger={(open) => <button type="button" onClick={open} className={cn("dy-btn", size === "sm" && "dy-btn--sm")}><Plus className="h-4 w-4" aria-hidden="true" /> Add a person</button>} />
-);
-export const EditPersonButton = ({ contact, photoUrl }: { contact: DiaryContactRow; photoUrl?: string | null }) => (
-  <PersonDialog contact={contact} photoUrl={photoUrl} trigger={(open) => <button type="button" onClick={open} className="dy-link inline-flex items-center gap-1"><Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>} />
-);
-export const AddDateButton = ({ people, contactId, contactName, label = "Add a date", variant = "green" }: { people?: PersonOption[]; contactId?: string; contactName?: string; label?: string; variant?: "green" | "paper" }) => (
-  <DateDialog people={people} contactId={contactId} contactName={contactName} trigger={(open) => <button type="button" onClick={open} className={cn("dy-btn dy-btn--sm", variant === "paper" && "dy-btn--paper")}><Plus className="h-4 w-4" aria-hidden="true" /> {label}</button>} />
-);
-export const LogGiftButton = ({ contactId, contactName, defaultEventType, label = "Log a gift", variant = "green" }: { contactId: string; contactName: string; defaultEventType?: string; label?: string; variant?: "green" | "paper" }) => (
-  <GiftDialog contactId={contactId} contactName={contactName} defaultEventType={defaultEventType} trigger={(open) => <button type="button" onClick={open} className={cn("dy-btn dy-btn--sm", variant === "paper" && "dy-btn--paper")}><Plus className="h-4 w-4" aria-hidden="true" /> {label}</button>} />
-);
+export function AddPersonButton({ size = "sm" }: { size?: "sm" | "md" }) {
+  const { preview, signInHref } = useDiaryMode();
+  if (preview) {
+    return <Link href={signInHref} className={cn("dy-btn", size === "sm" && "dy-btn--sm")} aria-label="Sign in to add a person"><Plus className="h-4 w-4" aria-hidden="true" /> Add a person</Link>;
+  }
+  return <PersonDialog trigger={(open) => <button type="button" onClick={open} className={cn("dy-btn", size === "sm" && "dy-btn--sm")}><Plus className="h-4 w-4" aria-hidden="true" /> Add a person</button>} />;
+}
+
+export function EditPersonButton({ contact, photoUrl }: { contact: DiaryContactRow; photoUrl?: string | null }) {
+  const { preview, signInHref } = useDiaryMode();
+  if (preview) {
+    return <Link href={signInHref} className="dy-link inline-flex items-center gap-1" aria-label={`Sign in to edit ${contact.name}`}><Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit</Link>;
+  }
+  return <PersonDialog contact={contact} photoUrl={photoUrl} trigger={(open) => <button type="button" onClick={open} className="dy-link inline-flex items-center gap-1"><Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>} />;
+}
+
+export function AddDateButton({ people, contactId, contactName, label = "Add a date", variant = "green" }: { people?: PersonOption[]; contactId?: string; contactName?: string; label?: string; variant?: "green" | "paper" }) {
+  const { preview, signInHref } = useDiaryMode();
+  if (preview) {
+    return <Link href={signInHref} className={cn("dy-btn dy-btn--sm", variant === "paper" && "dy-btn--paper")} aria-label="Sign in to add a date"><Plus className="h-4 w-4" aria-hidden="true" /> {label}</Link>;
+  }
+  return <DateDialog people={people} contactId={contactId} contactName={contactName} trigger={(open) => <button type="button" onClick={open} className={cn("dy-btn dy-btn--sm", variant === "paper" && "dy-btn--paper")}><Plus className="h-4 w-4" aria-hidden="true" /> {label}</button>} />;
+}
+
+export function LogGiftButton({ contactId, contactName, defaultEventType, label = "Log a gift", variant = "green" }: { contactId: string; contactName: string; defaultEventType?: string; label?: string; variant?: "green" | "paper" }) {
+  const { preview, signInHref } = useDiaryMode();
+  if (preview) {
+    return <Link href={signInHref} className={cn("dy-btn dy-btn--sm", variant === "paper" && "dy-btn--paper")} aria-label={`Sign in to log a gift for ${contactName}`}><Plus className="h-4 w-4" aria-hidden="true" /> {label}</Link>;
+  }
+  return <GiftDialog contactId={contactId} contactName={contactName} defaultEventType={defaultEventType} trigger={(open) => <button type="button" onClick={open} className={cn("dy-btn dy-btn--sm", variant === "paper" && "dy-btn--paper")}><Plus className="h-4 w-4" aria-hidden="true" /> {label}</button>} />;
+}
 
 /** The first-run call to action: opens "Add someone you love". */
-export const OpenDiaryButton = () => (
-  <PersonDialog trigger={(open) => <button type="button" onClick={open} className="dy-btn dy-btn--lg dy-btn--sprig">Open my diary <span aria-hidden="true">→</span></button>} />
-);
+export function OpenDiaryButton() {
+  const { preview, signInHref } = useDiaryMode();
+  if (preview) {
+    return <Link href={signInHref} className="dy-btn dy-btn--lg dy-btn--sprig">Open my diary <span aria-hidden="true">→</span></Link>;
+  }
+  return <PersonDialog trigger={(open) => <button type="button" onClick={open} className="dy-btn dy-btn--lg dy-btn--sprig">Open my diary <span aria-hidden="true">→</span></button>} />;
+}
 
-export const EditDateButton = ({ contactId, contactName, event, label }: { contactId: string; contactName: string; event: DiaryEventRow; label: string }) => (
-  <DateDialog contactId={contactId} contactName={contactName} event={event} trigger={(open) => <button type="button" onClick={open} className="dy-cap inline-flex items-center gap-1 hover:text-[var(--gp-copper)]" aria-label={`Edit ${label}`}><Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>} />
-);
+export function EditDateButton({ contactId, contactName, event, label }: { contactId: string; contactName: string; event: DiaryEventRow; label: string }) {
+  const { preview, signInHref } = useDiaryMode();
+  if (preview) {
+    return <Link href={signInHref} className="dy-cap inline-flex items-center gap-1 hover:text-[var(--gp-copper)]" aria-label={`Sign in to edit ${label}`}><Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit</Link>;
+  }
+  return <DateDialog contactId={contactId} contactName={contactName} event={event} trigger={(open) => <button type="button" onClick={open} className="dy-cap inline-flex items-center gap-1 hover:text-[var(--gp-copper)]" aria-label={`Edit ${label}`}><Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit</button>} />;
+}
 
 /** Under a person's empty polaroid: opens their page's edit dialog, where a photo can be added. */
-export const AddPhotoButton = ({ contact }: { contact: DiaryContactRow }) => (
-  <PersonDialog contact={contact} trigger={(open) => <button type="button" onClick={open} className="dy-link inline-flex items-center gap-1"><Camera className="h-3.5 w-3.5" aria-hidden="true" /> Add a photo</button>} />
-);
+export function AddPhotoButton({ contact }: { contact: DiaryContactRow }) {
+  const { preview, signInHref } = useDiaryMode();
+  if (preview) {
+    return <Link href={signInHref} className="dy-link inline-flex items-center gap-1" aria-label={`Sign in to add a photo of ${contact.name}`}><Camera className="h-3.5 w-3.5" aria-hidden="true" /> Add a photo</Link>;
+  }
+  return <PersonDialog contact={contact} trigger={(open) => <button type="button" onClick={open} className="dy-link inline-flex items-center gap-1"><Camera className="h-3.5 w-3.5" aria-hidden="true" /> Add a photo</button>} />;
+}

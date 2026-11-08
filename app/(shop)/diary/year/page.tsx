@@ -8,7 +8,7 @@ import { toMonthData } from "@/lib/diary/page-data";
 import { localDateIn } from "@/lib/diary/recurrence";
 import { getActiveTheme } from "@/lib/theme/active";
 
-export const metadata = { title: "The year at a glance — GiftPing" };
+export const metadata = { title: "The year at a glance — GiftPing", robots: { index: false, follow: false } };
 
 export default async function DiaryYearPage({ searchParams }: { searchParams: Promise<{ year?: string }> }) {
   const user = await requireRole("customer", "vendor", "admin");

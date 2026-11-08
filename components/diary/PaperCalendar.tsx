@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { CalendarMarks } from "@/lib/diary/ui-types";
+import { diaryPersonHref } from "@/lib/diary/links";
 import { daysInMonth, formatISODate, parseISODate } from "@/lib/diary/recurrence";
 import { OccasionSticker } from "./art/OccasionSticker";
 import { cn } from "@/lib/utils/cn";
@@ -16,7 +17,7 @@ const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
  * marked day lists what's on it (with a link to each person). Month arrows move within a year either side of today. The marks are computed on
  * the server for that whole window and passed in, so moving between months needs no network round-trip.
  */
-export function PaperCalendar({ today, marks, className, compact = false, hintExtra }: { today: string; marks: CalendarMarks; className?: string; compact?: boolean; /** compact only: something to sit after the "tap a circled day" hint (a link to the full month) */ hintExtra?: React.ReactNode }) {
+export function PaperCalendar({ today, marks, className, compact = false, hintExtra, preview = false }: { today: string; marks: CalendarMarks; className?: string; compact?: boolean; /** compact only: something to sit after the "tap a circled day" hint (a link to the full month) */ hintExtra?: React.ReactNode; preview?: boolean }) {
   const t = parseISODate(today)!;
   const [cursor, setCursor] = useState({ year: t.year, month: t.month });
   const [picked, setPicked] = useState<string | null>(null);
@@ -66,7 +67,7 @@ export function PaperCalendar({ today, marks, className, compact = false, hintEx
         <ul className="space-y-1">
           {(compact ? pickedMarks.slice(0, 1) : pickedMarks).map((m, i) => (
             <li key={`${m.contactId}-${i}`}>
-              <Link href={`/diary/people/${m.contactId}`} className="dy-hand inline-flex items-center gap-2 text-[1.25rem] text-[var(--dy-ink)] hover:text-[var(--gp-copper)]">
+              <Link href={diaryPersonHref(m.contactId, preview)} className="dy-hand inline-flex items-center gap-2 text-[1.25rem] text-[var(--dy-ink)] hover:text-[var(--gp-copper)]">
                 <OccasionSticker type={m.eventType} className="h-6 w-6" />
                 {m.label}
               </Link>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays } from "lucide-react";
 import type { CalendarMarks, MomentCardData } from "@/lib/diary/ui-types";
+import { diaryPersonHref } from "@/lib/diary/links";
 import { daysLabel } from "@/lib/diary/present";
 import { OccasionSticker } from "../art/OccasionSticker";
 import { RobinSleeping } from "../EmptyStates";
@@ -11,18 +12,18 @@ import { PageHeading } from "./PageBits";
 import { Check } from "lucide-react";
 
 /** The month, drawn large enough to write on: tap a marked day to see who it is. */
-export function CalendarPage({ today, marks }: { today: string; marks: CalendarMarks }) {
+export function CalendarPage({ today, marks, preview = false }: { today: string; marks: CalendarMarks; preview?: boolean }) {
   return (
     <div className="flex h-full flex-col">
       <PageHeading sub="Tap a circled day to see who it is for">This Month</PageHeading>
-      <PaperCalendar today={today} marks={marks} className="mt-4" />
+      <PaperCalendar today={today} marks={marks} className="mt-4" preview={preview} />
       <MemoNote className="dy-hide-short mt-auto max-w-[17rem] self-end" tilt={2}>Small moments, big happiness</MemoNote>
     </div>
   );
 }
 
 /** The next sixty days as a list, nearest first — the planner page. */
-export function AgendaPage({ moments, options, themeId }: { moments: MomentCardData[]; options: PersonOption[]; themeId?: string }) {
+export function AgendaPage({ moments, options, themeId, preview = false }: { moments: MomentCardData[]; options: PersonOption[]; themeId?: string; preview?: boolean }) {
   const shown = moments.slice(0, 7);
   return (
     <div className="flex h-full flex-col">
@@ -33,7 +34,7 @@ export function AgendaPage({ moments, options, themeId }: { moments: MomentCardD
         <ul className="mt-4 space-y-1.5">
           {shown.map((m) => (
             <li key={m.key}>
-              <Link href={`/diary/people/${m.contactId}?event=${m.eventId}#plan`} className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-[color-mix(in_srgb,var(--dy-blush)_40%,transparent)]">
+              <Link href={diaryPersonHref(m.contactId, preview, m.eventId)} className="flex items-center gap-3 rounded-lg px-2 py-1.5 transition-colors hover:bg-[color-mix(in_srgb,var(--dy-blush)_40%,transparent)]">
                 <OccasionSticker type={m.eventType} themeId={themeId} className="h-10 w-10 shrink-0" />
                 <span className="min-w-0 flex-1">
                   <span className="dy-hand-b block truncate text-[1.45rem] leading-[1.05]">{m.title}</span>

@@ -8,7 +8,7 @@ import { localDateIn } from "@/lib/diary/recurrence";
 import { signedDiaryPhotoUrls } from "@/lib/storage/diary-photos";
 import { getActiveTheme } from "@/lib/theme/active";
 
-export const metadata = { title: "Your gifting year — GiftPing" };
+export const metadata = { title: "Your gifting year — GiftPing", robots: { index: false, follow: false } };
 
 export default async function DiaryReviewPage({ searchParams }: { searchParams: Promise<{ year?: string }> }) {
   const user = await requireRole("customer", "vendor", "admin");

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import type { MonthData } from "@/lib/diary/page-data";
+import { diaryPersonHref } from "@/lib/diary/links";
 import { OccasionSticker } from "../art/OccasionSticker";
 import { tiltFor } from "@/lib/diary/present";
 import { cn } from "@/lib/utils/cn";
@@ -9,7 +10,7 @@ const NAMES = ["January", "February", "March", "April", "May", "June", "July", "
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
 
 /** One month of the year, drawn small: marked days are circled with the occasion's sticker in the corner; this month wears a ribbon and today a ring. */
-export function MonthCard({ data, year, today, index, themeId }: { data: MonthData; year: number; today: string; index: number; themeId?: string }) {
+export function MonthCard({ data, year, today, index, themeId, preview = false }: { data: MonthData; year: number; today: string; index: number; themeId?: string; preview?: boolean }) {
   const [ty, tm, td] = today.split("-").map(Number);
   const isThisMonth = ty === year && tm === data.month;
   const cells: (number | null)[] = [...Array<number | null>(data.leading).fill(null), ...Array.from({ length: data.days }, (_, i) => i + 1)];
@@ -32,7 +33,7 @@ export function MonthCard({ data, year, today, index, themeId }: { data: MonthDa
           return (
             <Link
               key={day}
-              href={`/diary/people/${marks[0].contactId}`}
+              href={diaryPersonHref(marks[0].contactId, preview)}
               title={marks.map((m) => m.label).join(" · ")}
               aria-label={`${day} ${NAMES[data.month - 1]}: ${marks.map((m) => m.label).join(", ")}`}
               className={cn("dy-hand relative grid h-[1.3rem] place-items-center rounded-full bg-[color-mix(in_srgb,var(--dy-blush)_75%,transparent)] text-[0.95rem] font-bold leading-none transition-transform hover:scale-110", isToday && "!bg-[var(--gp-copper)] text-[var(--gp-on-copper)]")}

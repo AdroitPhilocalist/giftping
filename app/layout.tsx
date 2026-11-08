@@ -59,6 +59,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // OneSignal's SDK refuses to run anywhere but the site address configured in its dashboard, so on localhost it only throws console errors.
   const host = (requestHeaders.get("host") ?? "").split(":")[0];
   const pushSdkAllowed = host !== "localhost" && host !== "127.0.0.1";
+  const heroHeader = requestHeaders.get("x-hero-path") === "true";
   // Set by proxy.ts on every request, for the CSP's per-request script-src nonce — next/script needs it passed
   // explicitly (Next only auto-applies the nonce to its own framework/page bundles, not third-party <Script>s).
   const nonce = requestHeaders.get("x-nonce") ?? undefined;
@@ -66,6 +67,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       data-theme={theme.id}
+      data-hero-header={heroHeader ? "true" : undefined}
       className={`${newsreader.variable} ${dmSans.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col font-sans">

@@ -15,11 +15,11 @@ export interface Relationship {
 }
 
 export const RELATIONSHIPS: Relationship[] = [
-  { slug: "parents", label: "Parents", title: "For Parents", line: "Thoughtful ways to say thank you.", imageKey: "rel-parents", filter: { recipientTag: "for-parents" } },
-  { slug: "partner", label: "Partner", title: "For Your Partner", line: "Anniversaries and every day in between.", imageKey: "rel-partner", filter: { occasionTag: "anniversary" } },
-  { slug: "friends", label: "Friends", title: "For Friends", line: "Birthdays and celebrations worth marking.", imageKey: "rel-friends", filter: { occasionTag: "birthday" } },
-  { slug: "colleagues", label: "Colleagues", title: "For Colleagues", line: "Polished, professional, appreciated.", imageKey: "rel-colleagues", filter: { recipientTag: "for-colleagues" } },
-  { slug: "kids", label: "Little Ones", title: "For Little Ones", line: "Gifts that make them light up.", imageKey: "rel-kids", filter: { recipientTag: "for-kids" } },
+  { slug: "parents", label: "Parents", title: "Parents", line: "Thoughtful ways to say thank you.", imageKey: "rel-parents", filter: { recipientTag: "for-parents" } },
+  { slug: "partner", label: "Partner", title: "Your Partner", line: "Anniversaries and every day in between.", imageKey: "rel-partner", filter: { occasionTag: "anniversary" } },
+  { slug: "friends", label: "Friends", title: "Friends", line: "Birthdays and celebrations worth marking.", imageKey: "rel-friends", filter: { occasionTag: "birthday" } },
+  { slug: "colleagues", label: "Colleagues", title: "Colleagues", line: "Polished, professional, appreciated.", imageKey: "rel-colleagues", filter: { recipientTag: "for-colleagues" } },
+  { slug: "kids", label: "Little Ones", title: "Little Ones", line: "Gifts that make them light up.", imageKey: "rel-kids", filter: { recipientTag: "for-kids" } },
 ];
 
 export function getRelationship(slug: string): Relationship | undefined {

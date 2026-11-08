@@ -13,7 +13,7 @@ import { localDateIn } from "@/lib/diary/recurrence";
 import { signedDiaryPhotoUrls } from "@/lib/storage/diary-photos";
 import { getActiveTheme } from "@/lib/theme/active";
 
-export const metadata = { title: "My Gifting Diary — GiftPing" };
+export const metadata = { title: "My Gifting Diary — GiftPing", robots: { index: false, follow: false } };
 
 export default async function DiaryPage({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   const [user, params] = await Promise.all([requireRole("customer", "vendor", "admin"), searchParams]);

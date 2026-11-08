@@ -7,6 +7,7 @@ import { OccasionSticker } from "../art/OccasionSticker";
 import { Sprig } from "../art/Sprig";
 import { WaxSeal } from "../art/WaxSeal";
 import { NoGiftsYet } from "../EmptyStates";
+import { diaryPersonHref, diaryYearHref } from "@/lib/diary/links";
 import { AddDateButton, AddPersonButton, type PersonOption } from "../forms/DiaryDialogs";
 import { PageHeading } from "./PageBits";
 import { formatCurrency } from "@/lib/utils/format";
@@ -24,7 +25,7 @@ export interface LogGift {
 }
 
 /** The gift log: the last few things you gave, and who they were for, with what they said. */
-export function LogPage({ gifts, themeId }: { gifts: LogGift[]; themeId?: string }) {
+export function LogPage({ gifts, themeId, preview = false }: { gifts: LogGift[]; themeId?: string; preview?: boolean }) {
   return (
     <div className="flex h-full flex-col">
       <PageHeading sub="Everything you write down here comes back next year in your reminders">What I&apos;ve Given Lately</PageHeading>
@@ -41,7 +42,7 @@ export function LogPage({ gifts, themeId }: { gifts: LogGift[]; themeId?: string
               </span>
               <div className="min-w-0 flex-1">
                 <p className="dy-hand-b truncate text-[1.35rem] leading-[1.05]">{g.name}{g.amount ? <span className="dy-ui ml-2 text-[0.8rem] font-medium text-[var(--dy-ink-soft)]">{formatCurrency(g.amount)}</span> : null}</p>
-                <p className="dy-cap truncate leading-[1.1]">{g.contactId ? <Link href={`/diary/people/${g.contactId}`} className="hover:text-[var(--gp-copper)]">for {g.who}</Link> : "for someone"} · {g.dateLabel}{g.note ? ` — “${g.note}”` : ""}</p>
+                <p className="dy-cap truncate leading-[1.1]">{g.contactId ? <Link href={diaryPersonHref(g.contactId, preview)} className="hover:text-[var(--gp-copper)]">for {g.who}</Link> : "for someone"} · {g.dateLabel}{g.note ? ` — “${g.note}”` : ""}</p>
               </div>
             </li>
           ))}
@@ -52,7 +53,7 @@ export function LogPage({ gifts, themeId }: { gifts: LogGift[]; themeId?: string
 }
 
 /** The inside of the back cover: nothing more written yet, and the promise that it is private. */
-export function BackCoverPage({ options, year }: { options: PersonOption[]; year: number }) {
+export function BackCoverPage({ options, year, preview = false }: { options: PersonOption[]; year: number; preview?: boolean }) {
   return (
     <div className="relative flex h-full flex-col items-center justify-center gap-4 text-center">
       <div className="w-32"><Robin pose={hasRobinArt("sleeping") ? "sleeping" : "peeking"} title="" /></div>
@@ -60,7 +61,7 @@ export function BackCoverPage({ options, year }: { options: PersonOption[]; year
       <p className="dy-hand max-w-xs text-[1.3rem] leading-[1.15] text-[var(--dy-ink-soft)]">Every date you add and every gift you give writes a little more of this diary.</p>
       <div className="flex flex-wrap justify-center gap-2"><AddPersonButton /><AddDateButton people={options} /></div>
       <p className="dy-hand flex items-center gap-2 text-[1.2rem] leading-[1.1] text-[var(--dy-ink-soft)]"><WaxSeal size={30}><Lock className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden="true" /></WaxSeal> Only you can open this</p>
-      <Link href={`/diary/year?year=${year + 1}`} className="dy-link dy-hide-short">Look at another year →</Link>
+      <Link href={diaryYearHref(year + 1, preview)} className="dy-link dy-hide-short">Look at another year →</Link>
       <Sprig variant="daisy" className="dy-corner !absolute bottom-6 left-0 h-28 w-14" />
     </div>
   );

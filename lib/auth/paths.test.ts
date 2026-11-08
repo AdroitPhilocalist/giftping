@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isAdminPath, isAuthPath, isProtectedCustomerPath, isVendorPath } from "./paths";
+import { isAdminPath, isAuthPath, isDiaryPreviewPath, isProtectedCustomerPath, isVendorPath, signInHref } from "./paths";
 
 // These predicates are the single source of truth shared by proxy.ts (the fast UI bounce) and
 // lib/auth/redirect.ts (where to send someone after sign-in), so they get their own tests.
@@ -42,6 +42,28 @@ describe("isProtectedCustomerPath", () => {
     expect(isProtectedCustomerPath("/")).toBe(false);
     expect(isProtectedCustomerPath("/mall")).toBe(false);
     expect(isProtectedCustomerPath("/vendors")).toBe(false);
+  });
+  it("leaves the sample diary public, but not the real diary or its people pages", () => {
+    expect(isProtectedCustomerPath("/diary/preview")).toBe(false);
+    expect(isProtectedCustomerPath("/diary/preview/people/preview-mom")).toBe(false);
+    expect(isProtectedCustomerPath("/diary/people/preview-mom")).toBe(true);
+    expect(isProtectedCustomerPath("/diary/year")).toBe(true);
+  });
+});
+
+describe("isDiaryPreviewPath", () => {
+  it("matches the sample and its sub-pages only", () => {
+    expect(isDiaryPreviewPath("/diary/preview")).toBe(true);
+    expect(isDiaryPreviewPath("/diary/preview/people/preview-mom")).toBe(true);
+    expect(isDiaryPreviewPath("/diary")).toBe(false);
+    expect(isDiaryPreviewPath("/diary/preview-other")).toBe(false);
+  });
+});
+
+describe("signInHref", () => {
+  it("returns the visitor to the real diary by default", () => {
+    expect(signInHref()).toBe("/sign-in?redirectTo=%2Fdiary");
+    expect(signInHref("/diary/year?year=2027")).toBe("/sign-in?redirectTo=%2Fdiary%2Fyear%3Fyear%3D2027");
   });
 });
 

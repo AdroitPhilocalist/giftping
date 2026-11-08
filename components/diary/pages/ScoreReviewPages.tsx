@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Gift, Users } from "lucide-react";
+import { diaryPersonHref, diaryReviewHref } from "@/lib/diary/links";
 import { occasionPlural, tiltFor } from "@/lib/diary/present";
 import type { GiftingScore } from "@/lib/diary/gifting-score";
 import type { YearReview, YearSummary } from "@/lib/diary/memories";
@@ -33,7 +34,7 @@ export function ScorePage({ score, streak, summary, year }: { score: GiftingScor
 }
 
 /** The year in review: a few numbers, the people who made it special, and a way to share it (numbers only). */
-export function ReviewPage({ year, review, people, themeId }: { year: number; review: YearReview; people: ReviewPerson[]; themeId?: string }) {
+export function ReviewPage({ year, review, people, themeId, preview = false }: { year: number; review: YearReview; people: ReviewPerson[]; themeId?: string; preview?: boolean }) {
   const fav = review.favouriteOccasion;
   const empty = review.giftsGiven === 0 && review.momentsRemembered === 0;
   return (
@@ -63,13 +64,13 @@ export function ReviewPage({ year, review, people, themeId }: { year: number; re
             <div className="dy-hide-short mt-6">
               <p className="dy-hand-b text-[1.4rem] leading-none">The people who made {year} special <HeartDoodle className="text-[0.6em]" /></p>
               <ul className="mt-4 flex flex-wrap gap-x-3 gap-y-4">
-                {people.slice(0, 5).map((p, i) => <li key={p.id} className="w-[5.6rem] shrink-0"><Polaroid href={`/diary/people/${p.id}`} name={p.name} photoUrl={p.photoUrl} tilt={tiltFor(i, 2.4)} tape={i % 2 ? "sage" : "blush"} caption={<span className="!text-[1.05rem]">{p.name}</span>} className="[--photo-ratio:1/1] !p-1 !pb-0.5" /></li>)}
+                {people.slice(0, 5).map((p, i) => <li key={p.id} className="w-[5.6rem] shrink-0"><Polaroid href={diaryPersonHref(p.id, preview)} name={p.name} photoUrl={p.photoUrl} tilt={tiltFor(i, 2.4)} tape={i % 2 ? "sage" : "blush"} caption={<span className="!text-[1.05rem]">{p.name}</span>} className="[--photo-ratio:1/1] !p-1 !pb-0.5" /></li>)}
               </ul>
             </div>
           ) : null}
           <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
             <ShareYearButton text={shareTextFor(review)} title="My gifting year" />
-            <Link href={`/diary/review?year=${year}`} className="dy-link">See the whole year →</Link>
+            <Link href={diaryReviewHref(year, preview)} className="dy-link">See the whole year →</Link>
           </div>
         </>
       )}

@@ -15,10 +15,27 @@
 // checkbox refers to, so it has to be readable before the applicant has an account.
 export const VENDOR_PUBLIC_PATHS = ["/vendor/register", "/vendor/terms"];
 
+export const DIARY_PATH = "/diary";
+/** The sample diary guests may explore. It must never read the signed-in user's rows. */
+export const DIARY_PREVIEW_PATH = "/diary/preview";
+
+export function isDiaryPreviewPath(pathname: string) {
+  return pathname === DIARY_PREVIEW_PATH || pathname.startsWith(`${DIARY_PREVIEW_PATH}/`);
+}
+
+export function isDiaryPath(pathname: string) {
+  return pathname === DIARY_PATH || pathname.startsWith(`${DIARY_PATH}/`);
+}
+
+/** A sign-in link that returns the visitor to `redirectTo` (the real diary by default, not the sample). */
+export function signInHref(redirectTo = DIARY_PATH) {
+  return `/sign-in?redirectTo=${encodeURIComponent(redirectTo)}`;
+}
+
 export function isProtectedCustomerPath(pathname: string) {
   return (
     pathname.startsWith("/account") ||
-    pathname.startsWith("/diary") ||
+    (isDiaryPath(pathname) && !isDiaryPreviewPath(pathname)) ||
     pathname.startsWith("/checkout") ||
     pathname.startsWith("/orders") ||
     pathname.startsWith("/notifications")

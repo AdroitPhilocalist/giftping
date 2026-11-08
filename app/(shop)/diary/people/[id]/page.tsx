@@ -20,7 +20,7 @@ import { buildDiaryView } from "@/lib/diary/view";
 import { signedDiaryPhotoUrls } from "@/lib/storage/diary-photos";
 import { getActiveTheme } from "@/lib/theme/active";
 
-export const metadata = { title: "Diary — GiftPing" };
+export const metadata = { title: "Diary — GiftPing", robots: { index: false, follow: false } };
 
 export default async function PersonPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ event?: string; welcome?: string }> }) {
   const { id } = await params;

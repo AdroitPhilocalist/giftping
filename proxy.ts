@@ -1,7 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isAdminPath, isAuthPath, isProtectedCustomerPath, isVendorPath } from "@/lib/auth/paths";
+import {
+  DIARY_PATH,
+  DIARY_PREVIEW_PATH,
+  isAdminPath,
+  isAuthPath,
+  isDiaryPreviewPath,
+  isProtectedCustomerPath,
+  isVendorPath,
+} from "@/lib/auth/paths";
+import { isNoIndexQuery } from "@/lib/seo/crawl";
 
 const CSP_HEADER = "Content-Security-Policy";
 
@@ -66,6 +75,13 @@ export async function proxy(request: NextRequest) {
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  const { pathname } = request.nextUrl;
+  // Tell the root layout to render data-hero-header on pages that bleed a photo behind the
+  // fixed header (homepage and vendor storefronts), so the glass header is present in the
+  // server HTML instead of relying on a client-side useEffect that can flash on production.
+  if (pathname === "/" || pathname.startsWith("/vendors/")) {
+    requestHeaders.set("x-hero-path", "true");
+  }
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set(CSP_HEADER, csp);
@@ -90,7 +106,17 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
+  // The sample diary is a demo, not a customer page. Its metadata says noindex too, but the header
+  // also covers RSC payloads and anything that bypasses the HTML head.
+  if (isDiaryPreviewPath(pathname)) {
+    response.headers.set("X-Robots-Tag", "noindex, follow");
+  }
+
+  // Filter/sort/page variants are duplicate catalogue URLs. Cover HTML and RSC responses here, not
+  // only in page metadata: GoogleOther has already been observed fetching `.rsc` filter payloads.
+  if (isNoIndexQuery(pathname, request.nextUrl.search)) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
 
   // Carries any refreshed session cookies (set above via setAll) onto a redirect response too —
   // those cookies live on `response`, so returning a bare NextResponse.redirect() would drop them.
@@ -103,6 +129,22 @@ export async function proxy(request: NextRequest) {
 
   if (user && isAuthPath(pathname)) {
     return redirect(new URL("/", request.url));
+  }
+
+  // The diary is the product's signature feature, so a signed-out visitor who asks for it gets the
+  // read-only sample book instead of a sign-in wall. Saving anything still needs an account: every
+  // action inside the preview links to sign-in with the REAL diary as its destination.
+  if (!user && (pathname === DIARY_PATH || pathname === `${DIARY_PATH}/`)) {
+    const preview = new URL(DIARY_PREVIEW_PATH, request.url);
+    request.nextUrl.searchParams.forEach((value, key) => preview.searchParams.set(key, value));
+    return redirect(preview);
+  }
+
+  // Signed-in readers should never stay in the sample; the same ?p= spread opens in their own book.
+  if (user && isDiaryPreviewPath(pathname)) {
+    const diary = new URL(DIARY_PATH, request.url);
+    request.nextUrl.searchParams.forEach((value, key) => diary.searchParams.set(key, value));
+    return redirect(diary);
   }
 
   const needsAuth = isProtectedCustomerPath(pathname) || isVendorPath(pathname) || isAdminPath(pathname);

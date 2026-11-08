@@ -6,6 +6,7 @@ import { DateRibbon } from "./DateRibbon";
 import { Sprig } from "./art/Sprig";
 import { SectionTitle } from "./book/SectionTitle";
 import { RobinSleeping } from "./EmptyStates";
+import { diaryPersonHref } from "@/lib/diary/links";
 import { PLAN_COPY, PLAN_STEPS, stepIndex, type PlanStatus } from "@/lib/diary/plans";
 import { daysLabel, tiltFor } from "@/lib/diary/present";
 import type { MomentCardData } from "@/lib/diary/ui-types";
@@ -17,7 +18,7 @@ const NOTE_TONES = ["dy-note--cream", "dy-note--peach", "dy-note--sage"] as cons
 /** "Next 3 special moments": torn paper tickets, tilted like they were pinned by hand. The nearest one you haven't sorted offers "Choose a gift". */
 export interface TicketPlan { eventId: string; daysAway: number; status: PlanStatus; giftName: string | null }
 
-export function MomentTickets({ moments, themeId, addAction, className, plans = [] }: { moments: MomentCardData[]; themeId?: string; addAction?: React.ReactNode; className?: string; /** gift plans in progress: a ticket whose plan is under way says so instead of "Choose a gift" */ plans?: TicketPlan[] }) {
+export function MomentTickets({ moments, themeId, addAction, className, plans = [], preview = false }: { moments: MomentCardData[]; themeId?: string; addAction?: React.ReactNode; className?: string; /** gift plans in progress: a ticket whose plan is under way says so instead of "Choose a gift" */ plans?: TicketPlan[]; preview?: boolean }) {
   const shown = moments.slice(0, 3);
   const firstOpen = shown.findIndex((m) => !m.handled);
   return (
@@ -32,7 +33,7 @@ export function MomentTickets({ moments, themeId, addAction, className, plans = 
             return (
             <li key={m.key} className="dy-in" style={{ ["--in-delay" as string]: `${140 + i * 110}ms` } as CSSProperties}>
               <Link
-                href={`/diary/people/${m.contactId}?event=${m.eventId}#plan`}
+                href={diaryPersonHref(m.contactId, preview, m.eventId)}
                 className={cn("dy-note block h-full min-h-[10.5rem] pb-4 pt-5 xl:min-h-0 xl:pb-3 xl:pt-4", NOTE_TONES[i % 3])}
                 style={{ ["--tilt" as string]: `${tiltFor(i, 1.8)}deg`, ["--torn" as string]: `var(--dy-torn-${(i % 4) + 1})` } as CSSProperties}
               >
